@@ -1,8 +1,8 @@
 # PLAN: SCYDE: Photo & Video Editor
 
 ## Status
-- DONE (Phase 0 pipeline + Phase 1 core, written blind, NOT yet compiled by CI): XcodeGen `project.yml`, `Core` package with unit tests, app icon, fonts, CI that builds an unsigned IPA, simulator screenshots and a `ci-results` branch.
-- NEXT: push, make CI green, then Phase 2 onward. First action of the next session: `git fetch origin ci-results` and fix whatever `SUMMARY.md` reports.
+- DONE and green in CI (commit 7ed7f71): Phase 0 pipeline + Phase 1 core. 31/31 Core tests pass, simulator and device builds succeed, unsigned `SCYDE.ipa` is on the `latest` release, screenshots land on `ci-results`. The app is still a splash shell (wordmark only).
+- NEXT: Phase 2 (design system, Home, Editor, Export sheet, import) per the UI/UX spec below.
 
 ## Scope and honesty
 - Target: every core feature of a CapCut-class editor, implemented natively. Not copied: CapCut name, logo, UI art, effect/template/music libraries (ByteDance IP and cloud services). We ship our own assets and let users import theirs.
@@ -61,4 +61,4 @@ Principles: one-handed, thumb zone, content first, chrome quiet, everything undo
 - Licensing: only own/CC0 assets; fonts here are SIL OFL.
 
 ## Prompt to paste into Claude Code (web)
-"Read CLAUDE.md and PLAN.md. Enter plan mode. First `git fetch origin ci-results` and make the current CI green (read SUMMARY.md and the logs, fix compile errors and failing tests, push, repeat). Then do Phase 2 per the UI/UX spec, using the real design tokens from CLAUDE.md. After each push, read the screenshots from `ci-results` and iterate until they match the spec."
+"Read CLAUDE.md and PLAN.md. Enter plan mode. Do Phase 2 per the UI/UX spec, using the real design tokens from CLAUDE.md. After each push, read the screenshots from `ci-results` and iterate until they match the spec."

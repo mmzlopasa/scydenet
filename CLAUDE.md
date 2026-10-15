@@ -13,7 +13,7 @@ Distribution: unsigned .ipa built by GitHub Actions, signed and installed on-dev
 - Sessions run on Linux in the cloud. There is NO Xcode, NO Swift toolchain and NO simulator locally. You write Swift blind; the compiler is GitHub Actions on `macos-15`.
 - The proxy blocks the Actions API (`gh run ...` fails). The feedback loop is instead:
   1. `git push` to `main` (workflow `.github/workflows/build.yml` runs).
-  2. Wait ~6-10 min, then `git fetch origin ci-results && git show origin/ci-results:SUMMARY.md`.
+  2. Wait ~6-10 min, then `git fetch origin ci-results && git show FETCH_HEAD:SUMMARY.md` (the clone is shallow, so use `FETCH_HEAD`, not `origin/ci-results`). Extract a screenshot with `git show FETCH_HEAD:screenshots/home-dark.png > /tmp/x.png`.
   3. That orphan branch holds `SUMMARY.md` (all `error:` lines), `core-tests.log`, `build-sim.log`, `build-device.log`, and `screenshots/*.png` (simulator captures of Home, Editor and Export in dark and light).
   4. Read the screenshots with the Read tool and judge the UI before reporting it done.
   5. The Checks API still works: `gh api repos/mmzlopasa/scydenet/commits/<sha>/check-runs`.
