@@ -1,0 +1,116 @@
+name: Build SCYDE
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'reference/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare output folder
+        run: mkdir -p ci-out/screenshots
+
+      - name: Select Xcode
+        run: scripts/ci/select-xcode.sh
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Core unit tests
+        id: tests
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          swift test --package-path Core 2>&1 | tee ci-out/core-tests.log
+
+      - name: Build for simulator
+        id: simbuild
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          UDID_DEST='generic/platform=iOS Simulator'
+          xcodebuild -project SCYDE.xcodeproj -scheme SCYDE -configuration Debug \
+            -destination "$UDID_DEST" -derivedDataPath build-sim \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee ci-out/build-sim.log
+
+      - name: Screenshots
+        if: steps.simbuild.outcome == 'success'
+        continue-on-error: true
+        run: scripts/ci/screenshots.sh build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app ci-out/screenshots 2>&1 | tee ci-out/screenshots.log
+
+      - name: Build device IPA (unsigned)
+        id: devbuild
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          xcodebuild -project SCYDE.xcodeproj -scheme SCYDE -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath build-dev \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build 2>&1 | tee ci-out/build-device.log
+          rm -rf Payload && mkdir Payload
+          cp -R build-dev/Build/Products/Release-iphoneos/SCYDE.app Payload/
+          zip -qry SCYDE.ipa Payload
+          ls -la SCYDE.ipa
+
+      - name: Summarise
+        if: always()
+        run: |
+          {
+            echo "# CI summary for ${GITHUB_SHA}"
+            echo
+            echo "- core tests: ${{ steps.tests.outcome }}"
+            echo "- simulator build: ${{ steps.simbuild.outcome }}"
+            echo "- device build + ipa: ${{ steps.devbuild.outcome }}"
+            echo
+            for f in ci-out/*.log; do
+              [ -f "$f" ] || continue
+              echo "## errors in $f"
+              grep -E "error:|error •|Fatal error|XCTAssert|failed \(" "$f" | sort -u | head -80 || true
+              echo
+            done
+          } > ci-out/SUMMARY.md
+          # Emit annotations so failures are visible in the Checks API too.
+          grep -hE "error:" ci-out/*.log 2>/dev/null | sort -u | head -30 | while read -r line; do echo "::error::${line}"; done || true
+          # Keep full logs bounded.
+          for f in ci-out/*.log; do [ -f "$f" ] && tail -n 400 "$f" > "$f.tail" && mv "$f.tail" "$f"; done || true
+
+      - name: Upload IPA artifact
+        if: steps.devbuild.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SCYDE-ipa
+          path: SCYDE.ipa
+
+      - name: Publish latest release
+        if: steps.devbuild.outcome == 'success'
+        run: |
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest SCYDE.ipa --prerelease --target "${GITHUB_SHA}" \
+            --title "SCYDE latest build" \
+            --notes "Unsigned .ipa for Feather. Built from ${GITHUB_SHA}."
+
+      - name: Publish CI results branch
+        if: always()
+        run: scripts/ci/publish-results.sh
+
+      - name: Fail if the build failed
+        if: steps.simbuild.outcome != 'success' || steps.devbuild.outcome != 'success' || steps.tests.outcome != 'success'
+        run: exit 1

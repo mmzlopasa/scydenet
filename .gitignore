@@ -1,0 +1,10 @@
+*.xcodeproj
+Config/Info.plist
+build*/
+ci-out/
+SCYDE.ipa
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+.DS_Store
