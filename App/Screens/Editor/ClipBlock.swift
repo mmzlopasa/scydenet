@@ -90,7 +90,7 @@ struct ClipBlock: View {
             }
         }
         .foregroundColor(foreground)
-        .padding(.horizontal, selected ? 14 : 8)
+        .padding(.horizontal, selected ? 22 : 8)
         .padding(.vertical, height >= 40 ? 7 : 0)
         .frame(maxHeight: .infinity, alignment: height >= 40 ? .topLeading : .leading)
     }

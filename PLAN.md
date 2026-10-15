@@ -2,7 +2,8 @@
 
 ## Status
 - DONE and green in CI (commit 7ed7f71): Phase 0 pipeline + Phase 1 core. 31/31 Core tests pass, simulator and device builds succeed, unsigned `SCYDE.ipa` is on the `latest` release, screenshots land on `ci-results`. The app is still a splash shell (wordmark only).
-- NEXT: Phase 2 (design system, Home, Editor, Export sheet, import) per the UI/UX spec below.
+- DONE (commit after 75e76e7): Phase 2 UI. Home, Editor (centre-playhead timeline, trim/move/snap, tool dock, undo/redo), Export sheet and PhotosPicker import. Verified in simulator screenshots for dark and light; gestures, import and haptics are NOT verified on a device yet.
+- NEXT: Phase 3 (composition engine + AVPlayer preview with audio) to replace the still-frame FrameProvider.
 
 ## Scope and honesty
 - Target: every core feature of a CapCut-class editor, implemented natively. Not copied: CapCut name, logo, UI art, effect/template/music libraries (ByteDance IP and cloud services). We ship our own assets and let users import theirs.
@@ -61,4 +62,4 @@ Principles: one-handed, thumb zone, content first, chrome quiet, everything undo
 - Licensing: only own/CC0 assets; fonts here are SIL OFL.
 
 ## Prompt to paste into Claude Code (web)
-"Read CLAUDE.md and PLAN.md. Enter plan mode. Do Phase 2 per the UI/UX spec, using the real design tokens from CLAUDE.md. After each push, read the screenshots from `ci-results` and iterate until they match the spec."
+"Read CLAUDE.md and PLAN.md. Enter plan mode. Do the next phase listed under Status. After each push, read SUMMARY.md and the screenshots from `ci-results` and iterate until the acceptance criteria pass."

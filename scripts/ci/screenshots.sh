@@ -36,8 +36,8 @@ shot() {
 shot home-dark   -scydeDemo YES -scydeTheme dark  -scydeScreen home
 shot home-light  -scydeDemo YES -scydeTheme light -scydeScreen home
 shot home-empty-dark -scydeTheme dark -scydeScreen home
-shot editor-dark  -scydeDemo YES -scydeTheme dark  -scydeScreen editor -scydePlayhead 3.2 -scydeSelect 1
-shot editor-light -scydeDemo YES -scydeTheme light -scydeScreen editor -scydePlayhead 3.2 -scydeSelect 1
+shot editor-dark  -scydeDemo YES -scydeTheme dark  -scydeScreen editor -scydePlayhead 4.1 -scydeSelect 1
+shot editor-light -scydeDemo YES -scydeTheme light -scydeScreen editor -scydePlayhead 4.1 -scydeSelect 1
 shot editor-empty-dark -scydeTheme dark -scydeScreen editor
 shot export-dark  -scydeDemo YES -scydeTheme dark  -scydeScreen export
 shot export-light -scydeDemo YES -scydeTheme light -scydeScreen export

@@ -111,7 +111,7 @@ struct ExportSheet: View {
             .frame(width: 60, height: 60)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("\(width) × \(height)")
+                Text(verbatim: "\(width) × \(height)")
                     .font(.mono(20, medium: true))
                     .foregroundColor(SX.C.ink)
                 Text("\(settings.fps) fps · \(settings.codec.label) · \(Timecode.short(model.duration))")
