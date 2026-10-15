@@ -120,7 +120,10 @@ private struct PreviewCanvas: View {
             let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
             ZStack {
                 shape.fill(Color.black)
-                if let image = model.previewImage {
+                if model.hasPlayer {
+                    PlayerLayerView(player: model.player)
+                        .frame(width: w, height: h)
+                } else if let image = model.previewImage {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()

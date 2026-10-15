@@ -1,3 +1,4 @@
+import AVFoundation
 import PhotosUI
 import QuartzCore
 import SwiftUI
@@ -8,7 +9,7 @@ import SCYDECore
 final class EditorViewModel: ObservableObject {
     @Published private(set) var history: History<Project>
     @Published var playhead: Double = 0 {
-        didSet { if playhead != oldValue { schedulePreview() } }
+        didSet { if playhead != oldValue { playheadChanged() } }
     }
     @Published var selection: UUID?
     @Published var pxPerSecond: CGFloat = 64
@@ -29,13 +30,21 @@ final class EditorViewModel: ObservableObject {
     var project: Project { history.present }
 
     private let onSave: (Project) -> Void
-    private let frames = FrameProvider()
     private let fallbackFrame: UIImage?
-    private var playTask: Task<Void, Never>?
     private var glideTask: Task<Void, Never>?
     private var saveTask: Task<Void, Never>?
-    private var previewInFlight = false
-    private var previewDirty = false
+
+    // Playback
+    let player = AVPlayer()
+    @Published private(set) var hasPlayer = false
+    private let builder = CompositionBuilder()
+    private var rebuildTask: Task<Void, Never>?
+    private var timeObserver: Any?
+    private var endObserver: NSObjectProtocol?
+    private var isSeeking = false
+    private var pendingSeek: Double?
+    private var playerDrivesPlayhead = false
+    private var autoplayPending = false
     private var dirty = false
     private var lastSnapped = false
 
@@ -43,6 +52,10 @@ final class EditorViewModel: ObservableObject {
         self.history = History(project)
         self.onSave = onSave
         self.fallbackFrame = Launch.demo ? Demo.previewImage() : nil
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+        player.actionAtItemEnd = .pause
+        installObservers()
+        scheduleRebuild(immediately: true)
     }
 
     // MARK: Lifecycle
@@ -54,7 +67,8 @@ final class EditorViewModel: ObservableObject {
            i >= 0, i < main.clips.count {
             selection = main.clips[i].id
         }
-        schedulePreview()
+        updateFallbackPreview()
+        if Launch.autoplay { autoplayPending = true }
         if Launch.screen == "export" {
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 900_000_000)
@@ -106,7 +120,8 @@ final class EditorViewModel: ObservableObject {
         if playhead > duration { playhead = duration }
         dirty = true
         scheduleSave()
-        schedulePreview()
+        updateFallbackPreview()
+        scheduleRebuild()
     }
 
     func undo() {
@@ -244,34 +259,18 @@ final class EditorViewModel: ObservableObject {
 
     func togglePlay() {
         if isPlaying { stopPlayback(); return }
-        guard duration > 0 else {
-            showToast("Import media to play")
+        guard hasPlayer else {
+            showToast(duration > 0 ? "Preparing preview" : "Import media to play")
             return
         }
         glideTask?.cancel()
-        if playhead >= duration - 0.02 { playhead = 0 }
+        if playhead >= duration - 0.05 { playhead = 0 }
         isPlaying = true
-        playTask = Task { [weak self] in
-            var last = CACurrentMediaTime()
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 16_000_000)
-                guard let self = self, !Task.isCancelled else { return }
-                let now = CACurrentMediaTime()
-                let next = self.playhead + (now - last)
-                last = now
-                if next >= self.duration {
-                    self.playhead = self.duration
-                    self.stopPlayback()
-                    return
-                }
-                self.playhead = next
-            }
-        }
+        player.play()
     }
 
     func stopPlayback() {
-        playTask?.cancel()
-        playTask = nil
+        player.pause()
         if isPlaying { isPlaying = false }
     }
 
@@ -325,25 +324,116 @@ final class EditorViewModel: ObservableObject {
         scheduleSave()
     }
 
-    // MARK: Preview frames (throttled: at most one request in flight)
+    // MARK: Playback engine
 
-    func schedulePreview() {
-        previewDirty = true
-        guard !previewInFlight else { return }
-        runPreview()
+    var hasPlayableMedia: Bool {
+        project.tracks.contains { track in track.clips.contains { $0.assetID != nil } }
     }
 
-    private func runPreview() {
-        previewDirty = false
-        previewInFlight = true
-        let time = playhead
-        let snapshot = project
-        Task { [weak self] in
-            guard let self = self else { return }
-            let image = await self.frames.frame(for: snapshot, at: time, fallback: self.fallbackFrame)
-            self.previewImage = image
-            self.previewInFlight = false
-            if self.previewDirty { self.runPreview() }
+    private func playheadChanged() {
+        updateFallbackPreview()
+        if !playerDrivesPlayhead { seekPlayer(to: playhead) }
+    }
+
+    /// Demo fixtures have no media; show the drawn frame where a clip is.
+    private func updateFallbackPreview() {
+        guard let frame = fallbackFrame else { return }
+        let image: UIImage? = project.clip(at: playhead, role: .main) != nil ? frame : nil
+        if previewImage !== image { previewImage = image }
+    }
+
+    private func installObservers() {
+        let interval = CMTime(value: 1, timescale: 60)
+        timeObserver = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            let seconds = time.seconds
+            Task { @MainActor [weak self] in
+                self?.playerTimeChanged(seconds)
+            }
+        }
+        endObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.playerReachedEnd()
+            }
+        }
+    }
+
+    private func playerTimeChanged(_ seconds: Double) {
+        guard isPlaying, seconds.isFinite else { return }
+        playerDrivesPlayhead = true
+        playhead = min(max(seconds, 0), duration)
+        playerDrivesPlayhead = false
+    }
+
+    private func playerReachedEnd() {
+        guard isPlaying else { return }
+        stopPlayback()
+        playerDrivesPlayhead = true
+        playhead = duration
+        playerDrivesPlayhead = false
+    }
+
+    /// Chase-seek: never queue more than one seek, always land on the latest target.
+    private func seekPlayer(to seconds: Double) {
+        guard player.currentItem != nil else { return }
+        pendingSeek = seconds
+        guard !isSeeking else { return }
+        performSeek()
+    }
+
+    private func performSeek() {
+        guard let target = pendingSeek else { return }
+        pendingSeek = nil
+        isSeeking = true
+        let time = CMTime(seconds: max(0, target), preferredTimescale: 600)
+        player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.isSeeking = false
+                if self.pendingSeek != nil { self.performSeek() }
+            }
+        }
+    }
+
+    private func scheduleRebuild(immediately: Bool = false) {
+        rebuildTask?.cancel()
+        rebuildTask = Task { [weak self] in
+            if !immediately {
+                try? await Task.sleep(nanoseconds: 120_000_000)
+            }
+            guard let self = self, !Task.isCancelled else { return }
+            let snapshot = self.project
+            let size = ExportSettings(resolution: .p720).pixelSize(for: snapshot.aspect)
+            let built = await self.builder.build(snapshot, renderSize: CGSize(width: size.width, height: size.height))
+            guard !Task.isCancelled else { return }
+            self.install(built)
+        }
+    }
+
+    private func install(_ built: CompositionBuilder.Output?) {
+        guard let built = built else {
+            stopPlayback()
+            player.replaceCurrentItem(with: nil)
+            hasPlayer = false
+            return
+        }
+        let wasPlaying = isPlaying
+        let item = AVPlayerItem(asset: built.composition)
+        item.videoComposition = built.videoComposition
+        item.audioMix = built.audioMix
+        player.replaceCurrentItem(with: item)
+        hasPlayer = true
+        isSeeking = false
+        pendingSeek = playhead
+        performSeek()
+        if wasPlaying {
+            player.play()
+        } else if autoplayPending {
+            autoplayPending = false
+            togglePlay()
         }
     }
 

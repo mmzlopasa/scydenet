@@ -29,7 +29,7 @@ shot() {
   local name="$1"; shift
   xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
   xcrun simctl launch "$UDID" "$BUNDLE" "$@" >/dev/null
-  sleep 5
+  sleep "${SLEEP:-5}"
   xcrun simctl io "$UDID" screenshot "$OUT/$name.png" || echo "screenshot failed: $name"
 }
 
@@ -41,6 +41,12 @@ shot editor-light -scydeDemo YES -scydeTheme light -scydeScreen editor -scydePla
 shot editor-empty-dark -scydeTheme dark -scydeScreen editor
 shot export-dark  -scydeDemo YES -scydeTheme dark  -scydeScreen export
 shot export-light -scydeDemo YES -scydeTheme light -scydeScreen export
+
+# Real media: generated video + photo exercise the composition, compositor and player.
+SLEEP=9 shot media-portrait  -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5
+SLEEP=9 shot media-photo     -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 4.0
+SLEEP=9 shot media-landscape -scydeSampleMedia YES -scydeTheme light -scydePlayhead 6.5 -scydeSelect 2
+SLEEP=8 shot media-playing   -scydeSampleMedia YES -scydeTheme dark -scydeAutoplay YES
 
 xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
 # Keep the repo small: downscale to 900px wide.

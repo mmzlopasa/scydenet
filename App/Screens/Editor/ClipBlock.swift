@@ -19,7 +19,12 @@ struct ClipBlock: View {
         }
     }
 
+    private var hasFilmstrip: Bool {
+        clip.assetID != nil && (clip.kind == .video || clip.kind == .photo)
+    }
+
     private var foreground: Color {
+        if hasFilmstrip { return .white }
         switch clip.kind {
         case .audio: return SX.C.onClipDark
         case .text: return SX.C.onClip
@@ -40,9 +45,15 @@ struct ClipBlock: View {
         let shape = RoundedRectangle(cornerRadius: 9, style: .continuous)
         let blockWidth = max(width - 2, 4)
         ZStack(alignment: .topLeading) {
-            shape.fill(LinearGradient(colors: [colors.0, colors.1], startPoint: .top, endPoint: .bottom))
-            LinearGradient(colors: [Color.white.opacity(0.28), Color.white.opacity(0)], startPoint: .top, endPoint: .center)
-                .clipShape(shape)
+            if let assetID = clip.assetID, hasFilmstrip {
+                Filmstrip(clip: clip, assetID: assetID, width: blockWidth, height: height)
+                LinearGradient(colors: [Color.black.opacity(0.55), Color.black.opacity(0)], startPoint: .top, endPoint: .center)
+                LinearGradient(colors: [Color.black.opacity(0), Color.black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
+            } else {
+                shape.fill(LinearGradient(colors: [colors.0, colors.1], startPoint: .top, endPoint: .bottom))
+                LinearGradient(colors: [Color.white.opacity(0.28), Color.white.opacity(0)], startPoint: .top, endPoint: .center)
+                    .clipShape(shape)
+            }
             if clip.kind == .audio {
                 WaveDecoration()
                     .fill(SX.C.onClipDark.opacity(0.18))

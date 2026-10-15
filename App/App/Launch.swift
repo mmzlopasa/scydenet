@@ -19,6 +19,12 @@ enum Launch {
         defaults.object(forKey: "scydeSelect") == nil ? nil : defaults.integer(forKey: "scydeSelect")
     }
 
+    /// Generate real sample media (video + photo) and open it in the editor. CI only.
+    static var sampleMedia: Bool { defaults.bool(forKey: "scydeSampleMedia") }
+
+    /// Start playback as soon as the preview is ready. CI only.
+    static var autoplay: Bool { defaults.bool(forKey: "scydeAutoplay") }
+
     /// True when any automation flag is present (disables decorative animation for stable screenshots).
-    static var isAutomation: Bool { screen != nil || demo }
+    static var isAutomation: Bool { screen != nil || demo || sampleMedia }
 }

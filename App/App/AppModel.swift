@@ -48,7 +48,7 @@ final class AppModel: ObservableObject {
 
     init() {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        isDemo = Launch.demo
+        isDemo = Launch.demo || Launch.sampleMedia
         store = ProjectStore(directory: docs.appendingPathComponent("Projects", isDirectory: true))
         if let t = Launch.theme, let a = Appearance(rawValue: t) {
             appearance = a
@@ -56,7 +56,12 @@ final class AppModel: ObservableObject {
             appearance = Appearance(rawValue: UserDefaults.standard.string(forKey: "appearance") ?? "") ?? .auto
         }
         reload()
-        if Launch.screen == "editor" || Launch.screen == "export" {
+        if Launch.sampleMedia {
+            Task { [weak self] in
+                let project = await SampleMedia.makeProject()
+                self?.openProject = project
+            }
+        } else if Launch.screen == "editor" || Launch.screen == "export" {
             openProject = isDemo ? Demo.editorProject() : Project(name: "Project 1")
         }
     }
