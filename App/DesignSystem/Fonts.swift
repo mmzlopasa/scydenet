@@ -38,3 +38,13 @@ extension Font {
         fixed ? .custom(name, fixedSize: size) : .custom(name, size: size)
     }
 }
+
+extension String {
+    /// Looks the string up in Localizable.strings (English text is the key).
+    var loc: String { NSLocalizedString(self, comment: "") }
+
+    /// Localized format string, e.g. "Imported %d of %d".
+    func locf(_ args: CVarArg...) -> String {
+        String(format: NSLocalizedString(self, comment: ""), arguments: args)
+    }
+}

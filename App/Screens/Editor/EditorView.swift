@@ -302,7 +302,7 @@ private struct ImportingOverlay: View {
                     .progressViewStyle(.circular)
                     .tint(SX.C.accent)
                     .scaleEffect(1.2)
-                Text(text)
+                Text(text.loc)
                     .font(.ui(14, .medium, fixed: true))
                     .foregroundColor(SX.C.ink)
             }

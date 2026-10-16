@@ -167,7 +167,7 @@ struct CollageView: View {
 
     private func labeledSlider(_ title: String, value: Binding<Double>, range: ClosedRange<Double>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title.uppercased())
+            Text(title.loc.uppercased())
                 .font(.mono(9.5, medium: true))
                 .tracking(1.2)
                 .foregroundColor(SX.C.muted)

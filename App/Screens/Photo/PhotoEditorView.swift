@@ -220,7 +220,7 @@ struct PhotoEditorView: View {
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .strokeBorder(filter == preset.id ? SX.C.accent : Color.clear, lineWidth: 2)
                             )
-                            Text(preset.name)
+                            Text(preset.name.loc)
                                 .font(.ui(11.5, .medium, fixed: true))
                                 .foregroundColor(filter == preset.id ? SX.C.ink : SX.C.body)
                         }
@@ -299,7 +299,7 @@ struct PhotoEditorView: View {
 
     private func adjustSlider(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, neutral: Double) -> some View {
         HStack(spacing: 12) {
-            Text(title)
+            Text(title.loc)
                 .font(.ui(13, .medium, fixed: true))
                 .foregroundColor(SX.C.ink)
                 .frame(width: 78, alignment: .leading)

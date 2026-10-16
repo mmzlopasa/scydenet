@@ -76,14 +76,14 @@ struct TransformSheet: View {
 
     private func keyframeHint(_ c: Clip) -> String {
         let count = c.keyframes?.count ?? 0
-        if count == 0 { return "Add a keyframe, move the playhead, change the values and add another: SCYDE animates between them." }
-        return "\(count) keyframe\(count == 1 ? "" : "s"). Changes at the playhead create or update a keyframe."
+        if count == 0 { return "Add a keyframe, move the playhead, change the values and add another: SCYDE animates between them.".loc }
+        return (count == 1 ? "1 keyframe. Changes at the playhead create or update a keyframe." : "%d keyframes. Changes at the playhead create or update a keyframe.".locf(count)).loc
     }
 
     private func slider(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, id: UUID) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(title)
+                Text(title.loc)
                     .font(.ui(14, .medium, fixed: true))
                     .foregroundColor(SX.C.ink)
                 Spacer()
@@ -195,7 +195,7 @@ struct TransitionSheet: View {
                         RoundedRectangle(cornerRadius: SX.R.m, style: .continuous)
                             .strokeBorder(selected ? Color.clear : SX.C.line2, lineWidth: 1)
                     )
-                Text(title)
+                Text(title.loc)
                     .font(.ui(11.5, .medium, fixed: true))
                     .foregroundColor(SX.C.body)
             }
@@ -255,7 +255,7 @@ struct VolumeSheet: View {
     private func row(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, format: String, scale: Double) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(title)
+                Text(title.loc)
                     .font(.ui(14, .medium, fixed: true))
                     .foregroundColor(SX.C.ink)
                 Spacer()
@@ -336,7 +336,7 @@ struct ChromaSheet: View {
         } label: {
             HStack(spacing: 8) {
                 Circle().fill(color).frame(width: 18, height: 18)
-                Text(title)
+                Text(title.loc)
                     .font(.ui(15, .semibold, fixed: true))
                     .foregroundColor(SX.C.ink)
             }

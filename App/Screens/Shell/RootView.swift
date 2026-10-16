@@ -109,7 +109,7 @@ private struct TabBar: View {
                         Image(systemName: selected ? tab.selectedIcon : tab.icon)
                             .font(.system(size: 20, weight: selected ? .semibold : .regular))
                             .frame(height: 26)
-                        Text(tab.title)
+                        Text(tab.title.loc)
                             .font(.ui(10.5, .medium, fixed: true))
                     }
                     .foregroundColor(selected ? SX.C.ink : SX.C.muted)
@@ -163,7 +163,7 @@ struct FilterChip: View {
 
     var body: some View {
         Button(action: action) {
-            Text(title)
+            Text(title.loc)
                 .font(.ui(14, .medium, fixed: true))
                 .foregroundColor(selected ? SX.C.ink : SX.C.body)
                 .padding(.horizontal, 16)
@@ -195,7 +195,7 @@ struct UnderlineTabs<Item: Hashable>: View {
                     withAnimation(SX.spring) { selection = item }
                 } label: {
                     VStack(spacing: 9) {
-                        Text(title(item))
+                        Text(title(item).loc)
                             .font(.ui(17, selected ? .semibold : .regular, fixed: true))
                             .foregroundColor(selected ? SX.C.ink : SX.C.muted)
                         Capsule()
@@ -222,7 +222,7 @@ struct SearchField: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(SX.C.muted)
-            TextField(placeholder, text: $text)
+            TextField(placeholder.loc, text: $text)
                 .font(.ui(16))
                 .foregroundColor(SX.C.ink)
                 .textInputAutocapitalization(.never)

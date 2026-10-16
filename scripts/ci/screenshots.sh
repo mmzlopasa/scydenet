@@ -63,6 +63,9 @@ SLEEP=14 shot sheet-cover   -scydeSampleMedia YES -scydeTheme dark -scydePlayhea
 shot sheet-speed   -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSelect 1 -scydeSheet speed
 shot sheet-text    -scydeDemo YES -scydeTheme light -scydeScreen editor -scydeSheet text
 shot photo-empty   -scydeTheme dark -scydeScreen photo
+shot hr-edit     -scydeDemo YES -scydeTheme dark  -scydeTab edit -AppleLanguages "(hr)" -AppleLocale hr_HR
+shot hr-editor   -scydeDemo YES -scydeTheme dark  -scydeScreen editor -scydeSelect 1 -AppleLanguages "(hr)" -AppleLocale hr_HR
+shot hr-settings -scydeTheme light -scydeScreen settings -AppleLanguages "(hr)" -AppleLocale hr_HR
 SLEEP=10 shot sheet-transform  -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSelect 0 -scydeSheet transform
 SLEEP=10 shot sheet-transition -scydeSampleMedia YES -scydeTheme light -scydePlayhead 3.2 -scydeSelect 1 -scydeSheet transition
 shot sheet-volume  -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSelect 1 -scydeSheet volume

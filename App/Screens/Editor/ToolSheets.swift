@@ -13,11 +13,11 @@ struct SheetHeader: View {
     var body: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
+                Text(title.loc)
                     .font(.display(22))
                     .foregroundColor(SX.C.ink)
                 if let subtitle = subtitle {
-                    Text(subtitle)
+                    Text(subtitle.loc)
                         .font(.ui(13))
                         .foregroundColor(SX.C.body)
                 }
@@ -97,7 +97,7 @@ struct TextSheet: View {
                     .padding(16)
                     .sxCard(radius: SX.R.l)
                 Button {
-                    if editing { model.updateText(text) } else { model.addText(text) }
+                    if editing { model.updateText(text.loc) } else { model.addText(text.loc) }
                     dismiss()
                 } label: {
                     Text(editing ? "Save text" : "Add to timeline")
@@ -186,7 +186,7 @@ struct LookSheet: View {
                                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                                 .strokeBorder(filter == preset.id ? SX.C.accent : Color.clear, lineWidth: 2)
                                         )
-                                        Text(preset.name)
+                                        Text(preset.name.loc)
                                             .font(.ui(11.5, .medium, fixed: true))
                                             .foregroundColor(filter == preset.id ? SX.C.ink : SX.C.body)
                                     }
@@ -261,7 +261,7 @@ struct LookSheet: View {
     private func slider(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, neutral: Double) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(title)
+                Text(title.loc)
                     .font(.ui(14, .medium, fixed: true))
                     .foregroundColor(SX.C.ink)
                 Spacer()
@@ -357,7 +357,7 @@ struct VoiceOverSheet: View {
 
     private func begin() async {
         guard await recorder.requestPermission() else {
-            error = "Allow microphone access for SCYDE in Settings."
+            error = "Allow microphone access for SCYDE in Settings.".loc
             return
         }
         do {
@@ -365,7 +365,7 @@ struct VoiceOverSheet: View {
             try recorder.start()
             Haptics.medium()
         } catch {
-            self.error = "Recording could not start."
+            self.error = "Recording could not start.".loc
         }
     }
 
@@ -398,7 +398,7 @@ struct VoiceFXSheet: View {
                                 Image(systemName: preset.icon)
                                     .font(.system(size: 22, weight: .medium))
                                     .foregroundColor(SX.C.accent)
-                                Text(preset.title)
+                                Text(preset.title.loc)
                                     .font(.ui(13, .medium, fixed: true))
                                     .foregroundColor(SX.C.ink)
                             }

@@ -97,9 +97,9 @@ enum Captioner {
 
         var errorDescription: String? {
             switch self {
-            case .denied: return "Allow speech recognition for SCYDE in Settings to create captions."
-            case .unavailable: return "On-device speech recognition is not available for this language on this iPhone."
-            case .noSpeech: return "No speech was found in this project."
+            case .denied: return "Allow speech recognition for SCYDE in Settings to create captions.".loc
+            case .unavailable: return "On-device speech recognition is not available for this language on this iPhone.".loc
+            case .noSpeech: return "No speech was found in this project.".loc
             }
         }
     }
@@ -204,7 +204,7 @@ enum VoicePreset: String, CaseIterable, Identifiable {
 enum VoiceFX {
     enum Failure: LocalizedError {
         case render
-        var errorDescription: String? { "The voice effect could not be rendered." }
+        var errorDescription: String? { "The voice effect could not be rendered.".loc }
     }
 
     /// Renders `input` through the preset into a new media file and returns its asset ID.

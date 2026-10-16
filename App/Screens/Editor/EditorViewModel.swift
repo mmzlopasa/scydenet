@@ -334,7 +334,7 @@ final class EditorViewModel: ObservableObject {
             }
             Haptics.success()
             if added.count < items.count {
-                self.showToast("Imported \(added.count) of \(items.count)")
+                self.showToast("Imported %d of %d".locf(added.count, items.count))
             }
         }
     }

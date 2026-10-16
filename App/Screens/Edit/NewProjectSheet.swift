@@ -96,7 +96,7 @@ struct FormatCard: View {
                     Text(aspect.label)
                         .font(.mono(13, medium: true))
                         .foregroundColor(SX.C.ink)
-                    Text(caption)
+                    Text(caption.loc)
                         .font(.ui(11, fixed: true))
                         .foregroundColor(SX.C.muted)
                 }

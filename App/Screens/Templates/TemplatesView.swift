@@ -156,7 +156,7 @@ private struct TemplateCard: View {
                             .padding(10)
                     }
                     .shadow(color: SX.C.shadow, radius: 16, x: 0, y: 10)
-                Text(template.name)
+                Text(template.name.loc)
                     .font(.ui(16, .semibold))
                     .foregroundColor(SX.C.ink)
                     .lineLimit(1)
@@ -191,10 +191,10 @@ private struct TemplateSheet: View {
                         .clipShape(RoundedRectangle(cornerRadius: SX.R.xl, style: .continuous))
                         .shadow(color: SX.C.shadow, radius: 24, x: 0, y: 14)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(template.name)
+                        Text(template.name.loc)
                             .font(.display(28))
                             .foregroundColor(SX.C.ink)
-                        Text(template.summary)
+                        Text(template.summary.loc)
                             .font(.ui(15))
                             .foregroundColor(SX.C.body)
                     }
@@ -256,11 +256,11 @@ private struct TemplateSheet: View {
 
     private func detail(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(title.uppercased())
+            Text(title.loc.uppercased())
                 .font(.mono(9.5, medium: true))
                 .tracking(1.2)
                 .foregroundColor(SX.C.muted)
-            Text(value)
+            Text(value.loc)
                 .font(.ui(16, .semibold, fixed: true))
                 .foregroundColor(SX.C.ink)
         }

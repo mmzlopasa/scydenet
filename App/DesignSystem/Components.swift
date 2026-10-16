@@ -176,7 +176,7 @@ struct SectionLabel: View {
             Text("·")
                 .font(.mono(11))
                 .foregroundColor(SX.C.muted)
-            Text(title.uppercased())
+            Text(title.loc.uppercased())
                 .font(.mono(11, medium: true))
                 .tracking(1.4)
                 .foregroundColor(SX.C.muted)
@@ -203,7 +203,7 @@ struct Eyebrow: View {
             RoundedRectangle(cornerRadius: 2)
                 .fill(SX.C.accent)
                 .frame(width: 2, height: 14)
-            Text(text)
+            Text(text.loc)
                 .font(.ui(13, .medium))
                 .foregroundColor(SX.C.body)
         }
@@ -228,10 +228,10 @@ struct ChipRow<Item: Hashable>: View {
                     onSelect(item)
                 } label: {
                     VStack(spacing: 3) {
-                        Text(title(item))
+                        Text(title(item).loc)
                             .font(.ui(14, .semibold, fixed: true))
                         if let caption = caption, let text = caption(item) {
-                            Text(text)
+                            Text(text.loc)
                                 .font(.mono(9))
                                 .opacity(0.75)
                         }
@@ -266,7 +266,7 @@ struct ToastView: View {
     let text: String
 
     var body: some View {
-        Text(text)
+        Text(text.loc)
             .font(.ui(13, .medium, fixed: true))
             .foregroundColor(SX.C.ink)
             .padding(.horizontal, 16)

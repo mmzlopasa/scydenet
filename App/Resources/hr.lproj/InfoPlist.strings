@@ -1,0 +1,4 @@
+"NSPhotoLibraryUsageDescription" = "SCYDE čita fotke i videe koje odabereš kako bi ih mogao uređivati. Ništa se ne šalje.";
+"NSPhotoLibraryAddUsageDescription" = "SCYDE sprema tvoje gotove radove u galeriju.";
+"NSMicrophoneUsageDescription" = "SCYDE koristi mikrofon za snimanje glasa preko videa.";
+"NSSpeechRecognitionUsageDescription" = "SCYDE koristi prepoznavanje govora na uređaju za izradu titlova.";

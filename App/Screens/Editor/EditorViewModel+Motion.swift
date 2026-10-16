@@ -162,7 +162,7 @@ extension EditorViewModel {
             }
             return true
         }
-        showToast("Imported \(cues.count) subtitles")
+        showToast("Imported %d subtitles".locf(cues.count))
         Haptics.success()
     }
 }

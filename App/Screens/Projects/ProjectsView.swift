@@ -105,7 +105,7 @@ struct ProjectsView: View {
             }
             Menu {
                 Picker("Sort", selection: $sort) {
-                    ForEach(SortOrder.allCases) { Text($0.rawValue).tag($0) }
+                    ForEach(SortOrder.allCases) { Text($0.rawValue.loc).tag($0) }
                 }
             } label: {
                 GlassIcon(systemName: "ellipsis")

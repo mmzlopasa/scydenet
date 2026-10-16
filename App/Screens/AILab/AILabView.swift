@@ -42,10 +42,10 @@ struct AILabView: View {
                                     .foregroundColor(SX.C.ink)
                                     .frame(width: 26)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(feature.title)
+                                    Text(feature.title.loc)
                                         .font(.ui(16, .medium))
                                         .foregroundColor(SX.C.ink)
-                                    Text(feature.detail)
+                                    Text(feature.detail.loc)
                                         .font(.ui(12.5))
                                         .foregroundColor(SX.C.muted)
                                 }

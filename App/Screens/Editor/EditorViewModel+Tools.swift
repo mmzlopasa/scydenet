@@ -157,7 +157,7 @@ extension EditorViewModel {
             showToast("Select an audio clip first")
             return
         }
-        busyMessage = "Applying \(preset.title)"
+        busyMessage = "Applying %@".locf(preset.title.loc)
         defer { busyMessage = nil }
         do {
             let result = try await VoiceFX.render(input: MediaStore.url(for: assetID), preset: preset)
@@ -202,7 +202,7 @@ extension EditorViewModel {
                 }
                 return true
             }
-            showToast("Added \(lines.count) captions")
+            showToast("Added %d captions".locf(lines.count))
             Haptics.success()
         } catch {
             showToast(error.localizedDescription)
@@ -271,7 +271,7 @@ extension EditorViewModel {
             }
             return changed
         }
-        showToast(removed > 0 ? "Removed \(removed) silent parts" : "No long silences found")
+        showToast(removed > 0 ? "Removed %d silent parts".locf(removed) : "No long silences found")
         if removed > 0 { Haptics.success() }
     }
 

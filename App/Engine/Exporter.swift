@@ -53,13 +53,13 @@ final class Exporter: ObservableObject {
             renderSize: CGSize(width: size.width, height: size.height),
             fps: settings.fps
         ) else {
-            state = .failed("Nothing to export yet. Add a video or photo first.")
+            state = .failed("Nothing to export yet. Add a video or photo first.".loc)
             return
         }
 
         let preset = settings.codec == .hevc ? AVAssetExportPresetHEVCHighestQuality : AVAssetExportPresetHighestQuality
         guard let session = AVAssetExportSession(asset: built.composition, presetName: preset) else {
-            state = .failed("This iPhone cannot export with \(settings.codec.label).")
+            state = .failed("This iPhone cannot export with %@.".locf(settings.codec.label))
             return
         }
 
@@ -98,7 +98,7 @@ final class Exporter: ObservableObject {
         case .cancelled:
             state = .idle
         default:
-            state = .failed(session.error?.localizedDescription ?? "Export failed.")
+            state = .failed(session.error?.localizedDescription ?? "Export failed.".loc)
         }
         self.session = nil
     }
@@ -107,7 +107,7 @@ final class Exporter: ObservableObject {
         guard case let .finished(url) = state else { return }
         let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard status == .authorized || status == .limited else {
-            state = .failed("Allow SCYDE to add to Photos in Settings to save videos.")
+            state = .failed("Allow SCYDE to add to Photos in Settings to save videos.".loc)
             return
         }
         do {

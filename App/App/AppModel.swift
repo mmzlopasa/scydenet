@@ -89,7 +89,7 @@ final class AppModel: ObservableObject {
     }
 
     func createProject(aspect: CanvasAspect) {
-        let project = Project(name: "Project \(projects.count + 1)", aspect: aspect)
+        let project = Project(name: "Project %d".locf(projects.count + 1), aspect: aspect)
         save(project)
         reload()
         openProject = project
@@ -129,10 +129,10 @@ final class AppModel: ObservableObject {
         Haptics.light()
         if let recent = projects.first {
             open(recent)
-            showToast("\(name) is in the editor toolbar")
+            showToast("%@ is in the editor toolbar".locf(name.loc))
         } else {
             showNewProject = true
-            showToast("Create a project, then use \(name)")
+            showToast("Create a project, then use %@".locf(name.loc))
         }
     }
 

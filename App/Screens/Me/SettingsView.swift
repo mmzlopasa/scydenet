@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import SCYDECore
 
 struct SettingsView: View {
@@ -32,15 +33,27 @@ struct SettingsView: View {
 
                 sectionTitle("Preferences")
                 VStack(spacing: 0) {
-                    row("App language") {
-                        value("English")
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        row("App language") {
+                            HStack(spacing: 6) {
+                                value(Bundle.main.preferredLocalizations.first == "hr" ? "Croatian" : "English")
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(SX.C.muted)
+                            }
+                        }
                     }
+                    .buttonStyle(.plain)
                     divider
                     row("Appearance") {
                         Menu {
                             Picker("Appearance", selection: $app.appearance) {
                                 ForEach(AppModel.Appearance.allCases) { option in
-                                    Label(option.label, systemImage: option.icon).tag(option)
+                                    Label(option.label.loc, systemImage: option.icon).tag(option)
                                 }
                             }
                         } label: {
@@ -127,7 +140,7 @@ struct SettingsView: View {
     // MARK: Row helpers
 
     private func sectionTitle(_ text: String) -> some View {
-        Text(text)
+        Text(text.loc)
             .font(.display(21))
             .foregroundColor(SX.C.ink)
             .padding(.bottom, 12)
@@ -144,14 +157,14 @@ struct SettingsView: View {
     }
 
     private func value(_ text: String) -> some View {
-        Text(text)
+        Text(text.loc)
             .font(.ui(15))
             .foregroundColor(SX.C.muted)
     }
 
     private func row<Trailing: View>(_ title: String, @ViewBuilder trailing: () -> Trailing) -> some View {
         HStack {
-            Text(title)
+            Text(title.loc)
                 .font(.ui(16))
                 .foregroundColor(SX.C.ink)
             Spacer()

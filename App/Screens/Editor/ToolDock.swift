@@ -151,7 +151,7 @@ private struct ToolItem: View {
                     .foregroundColor(prominent ? SX.C.onAccent : (destructive ? SX.C.err : SX.C.ink))
             }
             .frame(width: 46, height: 46)
-            Text(title)
+            Text(title.loc)
                 .font(.ui(11, .medium, fixed: true))
                 .foregroundColor(SX.C.body)
                 .lineLimit(1)

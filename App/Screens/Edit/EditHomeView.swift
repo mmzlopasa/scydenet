@@ -92,7 +92,7 @@ struct EditHomeView: View {
                     Menu {
                         Picker("Appearance", selection: $app.appearance) {
                             ForEach(AppModel.Appearance.allCases) { option in
-                                Label(option.label, systemImage: option.icon).tag(option)
+                                Label(option.label.loc, systemImage: option.icon).tag(option)
                             }
                         }
                     } label: {
@@ -164,7 +164,7 @@ struct EditHomeView: View {
                     .frame(width: 58, height: 58)
                     .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(SX.C.glass))
                     .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(SX.C.line2, lineWidth: 1))
-                Text(tool.title)
+                Text(tool.title.loc)
                     .font(.ui(13, .medium, fixed: true))
                     .foregroundColor(SX.C.body)
                     .multilineTextAlignment(.center)
@@ -225,14 +225,14 @@ private struct BigActionCard: View {
                         .frame(width: 46, height: 46)
                         .background(RoundedRectangle(cornerRadius: 13, style: .continuous).fill(SX.accentGradient))
                         .shadow(color: SX.C.accent.opacity(0.45), radius: 12, x: 0, y: 6)
-                    Text(title)
+                    Text(title.loc)
                         .font(.display(19))
                         .foregroundColor(SX.C.ink)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 150)
                 if let badge = badge {
-                    Text(badge)
+                    Text(badge.loc)
                         .font(.mono(10, medium: true))
                         .foregroundColor(SX.C.body)
                         .padding(.horizontal, 8)
