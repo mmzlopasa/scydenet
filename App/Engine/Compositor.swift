@@ -253,7 +253,8 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     if let m = mask { piece = Masks.apply(piece, m, canvas: canvas, offset: transform) }
                 }
                 if let clip = layer.clip, let effect = clip.effect {
-                    piece = Effects.apply(piece, Self.ramped(effect, clip, now), canvas: canvas, t: now - clip.start)
+                    // Keep colour and alpha in range so later blending cannot go negative.
+                    piece = Effects.apply(piece, Self.ramped(effect, clip, now), canvas: canvas, t: now - clip.start).sx("CIColorClamp")
                 }
                 if layer.isMain, let clip = layer.clip {
                     piece = Self.transition(piece, clip: clip, out: layer.outTransition, now: now, canvas: canvas)

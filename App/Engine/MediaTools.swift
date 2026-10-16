@@ -1,7 +1,6 @@
 import AVFoundation
 import CoreImage
 import NaturalLanguage
-import Vision
 import UIKit
 import SCYDECore
 
@@ -371,7 +370,8 @@ private final class SpeechFileBox: @unchecked Sendable {
     }
 }
 
-/// Measures camera shake with Vision and returns smoothing offsets.
+/// Measures camera shake by matching brightness profiles of consecutive frames and
+/// returns offsets that remove the shake but keep slow, intended camera moves.
 enum Stabilizer {
     enum Failure: LocalizedError {
         case noVideo, tooLong
@@ -390,14 +390,76 @@ enum Stabilizer {
         }.value
     }
 
+    /// Column and row brightness profiles of a BGRA frame, binned to `bin` pixels.
+    private struct Profiles {
+        var cols: [Float]
+        var rows: [Float]
+    }
+
+    private static let bin = 4
+
+    private static func profiles(_ pb: CVPixelBuffer) -> Profiles? {
+        CVPixelBufferLockBaseAddress(pb, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(pb, .readOnly) }
+        guard let base = CVPixelBufferGetBaseAddress(pb) else { return nil }
+        let w = CVPixelBufferGetWidth(pb), h = CVPixelBufferGetHeight(pb)
+        let stride = CVPixelBufferGetBytesPerRow(pb)
+        let p = base.assumingMemoryBound(to: UInt8.self)
+        let nc = w / bin, nr = h / bin
+        guard nc > 8, nr > 8 else { return nil }
+        var cols = [Float](repeating: 0, count: nc)
+        var rows = [Float](repeating: 0, count: nr)
+        // Sample every `bin`-th pixel in both directions.
+        for ry in 0..<nr {
+            let row = p + (ry * bin) * stride
+            var acc: Float = 0
+            for cx in 0..<nc {
+                let px = row + (cx * bin) * 4
+                let luma = 0.114 * Float(px[0]) + 0.587 * Float(px[1]) + 0.299 * Float(px[2])
+                cols[cx] += luma
+                acc += luma
+            }
+            rows[ry] = acc / Float(nc)
+        }
+        for i in cols.indices { cols[i] /= Float(nr) }
+        return Profiles(cols: cols, rows: rows)
+    }
+
+    /// Shift (in bins) that best maps `prev` onto `cur`: cur[i] ≈ prev[i - shift].
+    private static func shift(_ prev: [Float], _ cur: [Float]) -> Int {
+        let n = min(prev.count, cur.count)
+        let maxShift = max(2, n / 8)
+        func centred(_ v: [Float]) -> [Float] {
+            let m = v.reduce(0, +) / Float(max(v.count, 1))
+            return v.map { $0 - m }
+        }
+        let a = centred(Array(prev.prefix(n))), b = centred(Array(cur.prefix(n)))
+        var best = 0
+        var bestCost = Float.greatestFiniteMagnitude
+        for s in -maxShift...maxShift {
+            var cost: Float = 0
+            var count = 0
+            for i in max(0, s)..<min(n, n + s) {
+                cost += abs(b[i] - a[i - s])
+                count += 1
+            }
+            guard count > n / 2 else { continue }
+            let c = cost / Float(count)
+            if c < bestCost {
+                bestCost = c
+                best = s
+            }
+        }
+        return best
+    }
+
     private static func run(assetID: String, range: ClosedRange<Double>, strength: Double) async throws -> Stabilization {
         guard range.upperBound - range.lowerBound <= 121 else { throw Failure.tooLong }
         let asset = AVURLAsset(url: MediaStore.url(for: assetID))
         guard let track = try await asset.loadTracks(withMediaType: .video).first else { throw Failure.noVideo }
-        let size = try await track.load(.naturalSize)
         let reader = try AVAssetReader(asset: asset)
         let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
         ])
         output.alwaysCopiesSampleData = false
         reader.timeRange = CMTimeRange(
@@ -408,41 +470,37 @@ enum Stabilizer {
         reader.add(output)
         guard reader.startReading() else { throw reader.error ?? Failure.noVideo }
 
-        // Sample at up to 15 fps; register each sample against the previous one.
+        // Sample at up to 15 fps; compare each sample with the previous one.
         let rate = 15.0
         var times: [Double] = []
         var pathX: [Double] = []
         var pathY: [Double] = []
-        var cx = 0.0, cy = 0.0
-        var previous: CVPixelBuffer?
+        var px = 0.0, py = 0.0
+        var previous: Profiles?
         var nextSample = range.lowerBound
+        var width = 1.0, height = 1.0
         while let sample = output.copyNextSampleBuffer() {
             try Task.checkCancellation()
             let t = CMSampleBufferGetPresentationTimeStamp(sample).seconds
-            guard t + 0.0005 >= nextSample, let pb = CMSampleBufferGetImageBuffer(sample) else { continue }
+            guard t + 0.0005 >= nextSample, let pb = CMSampleBufferGetImageBuffer(sample),
+                  let prof = profiles(pb) else { continue }
             nextSample = t + 1 / rate
+            width = Double(CVPixelBufferGetWidth(pb))
+            height = Double(CVPixelBufferGetHeight(pb))
             if let prev = previous {
-                let request = VNTranslationalImageRegistrationRequest(targetedCVPixelBuffer: pb)
-                let handler = VNImageRequestHandler(cvPixelBuffer: prev, options: [:])
-                if (try? handler.perform([request])) != nil,
-                   let obs = request.results?.first as? VNImageTranslationAlignmentObservation {
-                    let m = obs.alignmentTransform
-                    // Ignore wild jumps (cuts or failed matches).
-                    if abs(m.tx) < size.width * 0.2 && abs(m.ty) < size.height * 0.2 {
-                        cx += Double(m.tx)
-                        cy += Double(m.ty)
-                    }
-                }
+                // Content moved right by sx and down by sy (buffer rows run top to bottom).
+                px += Double(shift(prev.cols, prof.cols) * bin)
+                py += Double(shift(prev.rows, prof.rows) * bin)
             }
-            // Keep a private copy: the reader reuses its buffers.
-            previous = copy(pb)
+            previous = prof
             times.append(t)
-            pathX.append(cx)
-            pathY.append(cy)
+            pathX.append(px)
+            pathY.append(py)
         }
+        reader.cancelReading()
         guard times.count > 3 else { throw Failure.noVideo }
 
-        // Smooth the camera path; the correction is the difference.
+        // Smooth the content path; the correction moves each frame back by the difference.
         let radius = max(2, Int((0.4 + 1.6 * min(max(strength, 0), 1)) * rate))
         func smooth(_ v: [Double]) -> [Double] {
             var out = [Double](repeating: 0, count: v.count)
@@ -458,26 +516,15 @@ enum Stabilizer {
         var dx: [Float] = [], dy: [Float] = []
         var maxShift = 0.0
         for i in times.indices {
-            // The registration transform moves each frame back onto the previous one, so the
-            // accumulated path undoes all motion; subtracting the smoothed path keeps intended moves.
-            let ox = (pathX[i] - sx[i]) / Double(max(size.width, 1))
-            let oy = (pathY[i] - sy[i]) / Double(max(size.height, 1))
+            // x: move left by the excess rightward motion. y: Core Image's y axis points up,
+            // so moving content back up means a positive offset.
+            let ox = -(pathX[i] - sx[i]) / width
+            let oy = (pathY[i] - sy[i]) / height
             maxShift = max(maxShift, abs(ox), abs(oy))
             dx.append(Float(ox))
             dy.append(Float(oy))
         }
-        let zoom = min(1.25, 1 + maxShift * 2 + 0.02)
+        let zoom = min(1.3, 1 + maxShift * 2 + 0.02)
         return Stabilization(start: times[0], rate: rate, dx: dx, dy: dy, zoom: zoom)
     }
-
-    private static func copy(_ src: CVPixelBuffer) -> CVPixelBuffer? {
-        let ci = CIImage(cvPixelBuffer: src)
-        var out: CVPixelBuffer?
-        CVPixelBufferCreate(kCFAllocatorDefault, CVPixelBufferGetWidth(src), CVPixelBufferGetHeight(src), kCVPixelFormatType_32BGRA, [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &out)
-        guard let dst = out else { return nil }
-        context.render(ci, to: dst)
-        return dst
-    }
-
-    private static let context = CIContext(options: [.cacheIntermediates: false])
 }

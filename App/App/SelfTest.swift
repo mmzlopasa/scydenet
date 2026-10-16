@@ -29,13 +29,17 @@ enum SelfTest {
             let dx = CGFloat(jitter[i])
             ctx.setFillColor(UIColor(white: 0.1, alpha: 1).cgColor)
             ctx.fill(CGRect(x: 0, y: 0, width: width, height: height))
-            // A textured scene so registration has something to lock on to.
-            for gx in 0..<16 {
-                for gy in 0..<9 {
-                    let hue = CGFloat((gx * 7 + gy * 13) % 20) / 20
-                    ctx.setFillColor(UIColor(hue: hue, saturation: 0.7, brightness: 0.9, alpha: 1).cgColor)
-                    ctx.fill(CGRect(x: CGFloat(gx * 48) + dx - 40, y: CGFloat(gy * 44) + 4, width: 30 + CGFloat(gy * 2), height: 26))
-                }
+            // An irregular scene (no repeating pattern) so matching has one clear answer.
+            var r: UInt64 = 7
+            for _ in 0..<70 {
+                r = r &* 6364136223846793005 &+ 1442695040888963407
+                let x = CGFloat(Int(r >> 33) % (width + 80)) - 40
+                r = r &* 6364136223846793005 &+ 1442695040888963407
+                let y = CGFloat(Int(r >> 33) % height)
+                r = r &* 6364136223846793005 &+ 1442695040888963407
+                let size = CGFloat(10 + Int(r >> 33) % 60)
+                ctx.setFillColor(UIColor(hue: CGFloat(Int(r >> 40) % 100) / 100, saturation: 0.6, brightness: 0.3 + CGFloat(Int(r >> 45) % 70) / 100, alpha: 1).cgColor)
+                ctx.fill(CGRect(x: x + dx, y: y, width: size, height: size * 0.7))
             }
         }) else { return "stabilise: could not write test video" }
         do {
@@ -59,7 +63,8 @@ enum SelfTest {
                 db += pow(got[k] - mg, 2)
             }
             let corr = num / max(sqrt(da * db), 1e-9)
-            return String(format: "stabilise: samples %d corr %.2f zoom %.2f %@", stab.dx.count, corr, stab.zoom, corr > 0.5 ? "OK" : "CHECK")
+            let gain = sqrt(db / max(da, 1e-9))
+            return String(format: "stabilise: n %d corr %.2f gain %.2f zoom %.2f %@", stab.dx.count, corr, gain, stab.zoom, corr > 0.8 && gain > 0.7 && gain < 1.3 ? "OK" : "CHECK")
         } catch {
             return "stabilise: \(error.localizedDescription)"
         }
