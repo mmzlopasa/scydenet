@@ -168,7 +168,7 @@ private struct PreviewCanvas: View {
             }
             .frame(width: w, height: h)
             .overlay(alignment: .topLeading) {
-                if Launch.isAutomation && !model.diagnostics.isEmpty {
+                if Launch.sampleMedia && !model.diagnostics.isEmpty {
                     Text(model.diagnostics)
                         .font(.mono(9))
                         .foregroundColor(.white)

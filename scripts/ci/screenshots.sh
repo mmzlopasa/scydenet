@@ -29,9 +29,14 @@ shot() {
   local name="$1"; shift
   xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
   xcrun simctl launch "$UDID" "$BUNDLE" "$@" >/dev/null
-  sleep "${SLEEP:-5}"
+  sleep "${SLEEP:-7}"
   xcrun simctl io "$UDID" screenshot "$OUT/$name.png" || echo "screenshot failed: $name"
 }
+
+# Warm-up launch: the first launch after boot is slow while the simulator finishes migrating data.
+xcrun simctl launch "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
+sleep 15
+xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
 
 shot tab-edit-dark       -scydeDemo YES -scydeTheme dark  -scydeTab edit
 shot tab-edit-light      -scydeDemo YES -scydeTheme light -scydeTab edit

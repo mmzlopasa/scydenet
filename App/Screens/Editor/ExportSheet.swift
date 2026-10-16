@@ -37,6 +37,10 @@ struct ExportSheet: View {
 
                     summary(width: size.width, height: size.height, estimate: estimate, settings: settings)
 
+                    VStack(spacing: 12) {
+                        exportControls
+                    }
+
                     VStack(alignment: .leading, spacing: 12) {
                         SectionLabel(index: "01", title: "Resolution")
                         ChipRow(
@@ -71,10 +75,6 @@ struct ExportSheet: View {
                         }
                     }
 
-                    VStack(spacing: 12) {
-                        exportControls
-                    }
-                    .padding(.top, 4)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 24)

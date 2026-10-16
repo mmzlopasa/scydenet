@@ -1,9 +1,14 @@
 # PLAN: SCYDE: Photo & Video Editor
 
 ## Status
-- DONE and green in CI (commit 7ed7f71): Phase 0 pipeline + Phase 1 core. 31/31 Core tests pass, simulator and device builds succeed, unsigned `SCYDE.ipa` is on the `latest` release, screenshots land on `ci-results`. The app is still a splash shell (wordmark only).
-- DONE (commit after 75e76e7): Phase 2 UI. Home, Editor (centre-playhead timeline, trim/move/snap, tool dock, undo/redo), Export sheet and PhotosPicker import. Verified in simulator screenshots for dark and light; gestures, import and haptics are NOT verified on a device yet.
-- NEXT: Phase 3 (composition engine + AVPlayer preview with audio) to replace the still-frame FrameProvider.
+- DONE, green in CI and checked in simulator screenshots:
+  - Phase 0-1: pipeline, Core model, undo/redo, JSON store (tests pass).
+  - Phase 2: design system and screens. Navigation is a tab bar (Edit, Templates, AI Lab, Projects, Me) plus Settings, modelled on the reference screenshots in SCYDE style.
+  - Phase 3: CompositionBuilder + SXCompositor (Core Image) + AVPlayer preview with chase-seek; filmstrip thumbnails. Note: source AVURLAssets must stay alive or inserts fail with -11800; photos and empty tails use a generated blank clip.
+  - Phase 5: export via AVAssetExportSession with the shared compositor, progress, cancel, save to Photos, share.
+  - Tools: speed, text/captions layer, filters + adjust + auto enhance, Vision background removal, on-device auto captions, AutoCut (silence removal), music from Files, voice-over recording, voice effects, cover maker, built-in templates, photo editor, collage.
+- NOT verified on a real device yet: gestures, microphone, speech recognition, Photos saving, export speed.
+- NEXT: keyframes/PiP transforms and transitions (Phases 7-8), real waveforms and beat markers (Phase 9), masks/chroma key (Phase 10), SRT import/export (Phase 11), HR localisation (Phase 13).
 
 ## Scope and honesty
 - Target: every core feature of a CapCut-class editor, implemented natively. Not copied: CapCut name, logo, UI art, effect/template/music libraries (ByteDance IP and cloud services). We ship our own assets and let users import theirs.
