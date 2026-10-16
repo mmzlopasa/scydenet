@@ -40,7 +40,10 @@ xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
 
 shot tab-edit-dark       -scydeDemo YES -scydeTheme dark  -scydeTab edit
 shot tab-edit-light      -scydeDemo YES -scydeTheme light -scydeTab edit
-shot tab-templates-dark  -scydeTheme dark  -scydeTab templates
+SLEEP=14 shot tab-templates-dark  -scydeTheme dark  -scydeTab templates
+SLEEP=12 shot template-sheet  -scydeTheme dark  -scydeTab templates -scydeSheet template:cars-0
+SLEEP=14 shot tab-templates-light -scydeTheme light -scydeTab templates -AppleLanguages "(hr)" -AppleLocale hr_HR
+shot sheet-stock -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSheet stock
 shot tab-ai-light        -scydeTheme light -scydeTab ai
 shot tab-projects-dark   -scydeDemo YES -scydeTheme dark  -scydeTab projects
 shot tab-projects-empty  -scydeTheme light -scydeTab projects

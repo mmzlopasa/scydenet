@@ -3,71 +3,71 @@ import SwiftUI
 import UIKit
 import SCYDECore
 
-/// A built-in project structure: a format plus clip slots with fixed lengths.
-struct ProjectTemplate: Identifiable, Hashable {
-    let id: String
-    let name: String
-    let summary: String
-    let aspect: CanvasAspect
-    let slots: [Double]
-    let colors: [UInt32]
-
-    var totalDuration: Double { slots.reduce(0, +) }
-
-    static let all: [ProjectTemplate] = [
-        ProjectTemplate(id: "slideshow", name: "Quick slideshow", summary: "Six moments, evenly paced.", aspect: .portrait9x16, slots: Array(repeating: 1.5, count: 6), colors: [0xC4BBFF, 0x5A49E6]),
-        ProjectTemplate(id: "trio", name: "Story trio", summary: "Three clips with room to breathe.", aspect: .portrait9x16, slots: [3, 3, 3], colors: [0xFFE7A0, 0xE9B84A]),
-        ProjectTemplate(id: "beat", name: "Beat cut", summary: "Eight fast cuts for music edits.", aspect: .portrait9x16, slots: Array(repeating: 0.8, count: 8), colors: [0xFFB4C0, 0x7A3A6A]),
-        ProjectTemplate(id: "wide", name: "Wide recap", summary: "Five shots for a landscape recap.", aspect: .landscape16x9, slots: Array(repeating: 2.5, count: 5), colors: [0xA9C8FF, 0x3D4FB8]),
-        ProjectTemplate(id: "square", name: "Square carousel", summary: "Four square frames, two seconds each.", aspect: .square1x1, slots: [2, 2, 2, 2], colors: [0x8EF0C8, 0x2B6F7A]),
-        ProjectTemplate(id: "reel", name: "Portrait reel", summary: "A 4:5 reel with a slower finish.", aspect: .portrait4x5, slots: [2, 2, 3, 2, 3], colors: [0xC4BBFF, 0xE9B84A]),
-        ProjectTemplate(id: "day", name: "Day in ten", summary: "Ten one-second snapshots.", aspect: .portrait9x16, slots: Array(repeating: 1, count: 10), colors: [0xFFD76A, 0x5A49E6]),
-        ProjectTemplate(id: "cinema", name: "Cinema open", summary: "Three wide 21:9 shots.", aspect: .cinema21x9, slots: [4, 3, 4], colors: [0x262A35, 0xFFD76A]),
-    ]
-}
-
 struct TemplatesView: View {
     @EnvironmentObject private var app: AppModel
     @State private var query = ""
-    @State private var filter: CanvasAspect?
+    @State private var category: TemplateCategory?
     @State private var chosen: ProjectTemplate?
 
-    private let filters: [(String, CanvasAspect?)] = [
-        ("All", nil), ("Vertical", .portrait9x16), ("Wide", .landscape16x9), ("Square", .square1x1), ("Portrait", .portrait4x5),
-    ]
-    private let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
+    private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     private var results: [ProjectTemplate] {
         ProjectTemplate.all.filter { t in
-            (filter == nil || t.aspect == filter) &&
-                (query.isEmpty || t.name.localizedCaseInsensitiveContains(query) || t.summary.localizedCaseInsensitiveContains(query))
+            (category == nil || t.category == category) &&
+                (query.isEmpty
+                    || t.name.localizedCaseInsensitiveContains(query)
+                    || t.summary.localizedCaseInsensitiveContains(query)
+                    || t.category.title.loc.localizedCaseInsensitiveContains(query))
         }
     }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .firstTextBaseline) {
                     Text("Templates")
                         .font(.display(30))
                         .foregroundColor(SX.C.ink)
-                    Text("Pick a structure, add your clips. Everything stays editable.")
-                        .font(.ui(14))
-                        .foregroundColor(SX.C.body)
+                    Spacer()
+                    Text("\(ProjectTemplate.all.count)")
+                        .font(.mono(12, medium: true))
+                        .foregroundColor(SX.C.muted)
                 }
                 .padding(.top, 12)
+                .padding(.horizontal, 16)
 
                 SearchField(placeholder: "Search templates", text: $query)
+                    .padding(.horizontal, 16)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(filters.indices, id: \.self) { i in
-                            FilterChip(title: filters[i].0, selected: filter == filters[i].1) {
+                        FilterChip(title: "All", selected: category == nil) {
+                            Haptics.selection()
+                            withAnimation(SX.spring) { category = nil }
+                        }
+                        ForEach(TemplateCategory.allCases) { c in
+                            Button {
                                 Haptics.selection()
-                                withAnimation(SX.spring) { filter = filters[i].1 }
+                                withAnimation(SX.spring) { category = c }
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: c.icon)
+                                        .font(.system(size: 12, weight: .semibold))
+                                    Text(c.title.loc)
+                                        .font(.ui(14, .medium, fixed: true))
+                                }
+                                .foregroundColor(category == c ? SX.C.ink : SX.C.body)
+                                .padding(.horizontal, 14)
+                                .frame(height: 36)
+                                .background(Capsule().fill(category == c ? SX.C.glass : Color.clear))
+                                .overlay(
+                                    Capsule().strokeBorder(category == c ? SX.C.ink.opacity(0.8) : SX.C.line2, lineWidth: category == c ? 1.5 : 1)
+                                )
                             }
+                            .buttonStyle(PressableStyle(scale: 0.95))
                         }
                     }
+                    .padding(.horizontal, 16)
                     .padding(.vertical, 2)
                 }
 
@@ -78,7 +78,7 @@ struct TemplatesView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.top, 40)
                 } else {
-                    LazyVGrid(columns: columns, spacing: 18) {
+                    LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(results) { template in
                             TemplateCard(template: template) {
                                 Haptics.light()
@@ -86,9 +86,9 @@ struct TemplatesView: View {
                             }
                         }
                     }
+                    .padding(.horizontal, 16)
                 }
             }
-            .padding(.horizontal, 20)
             .padding(.bottom, 24)
         }
         .background(SX.C.bg.ignoresSafeArea())
@@ -97,41 +97,14 @@ struct TemplatesView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
-    }
-}
-
-/// Procedural cover art: the template's colours plus one bar per clip slot.
-struct TemplateArt: View {
-    let template: ProjectTemplate
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            LinearGradient(
-                colors: template.colors.map { Color(UIColor(hex: $0)) },
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            RadialGradient(colors: [Color.white.opacity(0.35), .clear], center: .topTrailing, startRadius: 0, endRadius: 260)
-            GeometryReader { geo in
-                let r = CGFloat(template.aspect.ratio)
-                let maxW = geo.size.width * 0.62
-                let maxH = geo.size.height * 0.52
-                let w = min(maxW, maxH * r)
-                let h = w / r
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.85), lineWidth: 2)
-                    .frame(width: w, height: h)
-                    .position(x: geo.size.width / 2, y: geo.size.height * 0.42)
-            }
-            HStack(spacing: 3) {
-                ForEach(template.slots.indices, id: \.self) { _ in
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.white.opacity(0.85))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 8)
+        .onAppear {
+            if let name = Launch.sheet, name.hasPrefix("template:"),
+               let t = ProjectTemplate.all.first(where: { $0.id == String(name.dropFirst(9)) }) {
+                Task {
+                    try? await Task.sleep(nanoseconds: 600_000_000)
+                    chosen = t
                 }
             }
-            .padding(10)
         }
     }
 }
@@ -142,27 +115,43 @@ private struct TemplateCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
-                TemplateArt(template: template)
-                    .frame(height: 220)
+            VStack(alignment: .leading, spacing: 7) {
+                TemplatePreviewView(template: template)
+                    .frame(height: 252)
                     .clipShape(RoundedRectangle(cornerRadius: SX.R.l, style: .continuous))
                     .overlay(alignment: .topLeading) {
-                        Text("\(template.slots.count) clips")
-                            .font(.mono(10, medium: true))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Capsule().fill(Color.black.opacity(0.35)))
-                            .padding(10)
+                        HStack(spacing: 4) {
+                            Image(systemName: template.category.icon)
+                            Text(template.category.title.loc)
+                        }
+                        .font(.mono(9.5, medium: true))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.black.opacity(0.4)))
+                        .padding(9)
                     }
-                    .shadow(color: SX.C.shadow, radius: 16, x: 0, y: 10)
+                    .overlay(alignment: .bottomLeading) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "scissors")
+                            Text("\(template.slots.count)")
+                        }
+                        .font(.mono(10, medium: true))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.black.opacity(0.4)))
+                        .padding(9)
+                    }
+                    .shadow(color: SX.C.shadow, radius: 14, x: 0, y: 8)
                 Text(template.name.loc)
-                    .font(.ui(16, .semibold))
+                    .font(.ui(15, .semibold))
                     .foregroundColor(SX.C.ink)
                     .lineLimit(1)
-                Text("\(template.aspect.label) · \(Timecode.duration(template.totalDuration))")
-                    .font(.mono(11))
+                Text("\(template.aspect.label) · \(Timecode.duration(template.totalDuration))\(template.transition.map { " · " + $0.title.loc } ?? "")")
+                    .font(.mono(10.5))
                     .foregroundColor(SX.C.muted)
+                    .lineLimit(1)
             }
         }
         .buttonStyle(PressableStyle(scale: 0.97))
@@ -181,13 +170,21 @@ private struct TemplateSheet: View {
         ZStack {
             SX.C.bg.ignoresSafeArea()
             ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 16) {
                     HStack {
+                        HStack(spacing: 6) {
+                            Image(systemName: template.category.icon)
+                            Text(template.category.title.loc)
+                        }
+                        .font(.mono(11, medium: true))
+                        .foregroundColor(SX.C.accent)
                         Spacer()
                         GlassIconButton(systemName: "xmark", label: "Close", size: 36) { dismiss() }
                     }
-                    TemplateArt(template: template)
-                        .frame(height: 320)
+                    TemplatePreviewView(template: template)
+                        .aspectRatio(CGFloat(template.aspect.ratio), contentMode: .fit)
+                        .frame(maxHeight: 420)
+                        .frame(maxWidth: .infinity)
                         .clipShape(RoundedRectangle(cornerRadius: SX.R.xl, style: .continuous))
                         .shadow(color: SX.C.shadow, radius: 24, x: 0, y: 14)
                     VStack(alignment: .leading, spacing: 6) {
@@ -198,10 +195,14 @@ private struct TemplateSheet: View {
                             .font(.ui(15))
                             .foregroundColor(SX.C.body)
                     }
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         detail("Format", template.aspect.label)
                         detail("Clips", "\(template.slots.count)")
                         detail("Length", Timecode.duration(template.totalDuration))
+                    }
+                    HStack(spacing: 8) {
+                        detail("Transition", template.transition?.title.loc ?? "None".loc)
+                        detail("Look", (Looks.presets.first { $0.id == (template.filter ?? "original") }?.name ?? "Original").loc)
                     }
                     PhotosPicker(
                         selection: $items,
@@ -260,9 +261,11 @@ private struct TemplateSheet: View {
                 .font(.mono(9.5, medium: true))
                 .tracking(1.2)
                 .foregroundColor(SX.C.muted)
-            Text(value.loc)
-                .font(.ui(16, .semibold, fixed: true))
+            Text(value)
+                .font(.ui(15, .semibold, fixed: true))
                 .foregroundColor(SX.C.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)

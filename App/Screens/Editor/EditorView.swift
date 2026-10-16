@@ -70,9 +70,10 @@ struct EditorView: View {
                 case .transition: TransitionSheet(model: model)
                 case .volume: VolumeSheet(model: model)
                 case .chroma: ChromaSheet(model: model)
+                case .stock: StockSheet(model: model)
                 }
             }
-            .presentationDetents(sheet == .cover ? [.large] : [.medium, .large])
+            .presentationDetents(sheet == .cover || sheet == .stock ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Add audio", isPresented: $model.showAudioMenu, titleVisibility: .visible) {

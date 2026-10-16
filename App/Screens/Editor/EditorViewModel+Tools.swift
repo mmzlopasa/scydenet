@@ -4,7 +4,7 @@ import UIKit
 import SCYDECore
 
 enum EditorSheet: String, Identifiable {
-    case speed, text, look, voiceover, voiceFX, cover, transform, transition, volume, chroma
+    case speed, text, look, voiceover, voiceFX, cover, transform, transition, volume, chroma, stock
     var id: String { rawValue }
 }
 
@@ -140,6 +140,17 @@ extension EditorViewModel {
             self.selection = newID
             Haptics.success()
         }
+    }
+
+    func addStockClip(assetID: String, duration: Double, credit: String) {
+        var newID: UUID?
+        perform("Add stock video") { p in
+            newID = p.addClip(Clip(kind: .video, name: "Pexels · \(credit)", assetID: assetID, sourceDuration: duration, duration: duration), role: .main)
+            return true
+        }
+        selection = newID
+        Haptics.success()
+        showToast("Video by %@ on Pexels".locf(credit))
     }
 
     func addVoiceOver(assetID: String, duration: Double, at start: Double) {

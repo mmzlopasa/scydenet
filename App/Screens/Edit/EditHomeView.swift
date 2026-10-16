@@ -29,6 +29,9 @@ struct EditHomeView: View {
         Tool(id: "cover", icon: "photo.on.rectangle.angled", title: "Cover maker", action: .editorTool("Cover")),
         Tool(id: "collage", icon: "square.grid.2x2", title: "Collage", action: .collage),
         Tool(id: "templates", icon: "rectangle.stack", title: "Templates", action: .templates),
+        Tool(id: "stock", icon: "play.square.stack", title: "Stock videos", action: .editorTool("Stock")),
+        Tool(id: "photo", icon: "photo", title: "Photo editor", action: .photo(0)),
+        Tool(id: "captions2", icon: "text.bubble", title: "Subtitles", action: .editorTool("Text")),
     ]
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)

@@ -102,12 +102,25 @@ final class AppModel: ObservableObject {
             if let clip = await MediaImporter.clip(from: item) { clips.append(clip) }
         }
         guard !clips.isEmpty else { return false }
-        var project = Project(name: template.name, aspect: template.aspect)
+        var project = Project(name: template.name.loc, aspect: template.aspect)
         for (i, imported) in clips.enumerated() {
             var clip = imported
             let slot = template.slots[i % template.slots.count]
             clip.duration = min(slot, clip.sourceDuration ?? slot)
+            clip.filter = template.filter
+            if i > 0, let kind = template.transition {
+                clip.transitionIn = ClipTransition(kind: kind, duration: min(0.6, clip.duration))
+            }
+            if template.kenBurns && clip.kind == .photo {
+                clip.keyframes = [
+                    Keyframe(time: 0, transform: ClipTransform(scale: 1)),
+                    Keyframe(time: clip.duration, transform: ClipTransform(scale: 1.14)),
+                ]
+            }
             project.addClip(clip, role: .main)
+        }
+        if let title = template.title {
+            project.addClip(Clip(kind: .text, name: "Title", duration: min(2.2, project.duration), text: title), role: .text, at: 0)
         }
         save(project)
         reload()

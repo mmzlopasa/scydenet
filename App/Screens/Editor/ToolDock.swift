@@ -49,6 +49,7 @@ struct ToolDock: View {
         }
         .buttonStyle(PressableStyle())
         .accessibilityLabel("Add overlay")
+        ToolButton(icon: "play.square.stack", title: "Stock", enabled: true) { model.activeSheet = .stock }
         ToolButton(icon: "music.note", title: "Audio", enabled: true) { model.showAudioMenu = true }
         ToolButton(icon: "textformat", title: "Text", enabled: true) { model.activeSheet = .text }
         ToolButton(icon: "captions.bubble", title: "Captions", enabled: model.hasPlayableMedia) {
