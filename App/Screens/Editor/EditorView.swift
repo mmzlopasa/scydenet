@@ -66,6 +66,10 @@ struct EditorView: View {
                 case .voiceover: VoiceOverSheet(model: model)
                 case .voiceFX: VoiceFXSheet(model: model)
                 case .cover: CoverSheet(model: model)
+                case .transform: TransformSheet(model: model)
+                case .transition: TransitionSheet(model: model)
+                case .volume: VolumeSheet(model: model)
+                case .chroma: ChromaSheet(model: model)
                 }
             }
             .presentationDetents(sheet == .cover ? [.large] : [.medium, .large])
@@ -177,6 +181,7 @@ private struct PreviewCanvas: View {
                 }
             }
             .clipShape(shape)
+            .overlay(PreviewGestureLayer(model: model, size: CGSize(width: w, height: h)))
             .overlay(shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
             .shadow(color: Color.black.opacity(0.45), radius: 30, x: 0, y: 18)
             .position(x: geo.size.width / 2, y: geo.size.height / 2)
@@ -305,5 +310,95 @@ private struct ImportingOverlay: View {
             .padding(.vertical, 24)
             .sxCard(radius: SX.R.l)
         }
+    }
+}
+
+
+/// Drag, pinch and rotate the selected visual clip directly on the preview.
+private struct PreviewGestureLayer: View {
+    @ObservedObject var model: EditorViewModel
+    let size: CGSize
+    @State private var base: ClipTransform?
+    @State private var drag: CGSize = .zero
+    @State private var pinch: CGFloat = 1
+    @State private var turn: Angle = .zero
+
+    private var target: Clip? {
+        guard let c = model.selectedClip, c.kind == .video || c.kind == .photo else { return nil }
+        return c
+    }
+
+    var body: some View {
+        if let clip = target {
+            Color.clear
+                .contentShape(Rectangle())
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(SX.C.accent.opacity(0.7), style: StrokeStyle(lineWidth: 1.5, dash: [6, 5]))
+                )
+                .overlay(alignment: .bottom) {
+                    Text("Drag · pinch · rotate")
+                        .font(.mono(10, medium: true))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Color.black.opacity(0.45)))
+                        .padding(.bottom, 10)
+                        .allowsHitTesting(false)
+                }
+                .gesture(
+                    DragGesture(minimumDistance: 2)
+                        .onChanged { v in
+                            begin(clip)
+                            drag = v.translation
+                            push(clip)
+                        }
+                        .onEnded { _ in end(clip) }
+                )
+                .simultaneousGesture(
+                    MagnificationGesture()
+                        .onChanged { m in
+                            begin(clip)
+                            pinch = m
+                            push(clip)
+                        }
+                        .onEnded { _ in end(clip) }
+                )
+                .simultaneousGesture(
+                    RotationGesture()
+                        .onChanged { a in
+                            begin(clip)
+                            turn = a
+                            push(clip)
+                        }
+                        .onEnded { _ in end(clip) }
+                )
+        }
+    }
+
+    private func begin(_ clip: Clip) {
+        if base == nil { base = model.transformAtPlayhead(clip) }
+    }
+
+    private func current() -> ClipTransform? {
+        guard var t = base else { return nil }
+        t.x += Double(drag.width / max(size.width, 1))
+        t.y += Double(drag.height / max(size.height, 1))
+        t.scale = min(max(t.scale * Double(pinch), 0.1), 5)
+        t.rotation += turn.degrees
+        return t
+    }
+
+    private func push(_ clip: Clip) {
+        if let t = current() { model.liveTransform(clip.id, t) }
+    }
+
+    private func end(_ clip: Clip) {
+        guard let t = current() else { return }
+        base = nil
+        drag = .zero
+        pinch = 1
+        turn = .zero
+        model.applyTransform(clip.id, t)
     }
 }

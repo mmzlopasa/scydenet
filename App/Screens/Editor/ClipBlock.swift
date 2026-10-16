@@ -55,16 +55,47 @@ struct ClipBlock: View {
                     .clipShape(shape)
             }
             if clip.kind == .audio {
-                WaveDecoration()
-                    .fill(SX.C.onClipDark.opacity(0.18))
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 6)
+                if let assetID = clip.assetID {
+                    WaveformView(clip: clip, assetID: assetID)
+                        .padding(.horizontal, 2)
+                        .padding(.vertical, 5)
+                } else {
+                    WaveDecoration()
+                        .fill(SX.C.onClipDark.opacity(0.18))
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 6)
+                }
             }
             if blockWidth > 34 {
                 label
             }
         }
         .frame(width: blockWidth, height: height)
+        .overlay(alignment: .bottomLeading) {
+            if let frames = clip.keyframes, !frames.isEmpty {
+                ZStack(alignment: .bottomLeading) {
+                    ForEach(frames.indices, id: \.self) { i in
+                        Rectangle()
+                            .fill(SX.C.gold)
+                            .frame(width: 7, height: 7)
+                            .rotationEffect(.degrees(45))
+                            .overlay(Rectangle().stroke(Color.black.opacity(0.4), lineWidth: 1).rotationEffect(.degrees(45)))
+                            .offset(x: CGFloat(frames[i].time / max(clip.duration, 0.01)) * blockWidth - 3.5, y: -3)
+                    }
+                }
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if clip.transitionIn != nil || clip.chromaKey != nil || (clip.fadeIn ?? 0) > 0 || (clip.fadeOut ?? 0) > 0 {
+                HStack(spacing: 3) {
+                    if clip.chromaKey != nil { Image(systemName: "drop.halffull") }
+                    if (clip.fadeIn ?? 0) > 0 || (clip.fadeOut ?? 0) > 0 { Image(systemName: "waveform.path.ecg") }
+                }
+                .font(.system(size: 9, weight: .bold))
+                .foregroundColor(foreground)
+                .padding(5)
+            }
+        }
         .clipShape(shape)
         .overlay(
             shape.strokeBorder(selected ? SX.C.selection : Color.white.opacity(0.14), lineWidth: selected ? 2 : 1)
@@ -189,5 +220,32 @@ private struct WaveDecoration: Shape {
             )
         }
         return p
+    }
+}
+
+
+/// Real audio levels for the visible source range of a clip.
+private struct WaveformView: View {
+    let clip: Clip
+    let assetID: String
+    @State private var levels: [Float] = []
+
+    var body: some View {
+        Canvas { ctx, size in
+            guard !levels.isEmpty else { return }
+            let bars = max(Int(size.width / 3), 1)
+            let perSecond = 40.0
+            let span = clip.duration * clip.speed
+            for j in 0..<bars {
+                let t = clip.sourceIn + span * Double(j) / Double(bars)
+                let index = min(levels.count - 1, max(0, Int(t * perSecond)))
+                let h = max(2, CGFloat(levels[index]) * size.height)
+                let rect = CGRect(x: CGFloat(j) * 3, y: (size.height - h) / 2, width: 2, height: h)
+                ctx.fill(Path(roundedRect: rect, cornerRadius: 1), with: .color(SX.C.onClipDark.opacity(0.35)))
+            }
+        }
+        .task(id: assetID) {
+            levels = await WaveformCache.shared.levels(for: assetID)
+        }
     }
 }

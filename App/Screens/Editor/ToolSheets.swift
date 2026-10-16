@@ -1,6 +1,7 @@
 import Photos
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 import SCYDECore
 
 /// Shared header for tool sheets.
@@ -76,6 +77,7 @@ struct TextSheet: View {
     @ObservedObject var model: EditorViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
+    @State private var importingSRT = false
     @FocusState private var focused: Bool
 
     private var editing: Bool { model.selectedIsText }
@@ -102,13 +104,34 @@ struct TextSheet: View {
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                if !editing {
+                    Button {
+                        importingSRT = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "captions.bubble")
+                            Text("Import subtitles (.srt)")
+                        }
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                }
                 Spacer(minLength: 0)
             }
             .padding(20)
         }
         .onAppear {
             text = editing ? (model.selectedClip?.text ?? "") : ""
-            focused = true
+            focused = !Launch.isAutomation
+        }
+        .fileImporter(
+            isPresented: $importingSRT,
+            allowedContentTypes: [UTType(filenameExtension: "srt") ?? .plainText, .plainText],
+            allowsMultipleSelection: false
+        ) { result in
+            if case let .success(urls) = result, let url = urls.first {
+                model.importSubtitles(from: url)
+                dismiss()
+            }
         }
     }
 }

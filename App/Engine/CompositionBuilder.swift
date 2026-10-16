@@ -72,14 +72,15 @@ final class CompositionBuilder {
 
         for (role, vTrack, aTrack, params) in visualRoles {
             let clips = project.tracks.first(where: { $0.role == role })?.clips ?? []
-            for clip in clips where clip.kind == .video || clip.kind == .photo {
+            for (index, clip) in clips.enumerated() where clip.kind == .video || clip.kind == .photo {
+                let next = index + 1 < clips.count ? clips[index + 1] : nil
                 guard let assetID = clip.assetID else { continue }
                 let at = Self.ct(clip.start)
                 let length = Self.ct(clip.duration)
                 let range = CMTimeRange(start: at, duration: length)
 
                 if clip.kind == .photo {
-                    placed.append(PlacedLayer(range: range, layer: Self.layer(.photo(assetID: assetID), clip: clip, isMain: role == .main)))
+                    placed.append(PlacedLayer(range: range, layer: Self.layer(.photo(assetID: assetID), clip: clip, isMain: role == .main, next: next)))
                     if role == .main {
                         Self.pad(vTrack, to: at)
                         await fill(vTrack, at: at, length: length)
@@ -106,12 +107,12 @@ final class CompositionBuilder {
                 }
                 placed.append(PlacedLayer(
                     range: range,
-                    layer: Self.layer(.video(trackID: vTrack.trackID, orientation: src.orientation), clip: clip, isMain: role == .main)
+                    layer: Self.layer(.video(trackID: vTrack.trackID, orientation: src.orientation), clip: clip, isMain: role == .main, next: next)
                 ))
                 if let audio = src.audio {
                     Self.pad(aTrack, to: at)
                     if Self.insert(from: audio, sourceDuration: src.duration, clip: clip, into: aTrack, at: at, length: length) {
-                        params.setVolume(Float(clip.volume), at: at)
+                        Self.applyVolume(params, clip: clip, at: at, length: length)
                     }
                 }
             }
@@ -134,7 +135,7 @@ final class CompositionBuilder {
             let at = Self.ct(clip.start)
             Self.pad(musicA, to: at)
             if Self.insert(from: audio, sourceDuration: src.duration, clip: clip, into: musicA, at: at, length: Self.ct(clip.duration)) {
-                musicParams.setVolume(Float(clip.volume), at: at)
+                Self.applyVolume(musicParams, clip: clip, at: at, length: Self.ct(clip.duration))
             }
         }
 
@@ -199,14 +200,39 @@ final class CompositionBuilder {
         }
     }
 
-    private static func layer(_ source: SXLayer.Source, clip: Clip, isMain: Bool) -> SXLayer {
-        SXLayer(
+    private static func layer(_ source: SXLayer.Source, clip: Clip, isMain: Bool, next: Clip? = nil) -> SXLayer {
+        var out: Transition?
+        if isMain, let n = next, abs(n.start - clip.end) < 0.05 {
+            out = n.transitionIn
+        }
+        return SXLayer(
             source: source,
             isMain: isMain,
             filter: clip.filter,
             adjust: clip.adjust,
-            cutout: clip.removeBackground ?? false
+            cutout: clip.removeBackground ?? false,
+            clip: clip,
+            outTransition: out
         )
+    }
+
+    /// Volume with optional fade in/out ramps for one clip.
+    private static func applyVolume(_ params: AVMutableAudioMixInputParameters, clip: Clip, at: CMTime, length: CMTime) {
+        let v = Float(clip.volume)
+        let total = length.seconds
+        let fi = min(max(clip.fadeIn ?? 0, 0), total / 2)
+        let fo = min(max(clip.fadeOut ?? 0, 0), total / 2)
+        if fi > 0.01 {
+            params.setVolumeRamp(fromStartVolume: 0, toEndVolume: v, timeRange: CMTimeRange(start: at, duration: ct(fi)))
+        } else {
+            params.setVolume(v, at: at)
+        }
+        if fo > 0.01 {
+            let start = CMTimeAdd(at, ct(total - fo))
+            if fi <= 0.01 || total - fo > fi {
+                params.setVolumeRamp(fromStartVolume: v, toEndVolume: 0, timeRange: CMTimeRange(start: start, duration: ct(fo)))
+            }
+        }
     }
 
     /// Inserts the clip's source range (scaled for speed) at `at`. Returns false if nothing was inserted.

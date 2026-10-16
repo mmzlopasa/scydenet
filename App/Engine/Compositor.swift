@@ -31,6 +31,36 @@ struct SXLayer: Sendable {
     var filter: String? = nil
     var adjust: Adjustments? = nil
     var cutout: Bool = false
+    /// The clip this layer comes from (transform, keyframes, transitions, chroma key).
+    var clip: Clip? = nil
+    /// Transition into the next clip on the main track, played at the end of this one.
+    var outTransition: Transition? = nil
+}
+
+/// Transforms being dragged on the preview, read by the compositor every frame so
+/// gestures update without rebuilding the composition.
+final class LiveTransforms: @unchecked Sendable {
+    static let shared = LiveTransforms()
+    private let lock = NSLock()
+    private var values: [UUID: ClipTransform] = [:]
+
+    func set(_ id: UUID, _ t: ClipTransform?) {
+        lock.lock()
+        values[id] = t
+        lock.unlock()
+    }
+
+    func get(_ id: UUID) -> ClipTransform? {
+        lock.lock()
+        defer { lock.unlock() }
+        return values[id]
+    }
+
+    func clear() {
+        lock.lock()
+        values.removeAll()
+        lock.unlock()
+    }
 }
 
 /// Instruction covering a span where the set of visible clips does not change.
@@ -85,6 +115,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
     private let lock = NSLock()
     private var photoCache: [String: CIImage] = [:]
     private var textCache: [String: CIImage] = [:]
+    private var cubeCache: [String: Data] = [:]
     private var cancelled = false
     private lazy var segmentation: VNGeneratePersonSegmentationRequest = {
         let r = VNGeneratePersonSegmentationRequest()
@@ -155,6 +186,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         var image = CIImage(color: CIColor(red: 0, green: 0, blue: 0)).cropped(to: canvas)
 
         var missing = 0
+        let now = request.compositionTime.seconds
         if let instruction = request.videoCompositionInstruction as? SXInstruction {
             for layer in instruction.layers {
                 if case let .text(text) = layer.source {
@@ -171,12 +203,18 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     continue
                 }
                 source = Looks.apply(source, filter: layer.filter, adjust: layer.adjust)
-                if layer.cutout, let cut = personCutout(source) {
-                    // Person only: placed full-frame so it can sit over the main layer.
-                    image = Self.place(cut, in: canvas, fill: false).composited(over: image)
-                    continue
+                if let key = layer.clip?.chromaKey {
+                    source = chroma(source, key)
                 }
-                if layer.isMain {
+                var transform = ClipTransform.identity
+                if let clip = layer.clip {
+                    transform = LiveTransforms.shared.get(clip.id) ?? clip.transform(at: now)
+                }
+
+                var piece: CIImage
+                if layer.cutout, let cut = personCutout(source) {
+                    piece = Self.place(cut, in: canvas, fill: false)
+                } else if layer.isMain {
                     let fill = Self.place(source, in: canvas, fill: true)
                         .clampedToExtent()
                         .applyingGaussianBlur(sigma: Double(max(size.width, size.height)) * 0.025)
@@ -185,14 +223,18 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                             kCIInputSaturationKey: 1.1,
                         ])
                         .cropped(to: canvas)
-                    image = fill.composited(over: image)
-                    image = Self.place(source, in: canvas, fill: false).composited(over: image)
+                    let fit = Self.apply(transform, to: Self.place(source, in: canvas, fill: false), canvas: canvas)
+                    piece = fit.composited(over: fill)
                 } else {
-                    // Picture in picture: centred at 55% width.
+                    // Picture in picture: centred at 55% width, then the clip's transform.
                     let w = canvas.width * 0.55
                     let rect = CGRect(x: (canvas.width - w) / 2, y: (canvas.height - w) / 2, width: w, height: w)
-                    image = Self.place(source, in: rect, fill: false).composited(over: image)
+                    piece = Self.apply(transform, to: Self.place(source, in: rect, fill: false), canvas: canvas)
                 }
+                if layer.isMain, let clip = layer.clip {
+                    piece = Self.transition(piece, clip: clip, out: layer.outTransition, now: now, canvas: canvas)
+                }
+                image = piece.cropped(to: canvas).composited(over: image)
             }
         } else {
             CompositorStats.shared.error("unexpected instruction type")
@@ -306,6 +348,137 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         photoCache[assetID] = image
         lock.unlock()
         return image
+    }
+
+    // MARK: Transform, transitions, chroma key
+
+    /// Scale and rotate about the canvas centre, then offset, then opacity.
+    static func apply(_ t: ClipTransform, to image: CIImage, canvas: CGRect) -> CIImage {
+        guard !t.isIdentity else { return image }
+        let cx = canvas.midX
+        let cy = canvas.midY
+        let radians = CGFloat(-t.rotation * .pi / 180)
+        let m = CGAffineTransform(translationX: -cx, y: -cy)
+            .concatenating(CGAffineTransform(scaleX: CGFloat(t.scale), y: CGFloat(t.scale)))
+            .concatenating(CGAffineTransform(rotationAngle: radians))
+            .concatenating(CGAffineTransform(translationX: cx + CGFloat(t.x) * canvas.width, y: cy - CGFloat(t.y) * canvas.height))
+        var out = image.transformed(by: m)
+        if t.opacity < 0.999 {
+            out = opacity(out, t.opacity)
+        }
+        return out
+    }
+
+    static func opacity(_ image: CIImage, _ value: Double) -> CIImage {
+        let o = CGFloat(max(0, min(1, value)))
+        return image.applyingFilter("CIColorMatrix", parameters: [
+            "inputRVector": CIVector(x: o, y: 0, z: 0, w: 0),
+            "inputGVector": CIVector(x: 0, y: o, z: 0, w: 0),
+            "inputBVector": CIVector(x: 0, y: 0, z: o, w: 0),
+            "inputAVector": CIVector(x: 0, y: 0, z: 0, w: o),
+        ])
+    }
+
+    static func transition(_ image: CIImage, clip: Clip, out: Transition?, now: Double, canvas: CGRect) -> CIImage {
+        var amount = 0.0
+        var kind: TransitionKind?
+        var entering = true
+        if let t = clip.transitionIn, t.duration > 0.01 {
+            let half = t.duration / 2
+            let p = (now - clip.start) / half
+            if p < 1 { amount = 1 - max(0, p); kind = t.kind }
+        }
+        if kind == nil, let t = out, t.duration > 0.01 {
+            let half = t.duration / 2
+            let p = (clip.end - now) / half
+            if p < 1 { amount = 1 - max(0, p); kind = t.kind; entering = false }
+        }
+        guard let k = kind, amount > 0.001 else { return image }
+        let a = CGFloat(amount)
+        let cx = canvas.midX
+        let cy = canvas.midY
+        let black = CIImage(color: CIColor(red: 0, green: 0, blue: 0)).cropped(to: canvas)
+        switch k {
+        case .fade:
+            return opacity(image, 1 - amount).composited(over: black)
+        case .flash:
+            let white = CIImage(color: CIColor(red: 1, green: 1, blue: 1, alpha: a)).cropped(to: canvas)
+            return white.composited(over: image)
+        case .zoom:
+            let s = 1 + 0.35 * a
+            return image.transformed(by: CGAffineTransform(translationX: -cx, y: -cy)
+                .concatenating(CGAffineTransform(scaleX: s, y: s))
+                .concatenating(CGAffineTransform(translationX: cx, y: cy)))
+        case .blur:
+            return image.clampedToExtent().applyingGaussianBlur(sigma: Double(a) * 40).cropped(to: canvas)
+        case .slide:
+            let dx = (entering ? 1 : -1) * a * canvas.width
+            return image.transformed(by: CGAffineTransform(translationX: dx, y: 0)).composited(over: black)
+        case .spin:
+            let angle = (entering ? -1 : 1) * a * .pi / 2
+            let s = 1 + 0.3 * a
+            return image.transformed(by: CGAffineTransform(translationX: -cx, y: -cy)
+                .concatenating(CGAffineTransform(scaleX: s, y: s))
+                .concatenating(CGAffineTransform(rotationAngle: angle))
+                .concatenating(CGAffineTransform(translationX: cx, y: cy)))
+                .composited(over: black)
+        }
+    }
+
+    private func chroma(_ image: CIImage, _ key: ChromaKey) -> CIImage {
+        let id = "\(Int(key.hue))-\(Int(key.tolerance * 100))"
+        lock.lock()
+        var data = cubeCache[id]
+        lock.unlock()
+        if data == nil {
+            let made = Self.chromaCube(hue: key.hue, tolerance: key.tolerance)
+            lock.lock()
+            cubeCache[id] = made
+            lock.unlock()
+            data = made
+        }
+        guard let cube = data else { return image }
+        return image.applyingFilter("CIColorCube", parameters: [
+            "inputCubeDimension": 32,
+            "inputCubeData": cube,
+        ])
+    }
+
+    /// Colour cube that makes pixels near `hue` transparent (premultiplied RGBA floats).
+    static func chromaCube(hue: Double, tolerance: Double) -> Data {
+        let n = 32
+        var values = [Float](repeating: 0, count: n * n * n * 4)
+        var i = 0
+        for b in 0..<n {
+            for g in 0..<n {
+                for r in 0..<n {
+                    let rf = Double(r) / Double(n - 1)
+                    let gf = Double(g) / Double(n - 1)
+                    let bf = Double(b) / Double(n - 1)
+                    let maxV = max(rf, gf, bf)
+                    let minV = min(rf, gf, bf)
+                    let delta = maxV - minV
+                    var h = 0.0
+                    if delta > 0 {
+                        if maxV == rf { h = 60 * ((gf - bf) / delta).truncatingRemainder(dividingBy: 6) }
+                        else if maxV == gf { h = 60 * ((bf - rf) / delta + 2) }
+                        else { h = 60 * ((rf - gf) / delta + 4) }
+                    }
+                    if h < 0 { h += 360 }
+                    let sat = maxV == 0 ? 0 : delta / maxV
+                    var diff = abs(h - hue)
+                    if diff > 180 { diff = 360 - diff }
+                    let keyed = diff < tolerance * 180 && sat > 0.3 && maxV > 0.15
+                    let alpha: Float = keyed ? 0 : 1
+                    values[i] = Float(rf) * alpha
+                    values[i + 1] = Float(gf) * alpha
+                    values[i + 2] = Float(bf) * alpha
+                    values[i + 3] = alpha
+                    i += 4
+                }
+            }
+        }
+        return values.withUnsafeBufferPointer { Data(buffer: $0) }
     }
 
     /// Scales `image` to fit (or fill) `rect`, centred.

@@ -4,7 +4,7 @@ import UIKit
 import SCYDECore
 
 enum EditorSheet: String, Identifiable {
-    case speed, text, look, voiceover, voiceFX, cover
+    case speed, text, look, voiceover, voiceFX, cover, transform, transition, volume, chroma
     var id: String { rawValue }
 }
 

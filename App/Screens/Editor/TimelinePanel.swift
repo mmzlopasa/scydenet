@@ -177,6 +177,34 @@ private struct TrackLane: View {
                     .offset(x: x)
                 }
             }
+
+            if track.role == .main && track.clips.count > 1 {
+                ForEach(1..<track.clips.count, id: \.self) { i in
+                    let c = track.clips[i]
+                    let prev = track.clips[i - 1]
+                    let x = center + CGFloat(c.start - model.playhead) * pps
+                    if abs(c.start - prev.end) < 0.05 && x > -20 && x < width + 20 && (c.kind == .video || c.kind == .photo) {
+                        Button {
+                            Haptics.selection()
+                            model.selection = c.id
+                            model.activeSheet = .transition
+                        } label: {
+                            Image(systemName: c.transitionIn == nil ? "plus" : "square.split.diagonal.2x2.fill")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(c.transitionIn == nil ? SX.C.ink : SX.C.onAccent)
+                                .frame(width: 20, height: 20)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                        .fill(c.transitionIn == nil ? AnyShapeStyle(SX.C.surface3) : AnyShapeStyle(SX.accentGradient))
+                                )
+                                .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(SX.C.line2, lineWidth: 1))
+                        }
+                        .buttonStyle(PressableStyle())
+                        .offset(x: x - 10, y: height / 2 - 10)
+                        .accessibilityLabel("Transition")
+                    }
+                }
+            }
         }
         .frame(width: width, height: height, alignment: .topLeading)
     }

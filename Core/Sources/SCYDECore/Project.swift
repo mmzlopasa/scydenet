@@ -43,6 +43,89 @@ public struct Adjustments: Codable, Equatable, Sendable {
     public var isNeutral: Bool { self == .neutral }
 }
 
+/// Position, scale, rotation and opacity of a visual clip on the canvas.
+/// `x` and `y` are fractions of the canvas size (0 = centred, +y = down).
+public struct ClipTransform: Codable, Equatable, Sendable {
+    public var x: Double
+    public var y: Double
+    public var scale: Double
+    /// Degrees, clockwise.
+    public var rotation: Double
+    public var opacity: Double
+
+    public init(x: Double = 0, y: Double = 0, scale: Double = 1, rotation: Double = 0, opacity: Double = 1) {
+        self.x = x
+        self.y = y
+        self.scale = scale
+        self.rotation = rotation
+        self.opacity = opacity
+    }
+
+    public static let identity = ClipTransform()
+    public var isIdentity: Bool { self == .identity }
+
+    /// Linear interpolation between two transforms.
+    public static func mix(_ a: ClipTransform, _ b: ClipTransform, _ t: Double) -> ClipTransform {
+        let u = min(max(t, 0), 1)
+        func l(_ p: Double, _ q: Double) -> Double { p + (q - p) * u }
+        return ClipTransform(
+            x: l(a.x, b.x), y: l(a.y, b.y), scale: l(a.scale, b.scale),
+            rotation: l(a.rotation, b.rotation), opacity: l(a.opacity, b.opacity)
+        )
+    }
+}
+
+/// A transform pinned to a moment inside a clip. `time` is seconds from the clip start.
+public struct Keyframe: Codable, Equatable, Sendable {
+    public var time: Double
+    public var transform: ClipTransform
+
+    public init(time: Double, transform: ClipTransform) {
+        self.time = time
+        self.transform = transform
+    }
+}
+
+/// Single-source transitions played at the start of a clip (and the end of the one before).
+public enum TransitionKind: String, Codable, CaseIterable, Sendable {
+    case fade, flash, zoom, blur, slide, spin
+
+    public var title: String {
+        switch self {
+        case .fade: return "Fade"
+        case .flash: return "Flash"
+        case .zoom: return "Zoom"
+        case .blur: return "Blur"
+        case .slide: return "Slide"
+        case .spin: return "Spin"
+        }
+    }
+}
+
+public struct Transition: Codable, Equatable, Sendable {
+    public var kind: TransitionKind
+    /// Total length, split evenly across the cut.
+    public var duration: Double
+
+    public init(kind: TransitionKind, duration: Double = 0.6) {
+        self.kind = kind
+        self.duration = duration
+    }
+}
+
+/// Removes a colour (green or blue screen) from a clip.
+public struct ChromaKey: Codable, Equatable, Sendable {
+    /// Hue in degrees: 120 green, 220 blue.
+    public var hue: Double
+    /// 0.05 ... 0.5 of the hue circle half-width.
+    public var tolerance: Double
+
+    public init(hue: Double = 120, tolerance: Double = 0.22) {
+        self.hue = hue
+        self.tolerance = tolerance
+    }
+}
+
 /// One piece of media (or text) placed on a track.
 ///
 /// Times are seconds. `start` is the position on the timeline, `sourceIn` the
@@ -71,8 +154,36 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
     public var adjust: Adjustments?
     /// Cut the person out of the frame (Vision person segmentation).
     public var removeBackground: Bool?
+    public var transform: ClipTransform?
+    public var keyframes: [Keyframe]?
+    /// Transition into this clip from the previous one on the main track.
+    public var transitionIn: Transition?
+    /// Audio fades in seconds.
+    public var fadeIn: Double?
+    public var fadeOut: Double?
+    public var chromaKey: ChromaKey?
 
     public var end: Double { start + duration }
+
+    /// Transform at a timeline time, interpolated between keyframes with an ease-in-out curve.
+    public func transform(at timelineTime: Double) -> ClipTransform {
+        guard let frames = keyframes, !frames.isEmpty else { return transform ?? .identity }
+        let sorted = frames.sorted { $0.time < $1.time }
+        let t = timelineTime - start
+        if t <= sorted[0].time { return sorted[0].transform }
+        if let last = sorted.last, t >= last.time { return last.transform }
+        for i in 0..<(sorted.count - 1) {
+            let a = sorted[i]
+            let b = sorted[i + 1]
+            if t >= a.time && t <= b.time {
+                let span = max(b.time - a.time, 1e-6)
+                let p = (t - a.time) / span
+                let eased = p * p * (3 - 2 * p)
+                return ClipTransform.mix(a.transform, b.transform, eased)
+            }
+        }
+        return sorted[0].transform
+    }
 
     public init(
         id: UUID = UUID(),

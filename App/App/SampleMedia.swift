@@ -18,6 +18,19 @@ enum SampleMedia {
         if let b = try? await writeVideo(width: 1280, height: 720, seconds: 3, from: 0x0C8A60, to: 0xC4BBFF) {
             project.addClip(Clip(kind: .video, name: "Landscape", assetID: b, sourceDuration: 3, duration: 3), role: .main)
         }
+        // Exercise motion, transitions and text in CI screenshots.
+        let mains = project.tracks.first(where: { $0.role == .main })?.clips ?? []
+        if let first = mains.first {
+            project.setKeyframe(first.id, at: 0, transform: ClipTransform(scale: 1))
+            project.setKeyframe(first.id, at: 3, transform: ClipTransform(y: -0.05, scale: 1.25, rotation: 4))
+        }
+        if mains.count > 1 {
+            project.updateClip(mains[1].id) { $0.transitionIn = Transition(kind: .zoom, duration: 0.8) }
+        }
+        if mains.count > 2 {
+            project.updateClip(mains[2].id) { $0.transitionIn = Transition(kind: .slide, duration: 0.8) }
+        }
+        project.addClip(Clip(kind: .text, name: "Caption", duration: 2.4, text: "Made with SCYDE"), role: .text, at: 0.4)
         return project
     }
 

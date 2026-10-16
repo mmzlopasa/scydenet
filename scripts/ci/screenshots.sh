@@ -63,6 +63,11 @@ SLEEP=14 shot sheet-cover   -scydeSampleMedia YES -scydeTheme dark -scydePlayhea
 shot sheet-speed   -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSelect 1 -scydeSheet speed
 shot sheet-text    -scydeDemo YES -scydeTheme light -scydeScreen editor -scydeSheet text
 shot photo-empty   -scydeTheme dark -scydeScreen photo
+SLEEP=10 shot sheet-transform  -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSelect 0 -scydeSheet transform
+SLEEP=10 shot sheet-transition -scydeSampleMedia YES -scydeTheme light -scydePlayhead 3.2 -scydeSelect 1 -scydeSheet transition
+shot sheet-volume  -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSelect 1 -scydeSheet volume
+shot sheet-chroma  -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSelect 1 -scydeSheet chroma
+SLEEP=10 shot media-pip -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSelect 0
 shot collage-empty -scydeTheme light -scydeScreen collage
 
 xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true

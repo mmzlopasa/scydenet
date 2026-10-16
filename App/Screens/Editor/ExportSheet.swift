@@ -105,6 +105,15 @@ struct ExportSheet: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(model.project.isEmpty)
+            if model.hasTextClips, let srt = model.subtitlesFile() {
+                ShareLink(item: srt) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "captions.bubble")
+                        Text("Export subtitles (.srt)")
+                    }
+                }
+                .buttonStyle(SecondaryButtonStyle())
+            }
             Text("Renders with the same engine as the preview. Settings are saved with the project.")
                 .font(.ui(12.5))
                 .foregroundColor(SX.C.muted)

@@ -356,3 +356,73 @@ final class VoiceRecorder: ObservableObject {
         return (id, length)
     }
 }
+
+// MARK: - Waveforms
+
+extension AudioAnalysis {
+    /// Normalised RMS levels, `perSecond` values per second of source audio.
+    static func levels(url: URL, perSecond: Double = 40) async -> [Float] {
+        await Task.detached(priority: .utility) {
+            await readLevels(url: url, perSecond: perSecond)
+        }.value
+    }
+
+    private static func readLevels(url: URL, perSecond: Double) async -> [Float] {
+        let asset = AVURLAsset(url: url)
+        guard let track = try? await asset.loadTracks(withMediaType: .audio).first,
+              let reader = try? AVAssetReader(asset: asset) else { return [] }
+        let sampleRate = 8_000.0
+        let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVLinearPCMBitDepthKey: 32,
+            AVLinearPCMIsFloatKey: true,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsNonInterleaved: false,
+            AVNumberOfChannelsKey: 1,
+            AVSampleRateKey: sampleRate,
+        ])
+        guard reader.canAdd(output) else { return [] }
+        reader.add(output)
+        guard reader.startReading() else { return [] }
+        let window = max(1, Int(sampleRate / perSecond))
+        var acc: Float = 0
+        var n = 0
+        var levels: [Float] = []
+        while let buffer = output.copyNextSampleBuffer() {
+            guard let block = CMSampleBufferGetDataBuffer(buffer) else { continue }
+            let length = CMBlockBufferGetDataLength(block)
+            guard length >= 4 else { continue }
+            var samples = [Float](repeating: 0, count: length / 4)
+            let status = samples.withUnsafeMutableBytes { raw -> OSStatus in
+                guard let base = raw.baseAddress else { return -1 }
+                return CMBlockBufferCopyDataBytes(block, atOffset: 0, dataLength: (length / 4) * 4, destination: base)
+            }
+            guard status == noErr else { continue }
+            for v in samples {
+                acc += v * v
+                n += 1
+                if n == window {
+                    levels.append((acc / Float(n)).squareRoot())
+                    acc = 0
+                    n = 0
+                }
+            }
+        }
+        let peak = levels.max() ?? 0
+        guard peak > 0 else { return levels }
+        return levels.map { min(1, $0 / peak) }
+    }
+}
+
+@MainActor
+final class WaveformCache {
+    static let shared = WaveformCache()
+    private var cache: [String: [Float]] = [:]
+
+    func levels(for assetID: String) async -> [Float] {
+        if let cached = cache[assetID] { return cached }
+        let values = await AudioAnalysis.levels(url: MediaStore.url(for: assetID))
+        cache[assetID] = values
+        return values
+    }
+}

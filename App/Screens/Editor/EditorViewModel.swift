@@ -23,6 +23,14 @@ final class EditorViewModel: ObservableObject {
     @Published var showAudioMenu = false
     @Published var showMusicImporter = false
     @Published var busyMessage: String?
+    @Published var overlayPickerItems: [PhotosPickerItem] = [] {
+        didSet {
+            guard !overlayPickerItems.isEmpty else { return }
+            let items = overlayPickerItems
+            overlayPickerItems = []
+            importItems(items, role: .overlay)
+        }
+    }
     @Published var pickerItems: [PhotosPickerItem] = [] {
         didSet {
             guard !pickerItems.isEmpty else { return }
@@ -297,9 +305,10 @@ final class EditorViewModel: ObservableObject {
 
     // MARK: Import
 
-    func importItems(_ items: [PhotosPickerItem]) {
+    func importItems(_ items: [PhotosPickerItem], role: Track.Role = .main) {
         guard !items.isEmpty else { return }
         stopPlayback()
+        let at = playhead
         withAnimation(SX.ease) { importing = true }
         Task { [weak self] in
             var added: [Clip] = []
@@ -315,7 +324,7 @@ final class EditorViewModel: ObservableObject {
             var firstID: UUID?
             self.perform(added.count == 1 ? "Import clip" : "Import \(added.count) clips") { p in
                 for clip in added {
-                    let id = p.addClip(clip, role: .main)
+                    let id = p.addClip(clip, role: role, at: role == .main ? nil : at)
                     if firstID == nil { firstID = id }
                 }
                 return true

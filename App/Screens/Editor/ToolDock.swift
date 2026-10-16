@@ -40,6 +40,15 @@ struct ToolDock: View {
 
         divider
 
+        PhotosPicker(
+            selection: $model.overlayPickerItems,
+            maxSelectionCount: 5,
+            matching: .any(of: [.videos, .images])
+        ) {
+            ToolItem(icon: "rectangle.on.rectangle", title: "Overlay", enabled: true)
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("Add overlay")
         ToolButton(icon: "music.note", title: "Audio", enabled: true) { model.showAudioMenu = true }
         ToolButton(icon: "textformat", title: "Text", enabled: true) { model.activeSheet = .text }
         ToolButton(icon: "captions.bubble", title: "Captions", enabled: model.hasPlayableMedia) {
@@ -62,6 +71,10 @@ struct ToolDock: View {
             ToolButton(icon: "speedometer", title: "Speed", enabled: true) { model.activeSheet = .speed }
         }
         if model.selectedIsVisual {
+            ToolButton(icon: "arrow.up.and.down.and.arrow.left.and.right", title: "Transform", enabled: true) { model.activeSheet = .transform }
+            if model.selectedCanTransition {
+                ToolButton(icon: "square.split.diagonal.2x2", title: "Transition", enabled: true) { model.activeSheet = .transition }
+            }
             ToolButton(icon: "camera.filters", title: "Filters", enabled: true) { model.activeSheet = .look }
             ToolButton(icon: "slider.horizontal.3", title: "Adjust", enabled: true) { model.activeSheet = .look }
             ToolButton(
@@ -69,6 +82,7 @@ struct ToolDock: View {
                 title: (model.selectedClip?.removeBackground ?? false) ? "Restore BG" : "Remove BG",
                 enabled: true
             ) { model.toggleCutout() }
+            ToolButton(icon: "drop.halffull", title: "Chroma", enabled: true) { model.activeSheet = .chroma }
         }
         if model.selectedIsText {
             ToolButton(icon: "pencil", title: "Edit text", enabled: true) { model.activeSheet = .text }
@@ -78,10 +92,10 @@ struct ToolDock: View {
         }
         if model.canMute {
             ToolButton(
-                icon: model.selectedIsMuted ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                title: model.selectedIsMuted ? "Unmute" : "Mute",
+                icon: model.selectedIsMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
+                title: "Volume",
                 enabled: true
-            ) { model.toggleMute() }
+            ) { model.activeSheet = .volume }
         }
         ToolButton(icon: "plus.square.on.square", title: "Duplicate", enabled: true) { model.duplicateSelected() }
         ToolButton(icon: "trash", title: "Delete", enabled: true, destructive: true) { model.deleteSelected() }

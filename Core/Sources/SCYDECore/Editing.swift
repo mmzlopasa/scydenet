@@ -82,6 +82,12 @@ extension Project {
         right.start = time
         right.sourceIn = left.sourceIn + leftDuration * left.speed
         right.duration = left.end - time
+        right.transitionIn = nil
+        right.fadeIn = nil
+        left.fadeOut = nil
+        if let frames = left.keyframes {
+            right.keyframes = frames.map { Keyframe(time: $0.time - leftDuration, transform: $0.transform) }
+        }
 
         left.duration = leftDuration
         tracks[loc.track].clips[loc.clip] = left
@@ -252,6 +258,38 @@ extension Project {
             _ = split(target, at: b)
         }
         return delete(target, ripple: true)
+    }
+
+    // MARK: Keyframes
+
+    /// Adds or replaces the keyframe at `time` (timeline seconds) on a clip.
+    @discardableResult
+    public mutating func setKeyframe(_ id: UUID, at time: Double, transform: ClipTransform) -> Bool {
+        guard let loc = locate(id) else { return false }
+        var c = tracks[loc.track].clips[loc.clip]
+        let local = min(max(time - c.start, 0), c.duration)
+        var frames = c.keyframes ?? []
+        if let i = frames.firstIndex(where: { abs($0.time - local) < 0.05 }) {
+            guard frames[i].transform != transform else { return false }
+            frames[i].transform = transform
+        } else {
+            frames.append(Keyframe(time: local, transform: transform))
+        }
+        c.keyframes = frames.sorted { $0.time < $1.time }
+        tracks[loc.track].clips[loc.clip] = c
+        return true
+    }
+
+    @discardableResult
+    public mutating func removeKeyframe(_ id: UUID, near time: Double) -> Bool {
+        guard let loc = locate(id) else { return false }
+        var c = tracks[loc.track].clips[loc.clip]
+        let local = time - c.start
+        guard var frames = c.keyframes, let i = frames.firstIndex(where: { abs($0.time - local) < 0.05 }) else { return false }
+        frames.remove(at: i)
+        c.keyframes = frames.isEmpty ? nil : frames
+        tracks[loc.track].clips[loc.clip] = c
+        return true
     }
 
     // MARK: Volume
