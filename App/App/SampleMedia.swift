@@ -30,7 +30,20 @@ enum SampleMedia {
         if mains.count > 2 {
             project.updateClip(mains[2].id) { $0.transitionIn = ClipTransition(kind: .slide, duration: 0.8) }
         }
-        project.addClip(Clip(kind: .text, name: "Caption", duration: 2.4, text: "Made with SCYDE"), role: .text, at: 0.4)
+        var caption = Clip(kind: .text, name: "Caption", duration: 2.4, text: "Made with SCYDE")
+        caption.textStyle = TextStyle(font: "heavy", size: 1.25, color: 0xFFD76A, background: .none, stroke: 0.1, strokeColor: 0x1B1530, uppercase: true, animIn: .pop, animDuration: 0.3)
+        project.addClip(caption, role: .text, at: 0.4)
+        var sticker = Clip(kind: .sticker, name: "fire", duration: 4, text: "🔥")
+        sticker.textStyle = TextStyle(size: 3, background: .none, shadow: true, anchorY: 0, loop: .pulse)
+        sticker.transform = ClipTransform(x: 0.25, y: -0.28, rotation: 12)
+        project.addClip(sticker, role: .sticker, at: 0.2)
+        if mains.count > 1 {
+            project.updateClip(mains[1].id) { $0.mask = ClipMask(shape: .heart, size: 0.8, feather: 0.04) }
+        }
+        if mains.count > 2 {
+            project.updateClip(mains[2].id) { $0.effect = VideoEffect(kind: "vhs", intensity: 0.8) }
+        }
+        project.setMarkers([0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0])
         return project
     }
 

@@ -21,14 +21,14 @@ actor TemplatePreviews {
     }
 
     static func cachedURL(for t: ProjectTemplate) -> URL? {
-        let url = directory.appendingPathComponent("\(t.id)-v2.mp4")
+        let url = directory.appendingPathComponent("\(t.id)-v3.mp4")
         return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
 
     func video(for t: ProjectTemplate) async -> URL? {
         if let cached = Self.cachedURL(for: t) { return cached }
         if let task = inFlight[t.id] { return await task.value }
-        let url = Self.directory.appendingPathComponent("\(t.id)-v2.mp4")
+        let url = Self.directory.appendingPathComponent("\(t.id)-v3.mp4")
         let task = Task.detached(priority: .utility) { () -> URL? in
             do {
                 try await Self.render(t, to: url)

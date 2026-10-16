@@ -71,6 +71,14 @@ struct EditorView: View {
                 case .volume: VolumeSheet(model: model)
                 case .chroma: ChromaSheet(model: model)
                 case .stock: StockSheet(model: model)
+                case .sticker: StickerSheet(model: model)
+                case .effects: EffectsSheet(model: model)
+                case .mask: MaskSheet(model: model)
+                case .crop: CropSheet(model: model)
+                case .blend: BlendSheet(model: model)
+                case .canvas: CanvasSheet(model: model)
+                case .beats: BeatsSheet(model: model)
+                case .animate: AnimateSheet(model: model)
                 }
             }
             .presentationDetents(sheet == .cover || sheet == .stock ? [.large] : [.medium, .large])
@@ -325,7 +333,7 @@ private struct PreviewGestureLayer: View {
     @State private var turn: Angle = .zero
 
     private var target: Clip? {
-        guard let c = model.selectedClip, c.kind == .video || c.kind == .photo else { return nil }
+        guard let c = model.selectedClip, c.kind != .audio else { return nil }
         return c
     }
 

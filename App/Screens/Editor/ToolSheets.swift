@@ -71,71 +71,6 @@ struct SpeedSheet: View {
     }
 }
 
-// MARK: - Text
-
-struct TextSheet: View {
-    @ObservedObject var model: EditorViewModel
-    @Environment(\.dismiss) private var dismiss
-    @State private var text = ""
-    @State private var importingSRT = false
-    @FocusState private var focused: Bool
-
-    private var editing: Bool { model.selectedIsText }
-
-    var body: some View {
-        ZStack {
-            SX.C.bg.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 18) {
-                SheetHeader(title: editing ? "Edit text" : "Add text", subtitle: "Shown in the lower third, like a caption.") {
-                    dismiss()
-                }
-                TextField("Type something", text: $text, axis: .vertical)
-                    .font(.display(22))
-                    .foregroundColor(SX.C.ink)
-                    .lineLimit(1...4)
-                    .focused($focused)
-                    .padding(16)
-                    .sxCard(radius: SX.R.l)
-                Button {
-                    if editing { model.updateText(text.loc) } else { model.addText(text.loc) }
-                    dismiss()
-                } label: {
-                    Text(editing ? "Save text" : "Add to timeline")
-                }
-                .buttonStyle(PrimaryButtonStyle())
-                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                if !editing {
-                    Button {
-                        importingSRT = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "captions.bubble")
-                            Text("Import subtitles (.srt)")
-                        }
-                    }
-                    .buttonStyle(SecondaryButtonStyle())
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(20)
-        }
-        .onAppear {
-            text = editing ? (model.selectedClip?.text ?? "") : ""
-            focused = !Launch.isAutomation
-        }
-        .fileImporter(
-            isPresented: $importingSRT,
-            allowedContentTypes: [UTType(filenameExtension: "srt") ?? .plainText, .plainText],
-            allowsMultipleSelection: false
-        ) { result in
-            if case let .success(urls) = result, let url = urls.first {
-                model.importSubtitles(from: url)
-                dismiss()
-            }
-        }
-    }
-}
-
 // MARK: - Filters & adjust
 
 struct LookSheet: View {
@@ -197,36 +132,47 @@ struct LookSheet: View {
                         .padding(.vertical, 4)
                     }
                 } else {
-                    VStack(spacing: 14) {
-                        slider("Exposure", value: $adjust.exposure, range: -1.5...1.5, neutral: 0)
-                        slider("Contrast", value: $adjust.contrast, range: 0.6...1.4, neutral: 1)
-                        slider("Saturation", value: $adjust.saturation, range: 0...2, neutral: 1)
-                        slider("Warmth", value: $adjust.warmth, range: -1...1, neutral: 0)
-                        HStack(spacing: 10) {
-                            Button {
-                                guard let id = clipID, let clip = model.project.clip(id) else { return }
-                                analysing = true
-                                Task {
-                                    adjust = await model.suggestedAdjustments(for: clip)
-                                    analysing = false
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 14) {
+                            HStack(spacing: 10) {
+                                Button {
+                                    guard let id = clipID, let clip = model.project.clip(id) else { return }
+                                    analysing = true
+                                    Task {
+                                        adjust = await model.suggestedAdjustments(for: clip)
+                                        analysing = false
+                                        push()
+                                        Haptics.success()
+                                    }
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "sparkles")
+                                        Text(analysing ? "Analysing" : "Auto enhance")
+                                    }
+                                }
+                                .buttonStyle(SecondaryButtonStyle())
+                                Button {
+                                    adjust = Adjustments()
                                     push()
-                                    Haptics.success()
+                                } label: {
+                                    Text("Reset")
                                 }
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "sparkles")
-                                    Text(analysing ? "Analysing" : "Auto enhance")
-                                }
+                                .buttonStyle(SecondaryButtonStyle())
                             }
-                            .buttonStyle(SecondaryButtonStyle())
-                            Button {
-                                adjust = Adjustments()
-                                push()
-                            } label: {
-                                Text("Reset")
-                            }
-                            .buttonStyle(SecondaryButtonStyle())
+                            slider("Exposure", value: $adjust.exposure, range: -1.5...1.5, neutral: 0)
+                            slider("Contrast", value: $adjust.contrast, range: 0.6...1.4, neutral: 1)
+                            slider("Saturation", value: $adjust.saturation, range: 0...2, neutral: 1)
+                            slider("Warmth", value: $adjust.warmth, range: -1...1, neutral: 0)
+                            slider("Tint", value: optional(\.tint), range: -1...1, neutral: 0)
+                            slider("Highlights", value: optional(\.highlights), range: -1...1, neutral: 0)
+                            slider("Shadows", value: optional(\.shadows), range: -1...1, neutral: 0)
+                            slider("Clarity", value: optional(\.clarity), range: -1...1, neutral: 0)
+                            slider("Sharpen", value: optional(\.sharpness), range: 0...1, neutral: 0)
+                            slider("Fade", value: optional(\.fade), range: 0...1, neutral: 0)
+                            slider("Vignette", value: optional(\.vignette), range: -1...1, neutral: 0)
+                            slider("Grain", value: optional(\.grain), range: 0...1, neutral: 0)
                         }
+                        .padding(.bottom, 20)
                     }
                 }
                 Spacer(minLength: 0)
@@ -255,7 +201,11 @@ struct LookSheet: View {
 
     private func push() {
         guard let id = clipID else { return }
-        model.previewLook(clipID: id, filter: filter, adjust: adjust)
+        model.previewLook(clipID: id, filter: filter, adjust: adjust.normalised())
+    }
+
+    private func optional(_ key: WritableKeyPath<Adjustments, Double?>) -> Binding<Double> {
+        Binding(get: { adjust[keyPath: key] ?? 0 }, set: { adjust[keyPath: key] = $0 })
     }
 
     private func slider(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, neutral: Double) -> some View {

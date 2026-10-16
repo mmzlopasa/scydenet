@@ -73,6 +73,9 @@ struct FormatCard: View {
         case .square1x1: return "Square"
         case .portrait4x5: return "Portrait"
         case .cinema21x9: return "Cinema"
+        case .portrait3x4: return "Classic"
+        case .landscape4x3: return "Classic wide"
+        case .portrait2x3: return "Poster"
         }
     }
 

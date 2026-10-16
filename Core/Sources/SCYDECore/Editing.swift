@@ -32,7 +32,7 @@ extension Project {
 
     /// Any clip under `time`, preferring the main track.
     public func clipUnder(_ time: Double) -> Clip? {
-        let order: [Track.Role] = [.main, .overlay, .text, .audio]
+        let order: [Track.Role] = [.main, .overlay, .sticker, .text, .audio]
         for role in order {
             if let c = clip(at: time, role: role) { return c }
         }

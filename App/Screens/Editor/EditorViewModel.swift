@@ -20,6 +20,8 @@ final class EditorViewModel: ObservableObject {
     @Published private(set) var importing = false
     @Published private(set) var toast: String?
     @Published var activeSheet: EditorSheet?
+    /// Tab the text sheet opens on (0 text, 1 style, 2 animate, 3 voice).
+    @Published var textTab = 0
     @Published var showAudioMenu = false
     @Published var showMusicImporter = false
     @Published var busyMessage: String?
@@ -88,6 +90,14 @@ final class EditorViewModel: ObservableObject {
             if hasPlayer { togglePlay() } else { autoplayPending = true }
         }
         if Launch.isAutomation { startDiagnostics() }
+        if Launch.sheet == "textstyle" || Launch.sheet == "textanim" {
+            textTab = Launch.sheet == "textstyle" ? 1 : 2
+            if let text = project.tracks.first(where: { $0.role == .text })?.clips.first { selection = text.id }
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 900_000_000)
+                self?.activeSheet = .text
+            }
+        }
         if let name = Launch.sheet, let sheet = EditorSheet(rawValue: name) {
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 900_000_000)
@@ -109,7 +119,7 @@ final class EditorViewModel: ObservableObject {
     var canRedo: Bool { history.canRedo }
 
     var visibleTracks: [Track] {
-        let order: [Track.Role] = [.text, .overlay, .main, .audio]
+        let order: [Track.Role] = [.text, .sticker, .overlay, .main, .audio]
         return order.compactMap { (role: Track.Role) -> Track? in
             guard let t = project.tracks.first(where: { $0.role == role }) else { return nil }
             return (role == .main || !t.clips.isEmpty) ? t : nil
@@ -529,6 +539,7 @@ extension Track.Role {
         case .overlay: return 40
         case .audio: return 36
         case .text: return 30
+        case .sticker: return 30
         }
     }
 }

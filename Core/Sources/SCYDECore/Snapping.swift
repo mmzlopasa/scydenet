@@ -20,6 +20,7 @@ extension Project {
                 targets.append(clip.end)
             }
         }
+        targets.append(contentsOf: markers ?? [])
         return targets
     }
 

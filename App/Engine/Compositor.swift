@@ -22,8 +22,10 @@ struct SXLayer: Sendable {
         case video(trackID: CMPersistentTrackID, orientation: UInt32)
         /// A still image from the media folder.
         case photo(assetID: String)
-        /// Caption or title text, drawn in the lower third.
+        /// Caption or title text, positioned and animated by the clip's text style.
         case text(String)
+        /// Emoji or `sf:` symbol sticker.
+        case sticker(String)
     }
 
     let source: Source
@@ -35,6 +37,15 @@ struct SXLayer: Sendable {
     var clip: Clip? = nil
     /// Transition into the next clip on the main track, played at the end of this one.
     var outTransition: ClipTransition? = nil
+    /// Canvas fill behind the main track.
+    var background: CanvasBackground? = nil
+
+    var isGraphic: Bool {
+        switch source {
+        case .text, .sticker: return true
+        default: return false
+        }
+    }
 }
 
 /// Transforms being dragged on the preview, read by the compositor every frame so
@@ -114,7 +125,6 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
     private let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
     private let lock = NSLock()
     private var photoCache: [String: CIImage] = [:]
-    private var textCache: [String: CIImage] = [:]
     private var cubeCache: [String: Data] = [:]
     private var cancelled = false
     private lazy var segmentation: VNGeneratePersonSegmentationRequest = {
@@ -189,18 +199,18 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         let now = request.compositionTime.seconds
         if let instruction = request.videoCompositionInstruction as? SXInstruction {
             for layer in instruction.layers {
-                if case let .text(text) = layer.source {
-                    if let t = textImage(text, canvas: canvas) {
-                        let e = t.extent
-                        let x = (canvas.width - e.width) / 2
-                        let y = canvas.height * 0.12
-                        image = t.transformed(by: CGAffineTransform(translationX: x - e.minX, y: y - e.minY)).composited(over: image)
+                if layer.isGraphic {
+                    if let g = graphic(layer, canvas: canvas, now: now) {
+                        image = g.cropped(to: canvas).composited(over: image)
                     }
                     continue
                 }
                 guard var source = sourceImage(for: layer, request: request) else {
                     missing += 1
                     continue
+                }
+                if let clip = layer.clip {
+                    source = Self.prepare(source, clip: clip)
                 }
                 source = Looks.apply(source, filter: layer.filter, adjust: layer.adjust)
                 if let key = layer.clip?.chromaKey {
@@ -210,31 +220,40 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                 if let clip = layer.clip {
                     transform = LiveTransforms.shared.get(clip.id) ?? clip.transform(at: now)
                 }
+                let mask = layer.clip?.mask
 
                 var piece: CIImage
                 if layer.cutout, let cut = personCutout(source) {
-                    piece = Self.place(cut, in: canvas, fill: false)
+                    piece = Self.apply(transform, to: Self.place(cut, in: canvas, fill: false), canvas: canvas)
+                    if let m = mask { piece = Masks.apply(piece, m, canvas: canvas, offset: transform) }
+                    // A cut-out sits on black unless the canvas has a colour or gradient.
+                    if layer.isMain, let bg = layer.background, bg.kind != .blur {
+                        piece = piece.composited(over: Self.backdrop(source, canvas: canvas, background: bg))
+                    }
                 } else if layer.isMain {
-                    let fill = Self.place(source, in: canvas, fill: true)
-                        .clampedToExtent()
-                        .applyingGaussianBlur(sigma: Double(max(size.width, size.height)) * 0.025)
-                        .applyingFilter("CIColorControls", parameters: [
-                            kCIInputBrightnessKey: -0.08,
-                            kCIInputSaturationKey: 1.1,
-                        ])
-                        .cropped(to: canvas)
-                    let fit = Self.apply(transform, to: Self.place(source, in: canvas, fill: false), canvas: canvas)
+                    let fill = Self.backdrop(source, canvas: canvas, background: layer.background)
+                    var fit = Self.apply(transform, to: Self.place(source, in: canvas, fill: false), canvas: canvas)
+                    if let m = mask { fit = Masks.apply(fit, m, canvas: canvas, offset: transform) }
                     piece = fit.composited(over: fill)
                 } else {
                     // Picture in picture: centred at 55% width, then the clip's transform.
                     let w = canvas.width * 0.55
                     let rect = CGRect(x: (canvas.width - w) / 2, y: (canvas.height - w) / 2, width: w, height: w)
                     piece = Self.apply(transform, to: Self.place(source, in: rect, fill: false), canvas: canvas)
+                    if let m = mask { piece = Masks.apply(piece, m, canvas: canvas, offset: transform) }
+                }
+                if let clip = layer.clip, let effect = clip.effect {
+                    piece = Effects.apply(piece, effect, canvas: canvas, t: now - clip.start)
                 }
                 if layer.isMain, let clip = layer.clip {
                     piece = Self.transition(piece, clip: clip, out: layer.outTransition, now: now, canvas: canvas)
                 }
-                image = piece.cropped(to: canvas).composited(over: image)
+                piece = piece.cropped(to: canvas)
+                if !layer.isMain, let mode = layer.clip?.blend, mode != .normal {
+                    image = Blends.apply(piece, over: image, mode)
+                } else {
+                    image = piece.composited(over: image)
+                }
             }
         } else {
             CompositorStats.shared.error("unexpected instruction type")
@@ -256,9 +275,114 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
             return image
         case let .photo(assetID):
             return photo(assetID)
-        case .text:
+        case .text, .sticker:
             return nil
         }
+    }
+
+    /// Crop, quarter turns and flips on the source frame.
+    static func prepare(_ image: CIImage, clip: Clip) -> CIImage {
+        var out = image
+        if let turns = clip.quarterTurns, turns % 4 != 0 {
+            let o: CGImagePropertyOrientation
+            switch ((turns % 4) + 4) % 4 {
+            case 1: o = .right
+            case 2: o = .down
+            default: o = .left
+            }
+            out = out.oriented(o)
+        }
+        if clip.flipH == true { out = out.oriented(.upMirrored) }
+        if clip.flipV == true { out = out.oriented(.downMirrored) }
+        if let c = clip.crop, !c.isFull {
+            let e = out.extent
+            let rect = CGRect(
+                x: e.minX + CGFloat(c.x) * e.width,
+                y: e.minY + CGFloat(1 - c.y - c.height) * e.height,
+                width: CGFloat(c.width) * e.width,
+                height: CGFloat(c.height) * e.height
+            )
+            if rect.width > 2, rect.height > 2 {
+                out = out.cropped(to: rect)
+            }
+        }
+        return out
+    }
+
+    /// What fills the canvas behind the main clip.
+    static func backdrop(_ source: CIImage, canvas: CGRect, background: CanvasBackground?) -> CIImage {
+        let bg = background ?? .standard
+        switch bg.kind {
+        case .color:
+            return CIImage(color: CIColor(color: UIColor(hex: bg.color))).cropped(to: canvas)
+        case .gradient:
+            return CIImage.empty().sx("CILinearGradient", [
+                "inputPoint0": CIVector(x: canvas.midX, y: canvas.maxY),
+                "inputPoint1": CIVector(x: canvas.midX, y: canvas.minY),
+                "inputColor0": CIColor(color: UIColor(hex: bg.color)),
+                "inputColor1": CIColor(color: UIColor(hex: bg.color2)),
+            ]).cropped(to: canvas)
+        case .blur:
+            let size = max(canvas.width, canvas.height)
+            return place(source, in: canvas, fill: true)
+                .clampedToExtent()
+                .applyingGaussianBlur(sigma: Double(size) * (0.005 + 0.05 * max(0, min(1, bg.blur))))
+                .applyingFilter("CIColorControls", parameters: [
+                    kCIInputBrightnessKey: -0.08,
+                    kCIInputSaturationKey: 1.1,
+                ])
+                .cropped(to: canvas)
+        }
+    }
+
+    /// Text or sticker, styled, positioned, transformed and animated.
+    private func graphic(_ layer: SXLayer, canvas: CGRect, now: Double) -> CIImage? {
+        let isSticker: Bool
+        let content: String
+        switch layer.source {
+        case let .text(t): content = t; isSticker = false
+        case let .sticker(t): content = t; isSticker = true
+        default: return nil
+        }
+        let clip = layer.clip
+        let style = clip?.textStyle ?? (isSticker ? .sticker : .caption)
+        let local = now - (clip?.start ?? now)
+        let anim = TextAnimState.at(style, local: local, duration: clip?.duration ?? 1)
+        guard anim.opacity > 0.003 else { return nil }
+        var art: CIImage?
+        if isSticker {
+            art = TextRenderer.shared.sticker(content, style: style, canvas: canvas)
+        } else {
+            var visible: Int?
+            if anim.chars < 0.999 {
+                let count = (content as NSString).length
+                visible = Int((Double(count) * anim.chars).rounded(.down))
+                if visible == 0 { return nil }
+            }
+            art = TextRenderer.shared.text(content, style: style, canvas: canvas, visible: visible)
+        }
+        guard var img = art else { return nil }
+        let e = img.extent
+        img = img.transformed(by: CGAffineTransform(translationX: -e.midX, y: -e.midY))
+        if anim.blur > 0.3 {
+            img = img.clampedToExtent().applyingGaussianBlur(sigma: anim.blur)
+                .cropped(to: CGRect(x: -e.width / 2, y: -e.height / 2, width: e.width, height: e.height).insetBy(dx: -CGFloat(anim.blur) * 3, dy: -CGFloat(anim.blur) * 3))
+        }
+        var t = ClipTransform.identity
+        if let c = clip { t = LiveTransforms.shared.get(c.id) ?? c.transform(at: now) }
+        let s = CGFloat(t.scale * anim.scale)
+        let angle = CGFloat(-(t.rotation + anim.rotation) * .pi / 180)
+        let cx = canvas.midX + CGFloat(t.x + anim.dx) * canvas.width
+        let cy = canvas.midY - CGFloat(style.anchorY + t.y + anim.dy) * canvas.height
+        img = img.transformed(by: CGAffineTransform(scaleX: s, y: s)
+            .concatenating(CGAffineTransform(rotationAngle: angle))
+            .concatenating(CGAffineTransform(translationX: cx, y: cy)))
+        let o = t.opacity * anim.opacity
+        if o < 0.999 { img = Self.opacity(img, o) }
+        if let effect = clip?.effect, let c = clip {
+            img = Effects.apply(img, effect, canvas: canvas, t: now - c.start)
+        }
+        return img
     }
 
     /// Person cut-out with a transparent background, or nil if Vision finds nothing.
@@ -281,58 +405,6 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
             kCIInputBackgroundImageKey: CIImage.empty(),
             kCIInputMaskImageKey: mask,
         ])
-    }
-
-    /// Caption artwork: white Sora Bold on a soft dark pill, cached per text and width.
-    private func textImage(_ text: String, canvas: CGRect) -> CIImage? {
-        let key = "\(Int(canvas.width))|\(text)"
-        lock.lock()
-        if let cached = textCache[key] {
-            lock.unlock()
-            return cached
-        }
-        lock.unlock()
-
-        let fontSize = max(canvas.width * 0.055, 14)
-        let font = UIFont(name: "Sora-Bold", size: fontSize) ?? UIFont.boldSystemFont(ofSize: fontSize)
-        let style = NSMutableParagraphStyle()
-        style.alignment = .center
-        style.lineBreakMode = .byWordWrapping
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: UIColor.white,
-            .paragraphStyle: style,
-        ]
-        let maxWidth = canvas.width * 0.84
-        let bounds = (text as NSString).boundingRect(
-            with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
-            options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: attrs,
-            context: nil
-        ).integral
-        let padH = fontSize * 0.6
-        let padV = fontSize * 0.35
-        let size = CGSize(width: bounds.width + padH * 2, height: bounds.height + padV * 2)
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        format.opaque = false
-        let rendered = UIGraphicsImageRenderer(size: size, format: format).image { _ in
-            let pill = UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: fontSize * 0.45)
-            UIColor(white: 0, alpha: 0.55).setFill()
-            pill.fill()
-            (text as NSString).draw(
-                with: CGRect(x: padH, y: padV, width: bounds.width, height: bounds.height),
-                options: [.usesLineFragmentOrigin, .usesFontLeading],
-                attributes: attrs,
-                context: nil
-            )
-        }
-        guard let cg = rendered.cgImage else { return nil }
-        let result = CIImage(cgImage: cg)
-        lock.lock()
-        textCache[key] = result
-        lock.unlock()
-        return result
     }
 
     private func photo(_ assetID: String) -> CIImage? {
@@ -422,6 +494,49 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                 .concatenating(CGAffineTransform(rotationAngle: angle))
                 .concatenating(CGAffineTransform(translationX: cx, y: cy)))
                 .composited(over: black)
+        case .wipe:
+            // Entering: revealed from the left; leaving: covered from the left.
+            let visibleW = canvas.width * (1 - a)
+            let rect = entering
+                ? CGRect(x: canvas.maxX - visibleW, y: canvas.minY, width: visibleW, height: canvas.height)
+                : CGRect(x: canvas.minX, y: canvas.minY, width: visibleW, height: canvas.height)
+            return image.cropped(to: rect).composited(over: black)
+        case .iris:
+            let r = max(canvas.width, canvas.height) * 0.75 * (1 - a)
+            let mask = CIImage.empty().sx("CIRadialGradient", [
+                kCIInputCenterKey: CIVector(x: cx, y: cy),
+                "inputRadius0": max(0, r - 2),
+                "inputRadius1": r + 1,
+                "inputColor0": CIColor(red: 1, green: 1, blue: 1),
+                "inputColor1": CIColor(red: 0, green: 0, blue: 0),
+            ]).cropped(to: canvas)
+            return image.applyingFilter("CIBlendWithMask", parameters: [
+                kCIInputBackgroundImageKey: black,
+                kCIInputMaskImageKey: mask,
+            ])
+        case .glitch:
+            let dx = canvas.width * 0.06 * a
+            let split = Effects.rgbSplit(image, dx: dx)
+            let shift = canvas.width * 0.08 * a * CGFloat(sin(now * 90))
+            return split.transformed(by: CGAffineTransform(translationX: shift, y: 0)).cropped(to: canvas).composited(over: black)
+        case .whip:
+            let dx = (entering ? 1 : -1) * a * canvas.width * 0.6
+            let blurred = image.clampedToExtent()
+                .applyingFilter("CIMotionBlur", parameters: [kCIInputRadiusKey: 60 * a, kCIInputAngleKey: 0])
+                .cropped(to: canvas)
+            return blurred.transformed(by: CGAffineTransform(translationX: dx, y: 0)).composited(over: black)
+        case .pixel:
+            let scale = max(1, canvas.width * 0.12 * a)
+            return image.clampedToExtent()
+                .applyingFilter("CIPixellate", parameters: [kCIInputCenterKey: CIVector(x: cx, y: cy), kCIInputScaleKey: scale])
+                .cropped(to: canvas)
+        case .shake:
+            let amp = canvas.width * 0.05 * a
+            let dx = amp * CGFloat(sin(now * 70))
+            let dy = amp * CGFloat(cos(now * 53))
+            return Effects.zoom(image, 1 + 0.1 * a, canvas)
+                .transformed(by: CGAffineTransform(translationX: dx, y: dy))
+                .cropped(to: canvas)
         }
     }
 

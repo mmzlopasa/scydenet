@@ -7,6 +7,9 @@ public enum CanvasAspect: String, Codable, CaseIterable, Sendable {
     case square1x1 = "1:1"
     case portrait4x5 = "4:5"
     case cinema21x9 = "21:9"
+    case portrait3x4 = "3:4"
+    case landscape4x3 = "4:3"
+    case portrait2x3 = "2:3"
 
     public var ratio: Double {
         switch self {
@@ -15,6 +18,9 @@ public enum CanvasAspect: String, Codable, CaseIterable, Sendable {
         case .square1x1: return 1.0
         case .portrait4x5: return 4.0 / 5.0
         case .cinema21x9: return 21.0 / 9.0
+        case .portrait3x4: return 3.0 / 4.0
+        case .landscape4x3: return 4.0 / 3.0
+        case .portrait2x3: return 2.0 / 3.0
         }
     }
 
@@ -31,12 +37,42 @@ public struct Adjustments: Codable, Equatable, Sendable {
     public var saturation: Double
     /// -1 (cool) ... 1 (warm).
     public var warmth: Double
+    /// -1...1, nil = unchanged.
+    public var highlights: Double?
+    public var shadows: Double?
+    /// 0...1.
+    public var sharpness: Double?
+    /// 0...1.
+    public var vignette: Double?
+    /// -1 (green) ... 1 (magenta).
+    public var tint: Double?
+    /// 0...1 lifted blacks.
+    public var fade: Double?
+    /// 0...1 film grain.
+    public var grain: Double?
+    /// -1...1 midtone contrast.
+    public var clarity: Double?
 
     public init(exposure: Double = 0, contrast: Double = 1, saturation: Double = 1, warmth: Double = 0) {
         self.exposure = exposure
         self.contrast = contrast
         self.saturation = saturation
         self.warmth = warmth
+    }
+
+    /// Drops extras that are (near) zero so neutral settings compare equal to `.neutral`.
+    public func normalised() -> Adjustments {
+        var a = self
+        func z(_ v: Double?) -> Double? { (v.map { abs($0) < 0.005 } ?? true) ? nil : v }
+        a.highlights = z(highlights)
+        a.shadows = z(shadows)
+        a.sharpness = z(sharpness)
+        a.vignette = z(vignette)
+        a.tint = z(tint)
+        a.fade = z(fade)
+        a.grain = z(grain)
+        a.clarity = z(clarity)
+        return a
     }
 
     public static let neutral = Adjustments()
@@ -88,10 +124,16 @@ public struct Keyframe: Codable, Equatable, Sendable {
 
 /// Single-source transitions played at the start of a clip (and the end of the one before).
 public enum TransitionKind: String, Codable, CaseIterable, Sendable {
-    case fade, flash, zoom, blur, slide, spin
+    case fade, flash, zoom, blur, slide, spin, wipe, iris, glitch, whip, pixel, shake
 
     public var title: String {
         switch self {
+        case .wipe: return "Wipe"
+        case .iris: return "Iris"
+        case .glitch: return "Glitch"
+        case .whip: return "Whip"
+        case .pixel: return "Pixelate"
+        case .shake: return "Shake"
         case .fade: return "Fade"
         case .flash: return "Flash"
         case .zoom: return "Zoom"
@@ -132,7 +174,7 @@ public struct ChromaKey: Codable, Equatable, Sendable {
 /// offset into the source media, `duration` the length on the timeline.
 public struct Clip: Codable, Equatable, Identifiable, Sendable {
     public enum Kind: String, Codable, Sendable {
-        case video, photo, audio, text
+        case video, photo, audio, text, sticker
     }
 
     public var id: UUID
@@ -162,6 +204,19 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
     public var fadeIn: Double?
     public var fadeOut: Double?
     public var chromaKey: ChromaKey?
+    /// Font, colour, background and animation for `.text` and `.sticker` clips.
+    public var textStyle: TextStyle?
+    public var effect: VideoEffect?
+    public var mask: ClipMask?
+    public var crop: CropRect?
+    public var flipH: Bool?
+    public var flipV: Bool?
+    /// Quarter turns clockwise applied to the source (0...3).
+    public var quarterTurns: Int?
+    /// How an overlay clip mixes with what is under it.
+    public var blend: BlendMode?
+    /// True when the media file holds the reversed source.
+    public var reversed: Bool?
 
     public var end: Double { start + duration }
 
@@ -214,7 +269,7 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
 
 public struct Track: Codable, Equatable, Identifiable, Sendable {
     public enum Role: String, Codable, CaseIterable, Sendable {
-        case main, overlay, audio, text
+        case main, overlay, audio, text, sticker
     }
 
     public var id: UUID
@@ -241,6 +296,10 @@ public struct Project: Codable, Equatable, Identifiable, Sendable {
     public var fps: Int
     public var tracks: [Track]
     public var export: ExportSettings
+    /// What fills the canvas around media that does not cover it. nil = blurred fill.
+    public var background: CanvasBackground?
+    /// Beat or user markers on the timeline, in seconds.
+    public var markers: [Double]?
 
     public init(
         id: UUID = UUID(),

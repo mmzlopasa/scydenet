@@ -5,6 +5,7 @@ import SCYDECore
 
 enum EditorSheet: String, Identifiable {
     case speed, text, look, voiceover, voiceFX, cover, transform, transition, volume, chroma, stock
+    case sticker, effects, mask, crop, blend, canvas, beats, animate
     var id: String { rawValue }
 }
 

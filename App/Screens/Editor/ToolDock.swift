@@ -51,15 +51,28 @@ struct ToolDock: View {
         .accessibilityLabel("Add overlay")
         ToolButton(icon: "play.square.stack", title: "Stock", enabled: true) { model.activeSheet = .stock }
         ToolButton(icon: "music.note", title: "Audio", enabled: true) { model.showAudioMenu = true }
-        ToolButton(icon: "textformat", title: "Text", enabled: true) { model.activeSheet = .text }
+        ToolButton(icon: "textformat", title: "Text", enabled: true) {
+            model.clearSelection()
+            model.activeSheet = .text
+        }
+        ToolButton(icon: "face.smiling", title: "Stickers", enabled: true) {
+            model.clearSelection()
+            model.activeSheet = .sticker
+        }
+        ToolButton(icon: "sparkles", title: "Effects", enabled: model.effectTarget != nil) { model.activeSheet = .effects }
+        ToolButton(icon: "camera.filters", title: "Filters", enabled: model.lookTarget != nil) { model.activeSheet = .look }
+        ToolButton(icon: "aspectratio", title: "Canvas", enabled: true) { model.activeSheet = .canvas }
+        ToolButton(icon: "metronome", title: "Beats", enabled: true) { model.activeSheet = .beats }
         ToolButton(icon: "captions.bubble", title: "Captions", enabled: model.hasPlayableMedia) {
             Task { await model.generateCaptions() }
         }
-        ToolButton(icon: "camera.filters", title: "Filters", enabled: model.lookTarget != nil) { model.activeSheet = .look }
         ToolButton(icon: "wand.and.stars", title: "AutoCut", enabled: model.hasPlayableMedia) {
             Task { await model.autoCut() }
         }
         ToolButton(icon: "scissors", title: "Split", enabled: model.canSplit) { model.split() }
+        ToolButton(icon: "pause.rectangle", title: "Freeze", enabled: model.project.clip(at: model.playhead, role: .main)?.kind == .video) {
+            Task { await model.freezeAtPlayhead() }
+        }
         ToolButton(icon: "photo.on.rectangle.angled", title: "Cover", enabled: model.hasPlayableMedia) { model.activeSheet = .cover }
     }
 
@@ -76,8 +89,21 @@ struct ToolDock: View {
             if model.selectedCanTransition {
                 ToolButton(icon: "square.split.diagonal.2x2", title: "Transition", enabled: true) { model.activeSheet = .transition }
             }
+            ToolButton(icon: "sparkles", title: "Effects", enabled: true) { model.activeSheet = .effects }
             ToolButton(icon: "camera.filters", title: "Filters", enabled: true) { model.activeSheet = .look }
             ToolButton(icon: "slider.horizontal.3", title: "Adjust", enabled: true) { model.activeSheet = .look }
+            ToolButton(icon: "crop.rotate", title: "Crop", enabled: true) { model.activeSheet = .crop }
+            ToolButton(icon: "circle.dashed.inset.filled", title: "Mask", enabled: true) { model.activeSheet = .mask }
+            ToolButton(icon: "square.2.layers.3d", title: "Blend", enabled: true) { model.activeSheet = .blend }
+            if model.selectedIsVideo {
+                ToolButton(icon: "backward.end.alt", title: "Reverse", enabled: true) {
+                    Task { await model.reverseSelected() }
+                }
+                ToolButton(icon: "pause.rectangle", title: "Freeze", enabled: true) {
+                    Task { await model.freezeAtPlayhead() }
+                }
+                ToolButton(icon: "waveform.badge.minus", title: "Extract audio", enabled: true) { model.extractAudio() }
+            }
             ToolButton(
                 icon: (model.selectedClip?.removeBackground ?? false) ? "person.crop.rectangle.fill" : "person.crop.rectangle",
                 title: (model.selectedClip?.removeBackground ?? false) ? "Restore BG" : "Remove BG",
@@ -86,10 +112,34 @@ struct ToolDock: View {
             ToolButton(icon: "drop.halffull", title: "Chroma", enabled: true) { model.activeSheet = .chroma }
         }
         if model.selectedIsText {
-            ToolButton(icon: "pencil", title: "Edit text", enabled: true) { model.activeSheet = .text }
+            ToolButton(icon: "pencil", title: "Edit text", enabled: true) {
+                model.textTab = 0
+                model.activeSheet = .text
+            }
+            ToolButton(icon: "paintpalette", title: "Style", enabled: true) {
+                model.textTab = 1
+                model.activeSheet = .text
+            }
+            ToolButton(icon: "wand.and.rays", title: "Animate", enabled: true) {
+                model.textTab = 2
+                model.activeSheet = .text
+            }
+            ToolButton(icon: "waveform", title: "Read aloud", enabled: true) {
+                model.textTab = 3
+                model.activeSheet = .text
+            }
+        }
+        if model.selectedIsSticker {
+            ToolButton(icon: "face.smiling", title: "Replace", enabled: true) { model.activeSheet = .sticker }
+            ToolButton(icon: "wand.and.rays", title: "Animate", enabled: true) { model.activeSheet = .animate }
+        }
+        if model.selectedIsGraphic {
+            ToolButton(icon: "arrow.up.and.down.and.arrow.left.and.right", title: "Transform", enabled: true) { model.activeSheet = .transform }
+            ToolButton(icon: "sparkles", title: "Effects", enabled: true) { model.activeSheet = .effects }
         }
         if model.selectedIsAudio {
             ToolButton(icon: "waveform.badge.plus", title: "Voice FX", enabled: true) { model.activeSheet = .voiceFX }
+            ToolButton(icon: "metronome", title: "Beats", enabled: true) { model.activeSheet = .beats }
         }
         if model.canMute {
             ToolButton(

@@ -11,8 +11,9 @@
   - Phase 13 (part): Croatian localisation (hr.lproj Localizable + InfoPlist strings, `.loc` / `.locf` helpers); CI captures screenshots in Croatian.
   - Template library: 120 own recipes (20 categories x 6) with on-device rendered looping previews (Engine/TemplatePreviews.swift); recipes apply transitions, look, Ken Burns and title. CapCut or other third-party templates are not used (copyright).
   - Pexels stock videos with the user's free API key (Keychain), credited per clip.
+  - Pro tools: text styles (24 fonts, 20 presets, colour, background, outline, shadow, glow, spacing, position) and 12 in / 12 out / 6 loop animations; stickers (emoji + SF Symbols, own track); 32 video effects; masks (linear, mirror, circle, rectangle, heart, star, feather, invert); crop, rotate 90°, flip; 16 blend modes + opacity for overlays; canvas ratio (8 formats) and background (blur, colour, gradient); 12 transitions; 31 looks; 12 adjust sliders; reverse; freeze frame; extract audio; beat detection, markers, snap to markers and cut to the beat; text-to-speech.
 - NOT verified on a real device yet: gestures, microphone, speech recognition, Photos saving, export speed.
-- NEXT: beat markers, masks (shape/linear), text styles and animations, stickers, cross-dissolve (needs A/B tracks), onboarding, performance pass on older iPhones.
+- NEXT: speed curves, stabilisation, cross-dissolve (needs A/B tracks), keyframes for effects and masks, onboarding, performance pass on older iPhones.
 
 ## Scope and honesty
 - Target: every core feature of a CapCut-class editor, implemented natively. Not copied: CapCut name, logo, UI art, effect/template/music libraries (ByteDance IP and cloud services). We ship our own assets and let users import theirs.

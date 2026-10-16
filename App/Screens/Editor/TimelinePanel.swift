@@ -19,7 +19,7 @@ struct TimelinePanel: View {
                     .onTapGesture { model.clearSelection() }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    TimeRuler(playhead: model.playhead, pps: model.pxPerSecond, center: center)
+                    TimeRuler(playhead: model.playhead, pps: model.pxPerSecond, center: center, markers: model.project.markers ?? [])
                         .frame(height: 26)
                     ForEach(model.visibleTracks) { track in
                         TrackLane(track: track, model: model, center: center, width: width)
@@ -77,6 +77,7 @@ struct TimeRuler: View {
     let playhead: Double
     let pps: CGFloat
     let center: CGFloat
+    var markers: [Double] = []
 
     static func step(for pps: CGFloat) -> Double {
         for s in [0.5, 1, 2, 5, 10, 15, 30, 60, 120] where CGFloat(s) * pps >= 64 {
@@ -111,6 +112,11 @@ struct TimeRuler: View {
                 }
                 t += minor
                 guardCount += 1
+            }
+            for m in markers where m >= t0 - 1 && m <= t1 + 1 {
+                let x = center + CGFloat(m - playhead) * pps
+                let dot = Path(ellipseIn: CGRect(x: x - 3, y: size.height - 7, width: 6, height: 6))
+                ctx.fill(dot, with: .color(SX.C.gold))
             }
         }
     }

@@ -39,7 +39,7 @@ final class ThumbnailCache {
             } catch {
                 result = nil
             }
-        case .audio, .text:
+        case .audio, .text, .sticker:
             result = nil
         }
         if let r = result { images[key] = r }

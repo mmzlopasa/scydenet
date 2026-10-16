@@ -16,6 +16,7 @@ struct ClipBlock: View {
         case .photo: return (SX.C.clipPhoto, SX.C.clipPhoto2)
         case .audio: return (SX.C.clipAudio, SX.C.clipAudio2)
         case .text: return (SX.C.clipText, SX.C.clipText2)
+        case .sticker: return (SX.C.clipAudio, SX.C.clipPhoto)
         }
     }
 
@@ -28,6 +29,7 @@ struct ClipBlock: View {
         switch clip.kind {
         case .audio: return SX.C.onClipDark
         case .text: return SX.C.onClip
+        case .sticker: return SX.C.onClipDark
         case .video, .photo: return SX.C.onClip
         }
     }
@@ -38,6 +40,7 @@ struct ClipBlock: View {
         case .photo: return "photo.fill"
         case .audio: return "waveform"
         case .text: return "textformat"
+        case .sticker: return "face.smiling"
         }
     }
 

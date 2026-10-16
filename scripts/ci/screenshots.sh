@@ -76,6 +76,19 @@ shot sheet-chroma  -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSel
 SLEEP=10 shot media-pip -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSelect 0
 shot collage-empty -scydeTheme light -scydeScreen collage
 
+# Pro tools: text styles, stickers, effects, masks, crop, canvas, beats.
+SLEEP=10 shot media-sticker    -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 2.2
+SLEEP=10 shot media-dock-video -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 6.5 -scydeSelect 2
+SLEEP=10 shot sheet-effects    -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 6.5 -scydeSelect 2 -scydeSheet effects
+SLEEP=10 shot sheet-textstyle  -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.0 -scydeSheet textstyle
+SLEEP=10 shot sheet-textanim   -scydeSampleMedia YES -scydeTheme light -scydePlayhead 1.0 -scydeSheet textanim
+SLEEP=10 shot sheet-mask       -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 4.0 -scydeSelect 1 -scydeSheet mask
+SLEEP=10 shot sheet-crop       -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSelect 0 -scydeSheet crop
+SLEEP=10 shot sheet-beats      -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSheet beats
+shot sheet-sticker -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSheet sticker
+shot sheet-canvas  -scydeDemo YES -scydeTheme light -scydeScreen editor -scydeSheet canvas
+SLEEP=10 shot hr-sheet-effects -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 6.5 -scydeSelect 2 -scydeSheet effects -AppleLanguages "(hr)" -AppleLocale hr_HR
+
 xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
 # Keep the repo small: downscale to 900px wide.
 for f in "$OUT"/*.png; do sips --resampleWidth 900 "$f" >/dev/null 2>&1 || true; done

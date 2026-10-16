@@ -73,6 +73,7 @@ final class CompositionBuilder {
         for (role, vTrack, aTrack, params) in visualRoles {
             let clips = project.tracks.first(where: { $0.role == role })?.clips ?? []
             for (index, clip) in clips.enumerated() where clip.kind == .video || clip.kind == .photo {
+                let background = role == .main ? project.background : nil
                 let next = index + 1 < clips.count ? clips[index + 1] : nil
                 guard let assetID = clip.assetID else { continue }
                 let at = Self.ct(clip.start)
@@ -80,7 +81,7 @@ final class CompositionBuilder {
                 let range = CMTimeRange(start: at, duration: length)
 
                 if clip.kind == .photo {
-                    placed.append(PlacedLayer(range: range, layer: Self.layer(.photo(assetID: assetID), clip: clip, isMain: role == .main, next: next)))
+                    placed.append(PlacedLayer(range: range, layer: Self.layer(.photo(assetID: assetID), clip: clip, isMain: role == .main, next: next, background: background)))
                     if role == .main {
                         Self.pad(vTrack, to: at)
                         await fill(vTrack, at: at, length: length)
@@ -107,7 +108,7 @@ final class CompositionBuilder {
                 }
                 placed.append(PlacedLayer(
                     range: range,
-                    layer: Self.layer(.video(trackID: vTrack.trackID, orientation: src.orientation), clip: clip, isMain: role == .main, next: next)
+                    layer: Self.layer(.video(trackID: vTrack.trackID, orientation: src.orientation), clip: clip, isMain: role == .main, next: next, background: background)
                 ))
                 if let audio = src.audio {
                     Self.pad(aTrack, to: at)
@@ -124,7 +125,17 @@ final class CompositionBuilder {
             guard let text = clip.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { continue }
             placed.append(PlacedLayer(
                 range: CMTimeRange(start: Self.ct(clip.start), duration: Self.ct(clip.duration)),
-                layer: SXLayer(source: .text(text), isMain: false)
+                layer: SXLayer(source: .text(text), isMain: false, clip: clip)
+            ))
+        }
+
+        // Stickers.
+        let stickerClips = project.tracks.first(where: { $0.role == .sticker })?.clips ?? []
+        for clip in stickerClips {
+            guard let id = clip.text, !id.isEmpty else { continue }
+            placed.append(PlacedLayer(
+                range: CMTimeRange(start: Self.ct(clip.start), duration: Self.ct(clip.duration)),
+                layer: SXLayer(source: .sticker(id), isMain: false, clip: clip)
             ))
         }
 
@@ -200,7 +211,7 @@ final class CompositionBuilder {
         }
     }
 
-    private static func layer(_ source: SXLayer.Source, clip: Clip, isMain: Bool, next: Clip? = nil) -> SXLayer {
+    private static func layer(_ source: SXLayer.Source, clip: Clip, isMain: Bool, next: Clip? = nil, background: CanvasBackground? = nil) -> SXLayer {
         var out: ClipTransition?
         if isMain, let n = next, abs(n.start - clip.end) < 0.05 {
             out = n.transitionIn
@@ -212,7 +223,8 @@ final class CompositionBuilder {
             adjust: clip.adjust,
             cutout: clip.removeBackground ?? false,
             clip: clip,
-            outTransition: out
+            outTransition: out,
+            background: background
         )
     }
 
@@ -297,8 +309,13 @@ final class CompositionBuilder {
                 if case .text = p.layer.source { return true }
                 return false
             }
+            let isSticker: (PlacedLayer) -> Bool = { p in
+                if case .sticker = p.layer.source { return true }
+                return false
+            }
             let ordered = active.filter { $0.layer.isMain }
-                + active.filter { !$0.layer.isMain && !isText($0) }
+                + active.filter { !$0.layer.isMain && !$0.layer.isGraphic }
+                + active.filter { isSticker($0) }
                 + active.filter { isText($0) }
             result.append(SXInstruction(timeRange: CMTimeRange(start: a, end: b), layers: ordered.map { $0.layer }))
             i += 1
