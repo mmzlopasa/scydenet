@@ -313,7 +313,7 @@ struct ProjectTemplate: Identifiable, Hashable {
     /// The whole library: 20 categories × 6 variants.
     static let all: [ProjectTemplate] = {
         var result: [ProjectTemplate] = []
-        let kinds = TransitionKind.allCases
+        let kinds = TransitionKind.allCases.filter { $0 != .dissolve }
         for (ci, category) in TemplateCategory.allCases.enumerated() {
             for (vi, variant) in category.variants.enumerated() {
                 var slots = slotPatterns[vi % slotPatterns.count]

@@ -87,6 +87,12 @@ SLEEP=10 shot sheet-crop       -scydeSampleMedia YES -scydeTheme dark -scydePlay
 SLEEP=10 shot sheet-beats      -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSheet beats
 shot sheet-sticker -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSheet sticker
 shot sheet-canvas  -scydeDemo YES -scydeTheme light -scydeScreen editor -scydeSheet canvas
+SLEEP=10 shot media-dissolve   -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 5.2
+SLEEP=10 shot sheet-speedcurve -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.0 -scydeSelect 0 -scydeSheet speed
+SLEEP=10 shot sheet-stabilize  -scydeSampleMedia YES -scydeTheme light -scydePlayhead 6.5 -scydeSelect 2 -scydeSheet stabilize
+SLEEP=40 shot selftest         -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.0 -scydeSelfTest YES
+shot onboarding    -scydeOnboarding YES
+shot hr-onboarding -scydeOnboarding YES -AppleLanguages "(hr)" -AppleLocale hr_HR
 SLEEP=10 shot hr-sheet-effects -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 6.5 -scydeSelect 2 -scydeSheet effects -AppleLanguages "(hr)" -AppleLocale hr_HR
 
 xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true

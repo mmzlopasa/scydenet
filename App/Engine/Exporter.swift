@@ -1,4 +1,5 @@
 import AVFoundation
+import UIKit
 import Photos
 import SwiftUI
 import SCYDECore
@@ -73,6 +74,16 @@ final class Exporter: ObservableObject {
         self.session = session
 
         state = .exporting(0)
+        // Keep the screen on and ask for extra time if the user switches apps mid-export.
+        UIApplication.shared.isIdleTimerDisabled = true
+        var background = UIApplication.shared.beginBackgroundTask(withName: "SCYDE export") {}
+        defer {
+            UIApplication.shared.isIdleTimerDisabled = false
+            if background != .invalid {
+                UIApplication.shared.endBackgroundTask(background)
+                background = .invalid
+            }
+        }
         progressTask = Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 100_000_000)

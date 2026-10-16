@@ -34,6 +34,7 @@ final class CompositionBuilder {
 
     static let mainVideoID: CMPersistentTrackID = 1
     static let overlayVideoID: CMPersistentTrackID = 2
+    static let altVideoID: CMPersistentTrackID = 3
     static let mainAudioID: CMPersistentTrackID = 11
     static let overlayAudioID: CMPersistentTrackID = 12
     static let musicAudioID: CMPersistentTrackID = 13
@@ -69,22 +70,74 @@ final class CompositionBuilder {
             (.main, mainV, mainA, mainParams),
             (.overlay, overV, overA, overParams),
         ]
+        // Second main video track: the incoming clip of a cross dissolve overlaps the outgoing one.
+        var altV: AVMutableCompositionTrack?
 
         for (role, vTrack, aTrack, params) in visualRoles {
             let clips = project.tracks.first(where: { $0.role == role })?.clips ?? []
+            var onAlt = false
             for (index, clip) in clips.enumerated() where clip.kind == .video || clip.kind == .photo {
-                let background = role == .main ? project.background : nil
+                let isMain = role == .main
+                let background = isMain ? project.background : nil
+                let prev = index > 0 ? clips[index - 1] : nil
                 let next = index + 1 < clips.count ? clips[index + 1] : nil
                 guard let assetID = clip.assetID else { continue }
+
+                // Cross dissolve: the incoming clip starts early, the outgoing one runs late.
+                let dissolveIn = isMain && Self.dissolves(prev, into: clip)
+                let dissolveOut = isMain && Self.dissolves(clip, into: next)
+                if dissolveIn { onAlt.toggle() }
+                var track = vTrack
+                if isMain && onAlt {
+                    if altV == nil {
+                        altV = composition.addMutableTrack(withMediaType: .video, preferredTrackID: Self.altVideoID)
+                    }
+                    if let alt = altV { track = alt }
+                }
+                var pre = 0.0
+                var ext = 0.0
+                if dissolveIn, let t = clip.transitionIn {
+                    pre = t.duration / 2
+                    if clip.kind == .video {
+                        pre = clip.speedCurve == nil ? min(pre, clip.sourceIn / clip.speed) : 0
+                    }
+                    if clip.kind == .video {
+                        pre = min(pre, max(0, clip.start - Self.end(of: track)))
+                    }
+                }
+                if dissolveOut, let t = next?.transitionIn {
+                    ext = t.duration / 2
+                    if clip.kind == .video {
+                        if clip.speedCurve != nil {
+                            ext = 0
+                        } else if let sd = clip.sourceDuration {
+                            ext = min(ext, max(0, (sd - (clip.sourceIn + clip.duration * clip.speed)) / clip.speed))
+                        }
+                    }
+                }
+                let window: ClosedRange<Double>? = {
+                    guard dissolveIn, let p = prev else { return nil }
+                    let a = clip.start - pre
+                    let b = p.end + Self.tail(of: p, into: clip)
+                    return b - a > 0.02 ? a...b : nil
+                }()
+
                 let at = Self.ct(clip.start)
                 let length = Self.ct(clip.duration)
-                let range = CMTimeRange(start: at, duration: length)
+                let range = CMTimeRange(start: Self.ct(clip.start - pre), end: Self.ct(clip.end + ext))
+                var layer: SXLayer
 
                 if clip.kind == .photo {
-                    placed.append(PlacedLayer(range: range, layer: Self.layer(.photo(assetID: assetID), clip: clip, isMain: role == .main, next: next, background: background)))
-                    if role == .main {
-                        Self.pad(vTrack, to: at)
-                        await fill(vTrack, at: at, length: length)
+                    layer = Self.layer(.photo(assetID: assetID), clip: clip, isMain: isMain, next: next, background: background)
+                    layer.dissolve = window
+                    placed.append(PlacedLayer(range: range, layer: layer))
+                    if isMain {
+                        // Keep the main track continuous with blank video where it is free.
+                        let from = max(clip.start, Self.end(of: mainV))
+                        if clip.end - from > 0.01 {
+                            Self.pad(mainV, to: Self.ct(from))
+                            await fill(mainV, at: Self.ct(from), length: Self.ct(clip.end - from))
+                        }
                     }
                     continue
                 }
@@ -97,19 +150,26 @@ final class CompositionBuilder {
                     notes.append("\(clip.name): no video track")
                     continue
                 }
-                notes.append("\(clip.name): src \(String(format: "%.2f", src.duration.seconds))s")
-                Self.pad(vTrack, to: at)
-                let inserted = Self.insert(
-                    from: video, sourceDuration: src.duration, clip: clip, into: vTrack, at: at, length: length
-                )
+                let start = Self.ct(clip.start - pre)
+                Self.pad(track, to: start)
+                let inserted: Bool
+                if pre > 0 || ext > 0 {
+                    inserted = Self.insertRange(
+                        from: video, sourceDuration: src.duration,
+                        sourceStart: clip.sourceIn - pre * clip.speed,
+                        sourceLength: (clip.duration + pre + ext) * clip.speed,
+                        into: track, at: start, length: Self.ct(clip.duration + pre + ext)
+                    )
+                } else {
+                    inserted = Self.insert(from: video, sourceDuration: src.duration, clip: clip, into: track, at: at, length: length)
+                }
                 guard inserted else {
                     notes.append("\(clip.name): insert failed \(Self.lastInsertError)")
                     continue
                 }
-                placed.append(PlacedLayer(
-                    range: range,
-                    layer: Self.layer(.video(trackID: vTrack.trackID, orientation: src.orientation), clip: clip, isMain: role == .main, next: next, background: background)
-                ))
+                layer = Self.layer(.video(trackID: track.trackID, orientation: src.orientation), clip: clip, isMain: isMain, next: next, background: background)
+                layer.dissolve = window
+                placed.append(PlacedLayer(range: range, layer: layer))
                 if let audio = src.audio {
                     Self.pad(aTrack, to: at)
                     if Self.insert(from: audio, sourceDuration: src.duration, clip: clip, into: aTrack, at: at, length: length) {
@@ -157,7 +217,7 @@ final class CompositionBuilder {
             await fill(mainV, at: mainEnd, length: CMTimeSubtract(total, mainEnd))
         }
 
-        for track in [overV, mainA, overA, musicA] where track.segments.isEmpty {
+        for track in [overV, mainA, overA, musicA] + (altV.map { [$0] } ?? []) where track.segments.isEmpty {
             composition.removeTrack(track)
         }
 
@@ -228,6 +288,59 @@ final class CompositionBuilder {
         )
     }
 
+    /// True when `b` follows `a` directly on the main track with a cross dissolve.
+    private static func dissolves(_ a: Clip?, into b: Clip?) -> Bool {
+        guard let a = a, let b = b, b.transitionIn?.kind == .dissolve,
+              (a.kind == .video || a.kind == .photo), (b.kind == .video || b.kind == .photo),
+              abs(b.start - a.end) < 0.05, (b.transitionIn?.duration ?? 0) > 0.05 else { return false }
+        return true
+    }
+
+    /// How long `a` keeps running after its end to dissolve into `b`.
+    private static func tail(of a: Clip, into b: Clip) -> Double {
+        guard let t = b.transitionIn else { return 0 }
+        var ext = t.duration / 2
+        if a.kind == .video {
+            if a.speedCurve != nil { return 0 }
+            if let sd = a.sourceDuration {
+                ext = min(ext, max(0, (sd - (a.sourceIn + a.duration * a.speed)) / a.speed))
+            }
+        }
+        return ext
+    }
+
+    private static func end(of track: AVMutableCompositionTrack) -> Double {
+        let r = track.timeRange
+        return r.isValid ? r.end.seconds : 0
+    }
+
+    /// Inserts an explicit source range scaled to `length`.
+    private static func insertRange(
+        from sourceTrack: AVAssetTrack,
+        sourceDuration: CMTime,
+        sourceStart: Double,
+        sourceLength: Double,
+        into track: AVMutableCompositionTrack,
+        at: CMTime,
+        length: CMTime
+    ) -> Bool {
+        let s = ct(max(0, sourceStart))
+        var l = ct(sourceLength)
+        let available = CMTimeSubtract(sourceDuration, s)
+        if l > available { l = available }
+        guard l > .zero else { return false }
+        do {
+            try track.insertTimeRange(CMTimeRange(start: s, duration: l), of: sourceTrack, at: at)
+        } catch {
+            lastInsertError = (error as NSError).localizedDescription + " \((error as NSError).code)"
+            return false
+        }
+        if CMTimeCompare(l, length) != 0 {
+            track.scaleTimeRange(CMTimeRange(start: at, duration: l), toDuration: length)
+        }
+        return true
+    }
+
     /// Volume with optional fade in/out ramps for one clip.
     private static func applyVolume(_ params: AVMutableAudioMixInputParameters, clip: Clip, at: CMTime, length: CMTime) {
         let v = Float(clip.volume)
@@ -258,6 +371,9 @@ final class CompositionBuilder {
         at: CMTime,
         length: CMTime
     ) -> Bool {
+        if let curve = clip.speedCurve, curve.count > 1 {
+            return insertCurved(from: sourceTrack, sourceDuration: sourceDuration, clip: clip, curve: curve, into: track, at: at, length: length)
+        }
         let sourceStart = ct(clip.sourceIn)
         var sourceLength = ct(clip.duration * clip.speed)
         let available = CMTimeSubtract(sourceDuration, sourceStart)
@@ -271,6 +387,44 @@ final class CompositionBuilder {
         }
         if abs(clip.speed - 1) > 0.001 {
             track.scaleTimeRange(CMTimeRange(start: at, duration: sourceLength), toDuration: length)
+        }
+        return true
+    }
+
+    /// Speed ramp: equal timeline slices, each showing a share of the source set by the curve.
+    private static func insertCurved(
+        from sourceTrack: AVAssetTrack,
+        sourceDuration: CMTime,
+        clip: Clip,
+        curve: [Double],
+        into track: AVMutableCompositionTrack,
+        at: CMTime,
+        length: CMTime
+    ) -> Bool {
+        let n = 24
+        let available = max(0, sourceDuration.seconds - clip.sourceIn)
+        let sourceLength = min(clip.duration * clip.speed, available)
+        guard sourceLength > 0.01 else { return false }
+        let slices = SpeedCurves.sourceSlices(curve, segments: n, sourceLength: sourceLength)
+        let total = length.seconds
+        var src = clip.sourceIn
+        var cursor = at
+        for i in 0..<n {
+            let s = CMTime(seconds: src, preferredTimescale: 6000)
+            let l = CMTime(seconds: slices[i], preferredTimescale: 6000)
+            // Timeline end of this slice, computed from the clip start so rounding never drifts.
+            let sliceEnd = CMTimeAdd(at, CMTime(seconds: total * Double(i + 1) / Double(n), preferredTimescale: 6000))
+            let target = CMTimeSubtract(sliceEnd, cursor)
+            guard l > .zero, target > .zero else { continue }
+            do {
+                try track.insertTimeRange(CMTimeRange(start: s, duration: l), of: sourceTrack, at: cursor)
+            } catch {
+                lastInsertError = (error as NSError).localizedDescription + " \((error as NSError).code)"
+                return i > 0
+            }
+            track.scaleTimeRange(CMTimeRange(start: cursor, duration: l), toDuration: target)
+            cursor = sliceEnd
+            src += slices[i]
         }
         return true
     }

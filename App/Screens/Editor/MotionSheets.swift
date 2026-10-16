@@ -167,6 +167,7 @@ struct TransitionSheet: View {
         case .blur: return "drop"
         case .slide: return "arrow.left.and.right"
         case .spin: return "arrow.triangle.2.circlepath"
+        case .dissolve: return "circle.lefthalf.striped.horizontal"
         case .wipe: return "rectangle.lefthalf.inset.filled.arrow.left"
         case .iris: return "circle.circle"
         case .glitch: return "waveform.path.ecg"

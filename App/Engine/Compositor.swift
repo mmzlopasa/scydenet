@@ -2,6 +2,7 @@ import AVFoundation
 import CoreImage
 import Foundation
 import ImageIO
+import Metal
 import UIKit
 import Vision
 import SCYDECore
@@ -39,6 +40,8 @@ struct SXLayer: Sendable {
     var outTransition: ClipTransition? = nil
     /// Canvas fill behind the main track.
     var background: CanvasBackground? = nil
+    /// Cross dissolve window (timeline seconds) over which this incoming clip fades in.
+    var dissolve: ClosedRange<Double>? = nil
 
     var isGraphic: Bool {
         switch source {
@@ -121,7 +124,13 @@ final class CompositorStats: @unchecked Sendable {
 
 final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
     private let queue = DispatchQueue(label: "dev.scyde.compositor", qos: .userInteractive)
-    private let context = CIContext(options: [.cacheIntermediates: false])
+    private let context: CIContext = {
+        let options: [CIContextOption: Any] = [.cacheIntermediates: false, .priorityRequestLow: false]
+        if let device = MTLCreateSystemDefaultDevice() {
+            return CIContext(mtlDevice: device, options: options)
+        }
+        return CIContext(options: options)
+    }()
     private let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
     private let lock = NSLock()
     private var photoCache: [String: CIImage] = [:]
@@ -220,7 +229,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                 if let clip = layer.clip {
                     transform = LiveTransforms.shared.get(clip.id) ?? clip.transform(at: now)
                 }
-                let mask = layer.clip?.mask
+                let mask = layer.clip?.mask(at: now)
 
                 var piece: CIImage
                 if layer.cutout, let cut = personCutout(source) {
@@ -244,10 +253,14 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     if let m = mask { piece = Masks.apply(piece, m, canvas: canvas, offset: transform) }
                 }
                 if let clip = layer.clip, let effect = clip.effect {
-                    piece = Effects.apply(piece, effect, canvas: canvas, t: now - clip.start)
+                    piece = Effects.apply(piece, Self.ramped(effect, clip, now), canvas: canvas, t: now - clip.start)
                 }
                 if layer.isMain, let clip = layer.clip {
                     piece = Self.transition(piece, clip: clip, out: layer.outTransition, now: now, canvas: canvas)
+                }
+                if let w = layer.dissolve, now < w.upperBound {
+                    let alpha = (now - w.lowerBound) / max(w.upperBound - w.lowerBound, 0.001)
+                    piece = Self.opacity(piece.cropped(to: canvas), min(max(alpha, 0), 1))
                 }
                 piece = piece.cropped(to: canvas)
                 if !layer.isMain, let mode = layer.clip?.blend, mode != .normal {
@@ -269,7 +282,10 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         switch layer.source {
         case let .video(trackID, orientation):
             guard let buffer = request.sourceFrame(byTrackID: trackID) else { return nil }
-            let image = CIImage(cvPixelBuffer: buffer)
+            var image = CIImage(cvPixelBuffer: buffer)
+            if let clip = layer.clip, let stab = clip.stabilization {
+                image = Self.stabilize(image, stab, sourceTime: clip.sourceIn + (request.compositionTime.seconds - clip.start) * clip.speed)
+            }
             if let o = CGImagePropertyOrientation(rawValue: orientation), o != .up {
                 return image.oriented(o)
             }
@@ -279,6 +295,26 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         case .text, .sticker:
             return nil
         }
+    }
+
+    /// Effect with its intensity ramp evaluated at `now`.
+    static func ramped(_ effect: VideoEffect, _ clip: Clip, _ now: Double) -> VideoEffect {
+        guard effect.endIntensity != nil, clip.duration > 0 else { return effect }
+        var e = effect
+        e.intensity = effect.intensity(at: (now - clip.start) / clip.duration)
+        return e
+    }
+
+    /// Shifts the frame against measured camera shake and zooms in to hide the edges.
+    static func stabilize(_ image: CIImage, _ stab: Stabilization, sourceTime: Double) -> CIImage {
+        let e = image.extent
+        guard e.width.isFinite, e.width > 0 else { return image }
+        let (dx, dy) = stab.offset(at: sourceTime)
+        let z = CGFloat(max(1, stab.zoom))
+        let m = CGAffineTransform(translationX: -e.midX, y: -e.midY)
+            .concatenating(CGAffineTransform(scaleX: z, y: z))
+            .concatenating(CGAffineTransform(translationX: e.midX + CGFloat(dx) * e.width * z, y: e.midY + CGFloat(dy) * e.height * z))
+        return image.transformed(by: m).cropped(to: e)
     }
 
     /// Crop, quarter turns and flips on the source frame.
@@ -381,7 +417,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         let o = t.opacity * anim.opacity
         if o < 0.999 { img = Self.opacity(img, o) }
         if let effect = clip?.effect, let c = clip {
-            img = Effects.apply(img, effect, canvas: canvas, t: now - c.start)
+            img = Effects.apply(img, Self.ramped(effect, c, now), canvas: canvas, t: now - c.start)
         }
         return img
     }
@@ -416,8 +452,21 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         }
         lock.unlock()
         let url = MediaStore.url(for: assetID)
-        guard let image = CIImage(contentsOf: url, options: [.applyOrientationProperty: true]) else { return nil }
+        // Decode at most 2560 px on the long side: big camera photos would otherwise
+        // cost hundreds of megabytes per frame.
+        var decoded: CIImage?
+        if let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+           let cg = CGImageSourceCreateThumbnailAtIndex(src, 0, [
+               kCGImageSourceCreateThumbnailFromImageAlways: true,
+               kCGImageSourceCreateThumbnailWithTransform: true,
+               kCGImageSourceThumbnailMaxPixelSize: 2560,
+               kCGImageSourceShouldCacheImmediately: true,
+           ] as CFDictionary) {
+            decoded = CIImage(cgImage: cg)
+        }
+        guard let image = decoded ?? CIImage(contentsOf: url, options: [.applyOrientationProperty: true]) else { return nil }
         lock.lock()
+        if photoCache.count > 24 { photoCache.removeAll() }
         photoCache[assetID] = image
         lock.unlock()
         return image
@@ -466,7 +515,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
             let p = (clip.end - now) / half
             if p < 1 { amount = 1 - max(0, p); kind = t.kind; entering = false }
         }
-        guard let k = kind, amount > 0.001 else { return image }
+        guard let k = kind, amount > 0.001, k != .dissolve else { return image }
         let a = CGFloat(amount)
         let cx = canvas.midX
         let cy = canvas.midY
@@ -495,6 +544,8 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                 .concatenating(CGAffineTransform(rotationAngle: angle))
                 .concatenating(CGAffineTransform(translationX: cx, y: cy)))
                 .composited(over: black)
+        case .dissolve:
+            return image
         case .wipe:
             // Entering: revealed from the left; leaving: covered from the left.
             let visibleW = canvas.width * (1 - a)

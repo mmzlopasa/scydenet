@@ -131,10 +131,20 @@ public struct VideoEffect: Codable, Equatable, Sendable {
     public var kind: String
     /// 0...1.
     public var intensity: Double
+    /// Intensity at the end of the clip; the effect ramps from `intensity` to this.
+    public var endIntensity: Double?
 
-    public init(kind: String, intensity: Double = 0.6) {
+    public init(kind: String, intensity: Double = 0.6, endIntensity: Double? = nil) {
         self.kind = kind
         self.intensity = intensity
+        self.endIntensity = endIntensity
+    }
+
+    /// Intensity at a fraction (0...1) of the clip.
+    public func intensity(at progress: Double) -> Double {
+        guard let end = endIntensity else { return intensity }
+        let p = min(max(progress, 0), 1)
+        return intensity + (end - intensity) * p
     }
 }
 
@@ -177,6 +187,90 @@ public struct ClipMask: Codable, Equatable, Sendable {
         self.rotation = rotation
         self.feather = feather
         self.invert = invert
+    }
+}
+
+extension ClipMask {
+    /// Linear blend between two masks (shape and invert come from `a`).
+    public static func mix(_ a: ClipMask, _ b: ClipMask, _ t: Double) -> ClipMask {
+        let u = min(max(t, 0), 1)
+        func l(_ p: Double, _ q: Double) -> Double { p + (q - p) * u }
+        var m = a
+        m.x = l(a.x, b.x)
+        m.y = l(a.y, b.y)
+        m.size = l(a.size, b.size)
+        m.aspect = l(a.aspect, b.aspect)
+        m.rotation = l(a.rotation, b.rotation)
+        m.feather = l(a.feather, b.feather)
+        return m
+    }
+}
+
+// MARK: - Stabilisation
+
+/// Per-frame correction offsets (fractions of the frame) sampled at `rate` per second
+/// of source time, starting at `start` seconds into the source.
+public struct Stabilization: Codable, Equatable, Sendable {
+    public var start: Double
+    public var rate: Double
+    public var dx: [Float]
+    public var dy: [Float]
+    /// Zoom applied so the moving frame never shows its edges.
+    public var zoom: Double
+
+    public init(start: Double, rate: Double, dx: [Float], dy: [Float], zoom: Double) {
+        self.start = start
+        self.rate = rate
+        self.dx = dx
+        self.dy = dy
+        self.zoom = zoom
+    }
+
+    /// Correction at a source time, linearly interpolated.
+    public func offset(at sourceTime: Double) -> (Double, Double) {
+        guard !dx.isEmpty, dx.count == dy.count, rate > 0 else { return (0, 0) }
+        let f = (sourceTime - start) * rate
+        if f <= 0 { return (Double(dx[0]), Double(dy[0])) }
+        let i = Int(f)
+        if i >= dx.count - 1 { return (Double(dx[dx.count - 1]), Double(dy[dy.count - 1])) }
+        let u = f - Double(i)
+        return (
+            Double(dx[i]) + (Double(dx[i + 1]) - Double(dx[i])) * u,
+            Double(dy[i]) + (Double(dy[i + 1]) - Double(dy[i])) * u
+        )
+    }
+}
+
+// MARK: - Speed curves
+
+public enum SpeedCurves {
+    public static let presets: [(id: String, name: String, points: [Double])] = [
+        ("montage", "Montage", [1.0, 2.5, 0.5, 0.5, 2.5, 1.0, 1.0]),
+        ("hero", "Hero", [1.0, 1.0, 3.0, 0.25, 3.0, 1.0, 1.0]),
+        ("bullet", "Bullet", [3.0, 3.0, 0.2, 0.2, 0.2, 3.0, 3.0]),
+        ("jump", "Jump cut", [0.6, 0.6, 4.0, 4.0, 0.6, 0.6, 4.0]),
+        ("flashin", "Flash in", [4.0, 3.0, 1.5, 1.0, 1.0, 1.0, 1.0]),
+        ("flashout", "Flash out", [1.0, 1.0, 1.0, 1.0, 1.5, 3.0, 4.0]),
+        ("rampup", "Ramp up", [0.4, 0.6, 0.9, 1.2, 1.6, 2.2, 3.0]),
+        ("rampdown", "Ramp down", [3.0, 2.2, 1.6, 1.2, 0.9, 0.6, 0.4]),
+    ]
+
+    /// Curve value at `u` (0...1), linear between evenly spaced points.
+    public static func value(_ points: [Double], at u: Double) -> Double {
+        guard points.count > 1 else { return max(points.first ?? 1, 0.05) }
+        let x = min(max(u, 0), 1) * Double(points.count - 1)
+        let i = min(Int(x), points.count - 2)
+        let t = x - Double(i)
+        return max(0.05, points[i] + (points[i + 1] - points[i]) * t)
+    }
+
+    /// Source seconds used by each of `segments` equal timeline slices, summing to `sourceLength`.
+    public static func sourceSlices(_ points: [Double], segments: Int, sourceLength: Double) -> [Double] {
+        let n = max(1, segments)
+        let v = (0..<n).map { value(points, at: (Double($0) + 0.5) / Double(n)) }
+        let total = v.reduce(0, +)
+        guard total > 0 else { return Array(repeating: sourceLength / Double(n), count: n) }
+        return v.map { $0 / total * sourceLength }
     }
 }
 

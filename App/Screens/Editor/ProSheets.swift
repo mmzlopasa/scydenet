@@ -11,6 +11,8 @@ struct EffectsSheet: View {
     @State private var clipID: UUID?
     @State private var kind: String?
     @State private var intensity = 0.6
+    @State private var ramp = false
+    @State private var endIntensity = 0.0
     @State private var group = Effects.groups[0]
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
 
@@ -41,7 +43,16 @@ struct EffectsSheet: View {
                     }
                 }
                 if kind != nil {
-                    SXSlider(title: "Intensity", value: $intensity, range: 0...1, format: "%.0f%%", scale: 100, onCommit: commit)
+                    SXSlider(title: ramp ? "Start intensity" : "Intensity", value: $intensity, range: 0...1, format: "%.0f%%", scale: 100, onCommit: commit)
+                    Toggle("Change over the clip", isOn: Binding(get: { ramp }, set: { ramp = $0; commit() }))
+                        .font(.ui(15, .medium))
+                        .foregroundColor(SX.C.ink)
+                        .tint(SX.C.accent)
+                        .padding(14)
+                        .sxCard(radius: SX.R.m)
+                    if ramp {
+                        SXSlider(title: "End intensity", value: $endIntensity, range: 0...1, format: "%.0f%%", scale: 100, onCommit: commit)
+                    }
                 }
             }
         }
@@ -50,13 +61,15 @@ struct EffectsSheet: View {
             clipID = target?.id
             kind = target?.effect?.kind
             intensity = target?.effect?.intensity ?? 0.6
+            ramp = target?.effect?.endIntensity != nil
+            endIntensity = target?.effect?.endIntensity ?? 0
             if let k = kind, let info = Effects.info(k) { group = info.group }
         }
     }
 
     private func commit() {
         guard let id = clipID else { return }
-        model.setEffect(id, kind.map { VideoEffect(kind: $0, intensity: intensity) })
+        model.setEffect(id, kind.map { VideoEffect(kind: $0, intensity: intensity, endIntensity: ramp ? endIntensity : nil) })
     }
 }
 
@@ -66,6 +79,8 @@ struct MaskSheet: View {
     @ObservedObject var model: EditorViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var mask: ClipMask?
+    @State private var maskEnd: ClipMask?
+    @State private var editingEnd = false
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
 
     var body: some View {
@@ -94,13 +109,44 @@ struct MaskSheet: View {
                     .foregroundColor(SX.C.muted)
             }
         }
-        .onAppear { mask = model.selectedClip?.mask }
+        .onAppear {
+            mask = model.selectedClip?.mask
+            maskEnd = model.selectedClip?.maskEnd
+        }
     }
 
     @ViewBuilder
     private func sliders(_ id: UUID) -> some View {
-        let binding = Binding<ClipMask>(get: { mask ?? ClipMask(shape: .circle) }, set: { mask = $0 })
-        let commit = { model.setMask(id, mask) }
+        let binding = Binding<ClipMask>(
+            get: { (editingEnd ? maskEnd : nil) ?? mask ?? ClipMask(shape: .circle) },
+            set: { value in
+                if editingEnd { maskEnd = value } else { mask = value }
+            }
+        )
+        let commit: () -> Void = {
+            if editingEnd {
+                model.setMaskEnd(id, maskEnd)
+            } else {
+                model.setMask(id, mask)
+            }
+        }
+        Toggle("Animate over the clip", isOn: Binding(get: { maskEnd != nil }, set: { on in
+            maskEnd = on ? mask : nil
+            editingEnd = on
+            model.setMaskEnd(id, maskEnd)
+        }))
+            .font(.ui(15, .medium))
+            .foregroundColor(SX.C.ink)
+            .tint(SX.C.accent)
+            .padding(14)
+            .sxCard(radius: SX.R.m)
+        if maskEnd != nil {
+            Picker("", selection: $editingEnd) {
+                Text("Start").tag(false)
+                Text("End").tag(true)
+            }
+            .pickerStyle(.segmented)
+        }
         SXSlider(title: "Position X", value: binding.x, range: -0.6...0.6, onCommit: commit)
         SXSlider(title: "Position Y", value: binding.y, range: -0.6...0.6, onCommit: commit)
         SXSlider(title: "Size", value: binding.size, range: 0.05...1.6, onCommit: commit)
@@ -109,7 +155,7 @@ struct MaskSheet: View {
         }
         SXSlider(title: "Rotation", value: binding.rotation, range: -180...180, format: "%.0f°", onCommit: commit)
         SXSlider(title: "Feather", value: binding.feather, range: 0...1, format: "%.0f%%", scale: 100, onCommit: commit)
-        Toggle("Invert", isOn: Binding(get: { mask?.invert ?? false }, set: { mask?.invert = $0; commit() }))
+        Toggle("Invert", isOn: Binding(get: { mask?.invert ?? false }, set: { mask?.invert = $0; model.setMask(id, mask) }))
             .font(.ui(15, .medium))
             .foregroundColor(SX.C.ink)
             .tint(SX.C.accent)

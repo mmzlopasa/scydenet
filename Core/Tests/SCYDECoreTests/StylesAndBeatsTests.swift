@@ -92,3 +92,45 @@ final class StylesAndBeatsTests: XCTestCase {
         XCTAssertEqual(a.normalised(), .neutral)
     }
 }
+
+final class CurvesAndRampsTests: XCTestCase {
+    func testSpeedCurveSlicesSumToSource() {
+        let slices = SpeedCurves.sourceSlices([1, 3, 1], segments: 24, sourceLength: 6)
+        XCTAssertEqual(slices.reduce(0, +), 6, accuracy: 1e-9)
+        XCTAssertGreaterThan(slices[12], slices[0])
+    }
+
+    func testSourceTimeFollowsCurveAndEnds() {
+        var c = Clip(kind: .video, name: "V", sourceDuration: 10, start: 2, sourceIn: 1, duration: 4, speed: 1)
+        XCTAssertEqual(c.sourceTime(at: 4), 3, accuracy: 1e-9)
+        c.speedCurve = [0.5, 0.5, 4, 4]
+        XCTAssertEqual(c.sourceTime(at: 2), 1, accuracy: 1e-9)
+        XCTAssertEqual(c.sourceTime(at: 6), 5, accuracy: 1e-6)
+        XCTAssertLessThan(c.sourceTime(at: 4), 3)
+    }
+
+    func testSplitDropsSpeedCurve() {
+        var p = Project()
+        let id = p.addClip(Clip(kind: .video, name: "V", sourceDuration: 10, duration: 10), role: .main)
+        p.updateClip(id) { $0.speedCurve = [1, 2, 1] }
+        let right = p.split(id, at: 5)!
+        XCTAssertNil(p.clip(id)!.speedCurve)
+        XCTAssertNil(p.clip(right)!.speedCurve)
+    }
+
+    func testMaskAndEffectRamps() {
+        var c = Clip(kind: .video, name: "V", start: 0, duration: 2)
+        c.mask = ClipMask(shape: .circle, size: 0.2)
+        c.maskEnd = ClipMask(shape: .circle, size: 1.0)
+        XCTAssertEqual(c.mask(at: 1)!.size, 0.6, accuracy: 1e-9)
+        let e = VideoEffect(kind: "blur", intensity: 0, endIntensity: 1)
+        XCTAssertEqual(e.intensity(at: 0.25), 0.25, accuracy: 1e-9)
+    }
+
+    func testStabilizationInterpolates() {
+        let s = Stabilization(start: 1, rate: 10, dx: [0, 0.1], dy: [0, -0.2], zoom: 1.1)
+        let (x, y) = s.offset(at: 1.05)
+        XCTAssertEqual(x, 0.05, accuracy: 1e-6)
+        XCTAssertEqual(y, -0.1, accuracy: 1e-6)
+    }
+}

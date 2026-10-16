@@ -35,6 +35,12 @@ enum Launch {
     /// Open a tool sheet in the editor: speed, text, look, voiceFX, cover. CI only.
     static var sheet: String? { defaults.string(forKey: "scydeSheet") }
 
+    /// Run the media-tool self test and show results in the diagnostics overlay. CI only.
+    static var selfTest: Bool { defaults.bool(forKey: "scydeSelfTest") }
+
+    /// Show the first-run introduction. CI only.
+    static var onboarding: Bool { defaults.bool(forKey: "scydeOnboarding") }
+
     /// True when any automation flag is present (disables decorative animation for stable screenshots).
     static var isAutomation: Bool { screen != nil || tab != nil || demo || sampleMedia }
 }

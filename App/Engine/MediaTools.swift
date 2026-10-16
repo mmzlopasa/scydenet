@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreImage
 import NaturalLanguage
+import Vision
 import UIKit
 
 /// Writes a reversed copy of part of a video (no audio).
@@ -367,4 +368,115 @@ private final class SpeechFileBox: @unchecked Sendable {
         file = nil
         return ok
     }
+}
+
+/// Measures camera shake with Vision and returns smoothing offsets.
+enum Stabilizer {
+    enum Failure: LocalizedError {
+        case noVideo, tooLong
+        var errorDescription: String? {
+            switch self {
+            case .noVideo: return "That clip has no video to stabilise.".loc
+            case .tooLong: return "Stabilise works on clips up to 2 minutes. Split the clip first.".loc
+            }
+        }
+    }
+
+    /// Analyses `range` (source seconds). `strength` 0...1 sets how much motion is smoothed.
+    static func analyse(assetID: String, range: ClosedRange<Double>, strength: Double) async throws -> Stabilization {
+        try await Task.detached(priority: .userInitiated) {
+            try await run(assetID: assetID, range: range, strength: strength)
+        }.value
+    }
+
+    private static func run(assetID: String, range: ClosedRange<Double>, strength: Double) async throws -> Stabilization {
+        guard range.upperBound - range.lowerBound <= 121 else { throw Failure.tooLong }
+        let asset = AVURLAsset(url: MediaStore.url(for: assetID))
+        guard let track = try await asset.loadTracks(withMediaType: .video).first else { throw Failure.noVideo }
+        let size = try await track.load(.naturalSize)
+        let reader = try AVAssetReader(asset: asset)
+        let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+        ])
+        output.alwaysCopiesSampleData = false
+        reader.timeRange = CMTimeRange(
+            start: CMTime(seconds: range.lowerBound, preferredTimescale: 600),
+            end: CMTime(seconds: range.upperBound, preferredTimescale: 600)
+        )
+        guard reader.canAdd(output) else { throw Failure.noVideo }
+        reader.add(output)
+        guard reader.startReading() else { throw reader.error ?? Failure.noVideo }
+
+        // Sample at up to 15 fps; register each sample against the previous one.
+        let rate = 15.0
+        var times: [Double] = []
+        var pathX: [Double] = []
+        var pathY: [Double] = []
+        var cx = 0.0, cy = 0.0
+        var previous: CVPixelBuffer?
+        var nextSample = range.lowerBound
+        while let sample = output.copyNextSampleBuffer() {
+            try Task.checkCancellation()
+            let t = CMSampleBufferGetPresentationTimeStamp(sample).seconds
+            guard t + 0.0005 >= nextSample, let pb = CMSampleBufferGetImageBuffer(sample) else { continue }
+            nextSample = t + 1 / rate
+            if let prev = previous {
+                let request = VNTranslationalImageRegistrationRequest(targetedCVPixelBuffer: pb)
+                let handler = VNImageRequestHandler(cvPixelBuffer: prev, options: [:])
+                if (try? handler.perform([request])) != nil,
+                   let obs = request.results?.first as? VNImageTranslationAlignmentObservation {
+                    let m = obs.alignmentTransform
+                    // Ignore wild jumps (cuts or failed matches).
+                    if abs(m.tx) < size.width * 0.2 && abs(m.ty) < size.height * 0.2 {
+                        cx += Double(m.tx)
+                        cy += Double(m.ty)
+                    }
+                }
+            }
+            // Keep a private copy: the reader reuses its buffers.
+            previous = copy(pb)
+            times.append(t)
+            pathX.append(cx)
+            pathY.append(cy)
+        }
+        guard times.count > 3 else { throw Failure.noVideo }
+
+        // Smooth the camera path; the correction is the difference.
+        let radius = max(2, Int((0.4 + 1.6 * min(max(strength, 0), 1)) * rate))
+        func smooth(_ v: [Double]) -> [Double] {
+            var out = [Double](repeating: 0, count: v.count)
+            for i in v.indices {
+                let a = max(0, i - radius), b = min(v.count - 1, i + radius)
+                var sum = 0.0
+                for j in a...b { sum += v[j] }
+                out[i] = sum / Double(b - a + 1)
+            }
+            return out
+        }
+        let sx = smooth(pathX), sy = smooth(pathY)
+        var dx: [Float] = [], dy: [Float] = []
+        var maxShift = 0.0
+        for i in times.indices {
+            // The registration transform moves each frame back onto the previous one, so the
+            // accumulated path undoes all motion; subtracting the smoothed path keeps intended moves.
+            let ox = (pathX[i] - sx[i]) / Double(max(size.width, 1))
+            let oy = (pathY[i] - sy[i]) / Double(max(size.height, 1))
+            maxShift = max(maxShift, abs(ox), abs(oy))
+            dx.append(Float(ox))
+            dy.append(Float(oy))
+        }
+        let zoom = min(1.25, 1 + maxShift * 2 + 0.02)
+        return Stabilization(start: times[0], rate: rate, dx: dx, dy: dy, zoom: zoom)
+    }
+
+    private static func copy(_ src: CVPixelBuffer) -> CVPixelBuffer? {
+        let ci = CIImage(cvPixelBuffer: src)
+        var out: CVPixelBuffer?
+        CVPixelBufferCreate(kCFAllocatorDefault, CVPixelBufferGetWidth(src), CVPixelBufferGetHeight(src), kCVPixelFormatType_32BGRA, [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &out)
+        guard let dst = out else { return nil }
+        context.render(ci, to: dst)
+        return dst
+    }
+
+    private static let context = CIContext(options: [.cacheIntermediates: false])
 }

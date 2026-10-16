@@ -274,6 +274,40 @@ extension EditorViewModel {
         Haptics.success()
     }
 
+    // MARK: Speed curve and stabilisation
+
+    func setSpeedCurve(_ id: UUID, _ points: [Double]?) {
+        editClip(id, points == nil ? "Constant speed" : "Speed curve") { $0.speedCurve = points }
+    }
+
+    func stabilizeSelected(strength: Double) async {
+        guard let c = selectedClip, c.kind == .video, let assetID = c.assetID else {
+            showToast("Select a video clip first")
+            return
+        }
+        stopPlayback()
+        busyMessage = "Stabilising"
+        defer { busyMessage = nil }
+        let range = c.sourceIn...(c.sourceIn + c.duration * c.speed)
+        do {
+            let result = try await Stabilizer.analyse(assetID: assetID, range: range, strength: strength)
+            editClip(c.id, "Stabilise") { $0.stabilization = result }
+            showToast("Clip stabilised")
+            Haptics.success()
+        } catch {
+            showToast(error.localizedDescription)
+        }
+    }
+
+    func removeStabilization() {
+        guard let id = selection else { return }
+        editClip(id, "Remove stabilisation") { $0.stabilization = nil }
+    }
+
+    func setMaskEnd(_ id: UUID, _ mask: ClipMask?) {
+        editClip(id, "Mask animation") { $0.maskEnd = mask }
+    }
+
     // MARK: Text to speech
 
     func readAloud(_ text: String, language: String, rate: Double, pitch: Double) async {

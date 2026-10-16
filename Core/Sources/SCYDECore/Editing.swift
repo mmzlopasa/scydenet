@@ -83,6 +83,9 @@ extension Project {
         right.sourceIn = left.sourceIn + leftDuration * left.speed
         right.duration = left.end - time
         right.transitionIn = nil
+        // A speed ramp cannot be cut in two exactly; both halves play at constant speed.
+        left.speedCurve = nil
+        right.speedCurve = nil
         right.fadeIn = nil
         left.fadeOut = nil
         if let frames = left.keyframes {

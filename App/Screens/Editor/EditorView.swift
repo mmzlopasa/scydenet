@@ -79,6 +79,7 @@ struct EditorView: View {
                 case .canvas: CanvasSheet(model: model)
                 case .beats: BeatsSheet(model: model)
                 case .animate: AnimateSheet(model: model)
+                case .stabilize: StabilizeSheet(model: model)
                 }
             }
             .presentationDetents(sheet == .cover || sheet == .stock ? [.large] : [.medium, .large])

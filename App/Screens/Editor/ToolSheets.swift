@@ -34,40 +34,151 @@ struct SpeedSheet: View {
     @ObservedObject var model: EditorViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var speed: Double = 1
+    @State private var mode = 0
+    @State private var curve: [Double]?
 
     private let presets: [Double] = [0.25, 0.5, 1, 1.5, 2, 3, 4]
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
 
     var body: some View {
-        ZStack {
-            SX.C.bg.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 20) {
-                SheetHeader(title: "Speed", subtitle: "Slow motion or fast forward. Pitch follows speed.") { dismiss() }
-                Text(String(format: "%.2g×", speed))
-                    .font(.dot(40))
-                    .foregroundColor(SX.C.ink)
-                    .frame(maxWidth: .infinity)
-                Slider(value: Binding(
-                    get: { log2(speed) },
-                    set: { speed = pow(2, $0) }
-                ), in: -2...2, onEditingChanged: { editing in
-                    if !editing { model.setSpeed(speed) }
-                })
-                .tint(SX.C.accent)
-                ChipRow(items: presets, selection: presets.min(by: { abs($0 - speed) < abs($1 - speed) }) ?? 1, title: { String(format: "%g×", $0) }) { value in
-                    speed = value
-                    model.setSpeed(value)
-                }
-                if let c = model.selectedClip {
-                    Text("Clip length \(Timecode.duration(c.duration))")
-                        .font(.mono(11))
-                        .foregroundColor(SX.C.muted)
-                        .frame(maxWidth: .infinity)
-                }
-                Spacer(minLength: 0)
+        ToolSheetScaffold(title: "Speed", subtitle: "Slow motion, fast forward or a speed ramp.", onClose: { dismiss() }) {
+            Picker("", selection: $mode) {
+                Text("Normal").tag(0)
+                Text("Curve").tag(1)
             }
-            .padding(20)
+            .pickerStyle(.segmented)
+            if mode == 0 {
+                normal
+            } else {
+                curves
+            }
         }
-        .onAppear { speed = model.selectedClip?.speed ?? 1 }
+        .onAppear {
+            speed = model.selectedClip?.speed ?? 1
+            curve = model.selectedClip?.speedCurve
+            mode = curve == nil ? 0 : 1
+        }
+    }
+
+    private var normal: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text(String(format: "%.2g×", speed))
+                .font(.dot(40))
+                .foregroundColor(SX.C.ink)
+                .frame(maxWidth: .infinity)
+            Slider(value: Binding(
+                get: { log2(speed) },
+                set: { speed = pow(2, $0) }
+            ), in: -2...2, onEditingChanged: { editing in
+                if !editing { model.setSpeed(speed) }
+            })
+            .tint(SX.C.accent)
+            ChipRow(items: presets, selection: presets.min(by: { abs($0 - speed) < abs($1 - speed) }) ?? 1, title: { String(format: "%g×", $0) }) { value in
+                speed = value
+                model.setSpeed(value)
+            }
+            if let c = model.selectedClip {
+                Text("Clip length \(Timecode.duration(c.duration))")
+                    .font(.mono(11))
+                    .foregroundColor(SX.C.muted)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private var curves: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("The clip keeps its length; the ramp decides where time runs fast or slow. Audio follows the ramp.")
+                .font(.ui(12.5))
+                .foregroundColor(SX.C.muted)
+                .fixedSize(horizontal: false, vertical: true)
+            LazyVGrid(columns: columns, spacing: 10) {
+                curveTile(nil, name: "None")
+                ForEach(SpeedCurves.presets.indices, id: \.self) { i in
+                    curveTile(SpeedCurves.presets[i].points, name: SpeedCurves.presets[i].name)
+                }
+            }
+        }
+    }
+
+    private func curveTile(_ points: [Double]?, name: String) -> some View {
+        let selected = curve == points
+        return Button {
+            Haptics.selection()
+            curve = points
+            if let id = model.selection { model.setSpeedCurve(id, points) }
+        } label: {
+            VStack(spacing: 6) {
+                CurveShape(points: points ?? [1, 1])
+                    .stroke(selected ? SX.C.onAccent : SX.C.accent, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                    .padding(10)
+                    .frame(height: 54)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: SX.R.m, style: .continuous)
+                            .fill(selected ? AnyShapeStyle(SX.accentGradient) : AnyShapeStyle(SX.C.glass))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: SX.R.m, style: .continuous)
+                            .strokeBorder(selected ? Color.clear : SX.C.line2, lineWidth: 1)
+                    )
+                Text(name.loc)
+                    .font(.ui(11.5, .medium, fixed: true))
+                    .foregroundColor(selected ? SX.C.ink : SX.C.body)
+            }
+        }
+        .buttonStyle(PressableStyle())
+    }
+}
+
+/// Speed ramp drawn on a log scale (1× in the middle).
+struct CurveShape: Shape {
+    let points: [Double]
+
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let steps = 40
+        for i in 0...steps {
+            let u = Double(i) / Double(steps)
+            let v = SpeedCurves.value(points, at: u)
+            let y = 0.5 - log2(v) / 5
+            let pt = CGPoint(x: rect.minX + rect.width * CGFloat(u), y: rect.minY + rect.height * CGFloat(min(max(y, 0), 1)))
+            if i == 0 { p.move(to: pt) } else { p.addLine(to: pt) }
+        }
+        return p
+    }
+}
+
+// MARK: - Stabilise
+
+struct StabilizeSheet: View {
+    @ObservedObject var model: EditorViewModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var strength = 0.6
+
+    var body: some View {
+        ToolSheetScaffold(title: "Stabilise", subtitle: "Smooths hand shake. The picture zooms in slightly to hide the edges.", onClose: { dismiss() }) {
+            SXSlider(title: "Strength", value: $strength, range: 0...1, format: "%.0f%%", scale: 100, onCommit: {})
+            Button {
+                let s = strength
+                dismiss()
+                Task { await model.stabilizeSelected(strength: s) }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "camera.metering.center.weighted")
+                    Text(model.selectedClip?.stabilization == nil ? "Stabilise clip" : "Analyse again")
+                }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            if model.selectedClip?.stabilization != nil {
+                Button {
+                    model.removeStabilization()
+                } label: {
+                    Text("Turn off stabilisation")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+            }
+        }
     }
 }
 

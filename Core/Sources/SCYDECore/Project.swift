@@ -124,10 +124,11 @@ public struct Keyframe: Codable, Equatable, Sendable {
 
 /// Single-source transitions played at the start of a clip (and the end of the one before).
 public enum TransitionKind: String, Codable, CaseIterable, Sendable {
-    case fade, flash, zoom, blur, slide, spin, wipe, iris, glitch, whip, pixel, shake
+    case fade, flash, zoom, blur, slide, spin, wipe, iris, glitch, whip, pixel, shake, dissolve
 
     public var title: String {
         switch self {
+        case .dissolve: return "Dissolve"
         case .wipe: return "Wipe"
         case .iris: return "Iris"
         case .glitch: return "Glitch"
@@ -217,6 +218,12 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
     public var blend: LayerBlend?
     /// True when the media file holds the reversed source.
     public var reversed: Bool?
+    /// Relative speeds sampled evenly across the clip (speed ramp). nil = constant speed.
+    public var speedCurve: [Double]?
+    /// Camera-shake correction measured by the stabiliser.
+    public var stabilization: Stabilization?
+    /// Mask at the end of the clip; the mask animates from `mask` to this.
+    public var maskEnd: ClipMask?
 
     public var end: Double { start + duration }
 

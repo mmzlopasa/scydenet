@@ -96,6 +96,7 @@ struct ToolDock: View {
             ToolButton(icon: "circle.dashed.inset.filled", title: "Mask", enabled: true) { model.activeSheet = .mask }
             ToolButton(icon: "square.2.layers.3d", title: "Blend", enabled: true) { model.activeSheet = .blend }
             if model.selectedIsVideo {
+                ToolButton(icon: "camera.metering.center.weighted", title: "Stabilise", enabled: true) { model.activeSheet = .stabilize }
                 ToolButton(icon: "backward.end.alt", title: "Reverse", enabled: true) {
                     Task { await model.reverseSelected() }
                 }

@@ -39,6 +39,8 @@ enum AppTab: String, CaseIterable, Identifiable {
 
 struct RootView: View {
     @EnvironmentObject private var app: AppModel
+    @AppStorage("scyde.onboarded") private var onboarded = false
+    @State private var showIntro = Launch.onboarding || (!Launch.isAutomation && !UserDefaults.standard.bool(forKey: "scyde.onboarded"))
 
     var body: some View {
         ZStack {
@@ -65,6 +67,15 @@ struct RootView: View {
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .allowsHitTesting(false)
+            }
+
+            if showIntro {
+                OnboardingView {
+                    onboarded = true
+                    withAnimation(SX.ease) { showIntro = false }
+                }
+                .transition(.opacity)
+                .zIndex(10)
             }
         }
         .sheet(isPresented: $app.showNewProject) {

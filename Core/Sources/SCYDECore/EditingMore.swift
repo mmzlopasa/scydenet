@@ -137,3 +137,27 @@ extension Project {
         return true
     }
 }
+
+extension Clip {
+    /// Source seconds shown at a timeline time, following the speed ramp when there is one.
+    public func sourceTime(at timelineTime: Double) -> Double {
+        let local = min(max(timelineTime - start, 0), duration)
+        guard let curve = speedCurve, curve.count > 1, duration > 0 else {
+            return sourceIn + local * speed
+        }
+        let n = 24
+        let slices = SpeedCurves.sourceSlices(curve, segments: n, sourceLength: duration * speed)
+        let seg = duration / Double(n)
+        let f = local / seg
+        let i = min(Int(f), n - 1)
+        let before = slices.prefix(i).reduce(0, +)
+        return sourceIn + before + slices[i] * min(1, f - Double(i))
+    }
+
+    /// Mask at a timeline time (animated when `maskEnd` is set).
+    public func mask(at timelineTime: Double) -> ClipMask? {
+        guard let a = mask else { return nil }
+        guard let b = maskEnd, duration > 0 else { return a }
+        return ClipMask.mix(a, b, (timelineTime - start) / duration)
+    }
+}

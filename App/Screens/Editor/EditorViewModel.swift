@@ -63,6 +63,7 @@ final class EditorViewModel: ObservableObject {
     private var statusCancellable: AnyCancellable?
     @Published private(set) var diagnostics = ""
     private var buildInfo = ""
+    private var selfTestInfo = ""
     private var dirty = false
     private var lastSnapped = false
 
@@ -90,6 +91,13 @@ final class EditorViewModel: ObservableObject {
             if hasPlayer { togglePlay() } else { autoplayPending = true }
         }
         if Launch.isAutomation { startDiagnostics() }
+        if Launch.selfTest {
+            selfTestInfo = "self test running"
+            Task { [weak self] in
+                let result = await SelfTest.run()
+                self?.selfTestInfo = result
+            }
+        }
         if Launch.sheet == "textstyle" || Launch.sheet == "textanim" {
             textTab = Launch.sheet == "textstyle" ? 1 : 2
             if let text = project.tracks.first(where: { $0.role == .text })?.clips.first { selection = text.id }
@@ -493,7 +501,7 @@ final class EditorViewModel: ObservableObject {
                 guard let self = self else { return }
                 let item = self.player.currentItem
                 let err = item?.error.map { " · item error \($0.localizedDescription)" } ?? ""
-                self.diagnostics = "\(self.buildInfo)\nplayer \(self.hasPlayer ? "yes" : "no") · status \(item?.status.rawValue ?? -1)\(err)\n\(CompositorStats.shared.summary)"
+                self.diagnostics = "\(self.buildInfo)\nplayer \(self.hasPlayer ? "yes" : "no") · status \(item?.status.rawValue ?? -1)\(err)\n\(CompositorStats.shared.summary)" + (self.selfTestInfo.isEmpty ? "" : "\n" + self.selfTestInfo)
                 try? await Task.sleep(nanoseconds: 500_000_000)
             }
         }
