@@ -1,0 +1,400 @@
+                                                                                              ^
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: note: use 'AVAudioSession.CategoryOptions.allowBluetoothHFP' instead
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^~~~~~~~~~~~~~
+                                                                                              AVAudioSession.CategoryOptions.allowBluetoothHFP
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/EditorViewModel+Motion.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: warning: 'allowBluetooth' was deprecated in iOS 8.0: renamed to 'AVAudioSession.CategoryOptions.allowBluetoothHFP'
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: note: use 'AVAudioSession.CategoryOptions.allowBluetoothHFP' instead
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^~~~~~~~~~~~~~
+                                                                                              AVAudioSession.CategoryOptions.allowBluetoothHFP
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/EditorViewModel+Pro.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: warning: 'allowBluetooth' was deprecated in iOS 8.0: renamed to 'AVAudioSession.CategoryOptions.allowBluetoothHFP'
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: note: use 'AVAudioSession.CategoryOptions.allowBluetoothHFP' instead
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^~~~~~~~~~~~~~
+                                                                                              AVAudioSession.CategoryOptions.allowBluetoothHFP
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/EditorViewModel+Snapshot.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: warning: 'allowBluetooth' was deprecated in iOS 8.0: renamed to 'AVAudioSession.CategoryOptions.allowBluetoothHFP'
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: note: use 'AVAudioSession.CategoryOptions.allowBluetoothHFP' instead
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^~~~~~~~~~~~~~
+                                                                                              AVAudioSession.CategoryOptions.allowBluetoothHFP
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/EditorViewModel+Tools.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: warning: 'allowBluetooth' was deprecated in iOS 8.0: renamed to 'AVAudioSession.CategoryOptions.allowBluetoothHFP'
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: note: use 'AVAudioSession.CategoryOptions.allowBluetoothHFP' instead
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^~~~~~~~~~~~~~
+                                                                                              AVAudioSession.CategoryOptions.allowBluetoothHFP
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/EditorViewModel.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: warning: 'allowBluetooth' was deprecated in iOS 8.0: renamed to 'AVAudioSession.CategoryOptions.allowBluetoothHFP'
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: note: use 'AVAudioSession.CategoryOptions.allowBluetoothHFP' instead
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^~~~~~~~~~~~~~
+                                                                                              AVAudioSession.CategoryOptions.allowBluetoothHFP
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Engine/Effects.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: warning: 'allowBluetooth' was deprecated in iOS 8.0: renamed to 'AVAudioSession.CategoryOptions.allowBluetoothHFP'
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^
+/Users/runner/work/scydenet/scydenet/App/Engine/AudioTools.swift:381:95: note: use 'AVAudioSession.CategoryOptions.allowBluetoothHFP' instead
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+                                                                                              ^~~~~~~~~~~~~~
+                                                                                              AVAudioSession.CategoryOptions.allowBluetoothHFP
+
+SwiftCompile normal arm64 Compiling\ ExportSheet.swift,\ Exporter.swift,\ Fonts.swift,\ Launch.swift,\ LibrarySheets.swift,\ Looks.swift,\ MeView.swift,\ MediaImporter.swift,\ MediaLibrary.swift,\ MediaStore.swift,\ MediaTools.swift,\ MotionSheets.swift,\ NewProjectSheet.swift,\ OnboardingView.swift,\ Pexels.swift,\ PhotoEditorView.swift,\ PlansView.swift,\ PlayerView.swift,\ ProSheets.swift,\ ProjectCard.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ExportSheet.swift /Users/runner/work/scydenet/scydenet/App/Engine/Exporter.swift /Users/runner/work/scydenet/scydenet/App/DesignSystem/Fonts.swift /Users/runner/work/scydenet/scydenet/App/App/Launch.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/LibrarySheets.swift /Users/runner/work/scydenet/scydenet/App/Engine/Looks.swift /Users/runner/work/scydenet/scydenet/App/Screens/Me/MeView.swift /Users/runner/work/scydenet/scydenet/App/Engine/MediaImporter.swift /Users/runner/work/scydenet/scydenet/App/Engine/MediaLibrary.swift /Users/runner/work/scydenet/scydenet/App/Engine/MediaStore.swift /Users/runner/work/scydenet/scydenet/App/Engine/MediaTools.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/MotionSheets.swift /Users/runner/work/scydenet/scydenet/App/Screens/Edit/NewProjectSheet.swift /Users/runner/work/scydenet/scydenet/App/Screens/Shell/OnboardingView.swift /Users/runner/work/scydenet/scydenet/App/Engine/Pexels.swift /Users/runner/work/scydenet/scydenet/App/Screens/Photo/PhotoEditorView.swift /Users/runner/work/scydenet/scydenet/App/Screens/Me/PlansView.swift /Users/runner/work/scydenet/scydenet/App/Engine/PlayerView.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ProSheets.swift /Users/runner/work/scydenet/scydenet/App/Screens/Home/ProjectCard.swift (in target 'SCYDE' from project 'SCYDE')
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ExportSheet.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/Exporter.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/DesignSystem/Fonts.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/App/Launch.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/LibrarySheets.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/Looks.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Me/MeView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/MediaImporter.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/MediaLibrary.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/MediaStore.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/MediaTools.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/MotionSheets.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Edit/NewProjectSheet.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Shell/OnboardingView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/Pexels.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Photo/PhotoEditorView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Me/PlansView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/PlayerView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ProSheets.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Home/ProjectCard.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftDriverJobDiscovery normal x86_64 Compiling ExportSheet.swift, Exporter.swift, Fonts.swift, Launch.swift, LibrarySheets.swift, Looks.swift, MeView.swift, MediaImporter.swift, MediaLibrary.swift, MediaStore.swift, MediaTools.swift, MotionSheets.swift, NewProjectSheet.swift, OnboardingView.swift, Pexels.swift, PhotoEditorView.swift, PlansView.swift, PlayerView.swift, ProSheets.swift, ProjectCard.swift (in target 'SCYDE' from project 'SCYDE')
+
+SwiftCompile normal x86_64 Compiling\ ProjectsView.swift,\ RootView.swift,\ SCYDEApp.swift,\ SampleMedia.swift,\ SelfTest.swift,\ SettingsView.swift,\ SheetKit.swift,\ SoundEffects.swift,\ StockSheet.swift,\ TemplateLibrary.swift,\ TemplatePreviews.swift,\ TemplatesView.swift,\ TextRenderer.swift,\ TextSheets.swift,\ Thumbnails.swift,\ TimelinePanel.swift,\ Tokens.swift,\ ToolDock.swift,\ ToolSheets.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/scydenet/scydenet/App/Screens/Projects/ProjectsView.swift /Users/runner/work/scydenet/scydenet/App/Screens/Shell/RootView.swift /Users/runner/work/scydenet/scydenet/App/SCYDEApp.swift /Users/runner/work/scydenet/scydenet/App/App/SampleMedia.swift /Users/runner/work/scydenet/scydenet/App/App/SelfTest.swift /Users/runner/work/scydenet/scydenet/App/Screens/Me/SettingsView.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/SheetKit.swift /Users/runner/work/scydenet/scydenet/App/Engine/SoundEffects.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/StockSheet.swift /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplateLibrary.swift /Users/runner/work/scydenet/scydenet/App/Engine/TemplatePreviews.swift /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplatesView.swift /Users/runner/work/scydenet/scydenet/App/Engine/TextRenderer.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TextSheets.swift /Users/runner/work/scydenet/scydenet/App/Engine/Thumbnails.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TimelinePanel.swift /Users/runner/work/scydenet/scydenet/App/DesignSystem/Tokens.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolDock.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolSheets.swift /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'SCYDE' from project 'SCYDE')
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Projects/ProjectsView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Shell/RootView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/SCYDEApp.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/App/SampleMedia.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/App/SelfTest.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Me/SettingsView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/SheetKit.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Engine/SoundEffects.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/StockSheet.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplateLibrary.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Engine/TemplatePreviews.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplatesView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Engine/TextRenderer.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TextSheets.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Engine/Thumbnails.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TimelinePanel.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/DesignSystem/Tokens.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolDock.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolSheets.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal x86_64 /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftDriverJobDiscovery normal x86_64 Compiling AILabView.swift, AppModel.swift, ArtIcon.swift, AudioTools.swift, AuroraBackground.swift, BlankVideo.swift, ClipBlock.swift, CollageView.swift, Components.swift, CompositionBuilder.swift, Compositor.swift, Demo.swift, EditHomeView.swift, EditorView.swift, EditorViewModel+Motion.swift, EditorViewModel+Pro.swift, EditorViewModel+Snapshot.swift, EditorViewModel+Tools.swift, EditorViewModel.swift, Effects.swift (in target 'SCYDE' from project 'SCYDE')
+
+SwiftCompile normal arm64 Compiling\ ProjectsView.swift,\ RootView.swift,\ SCYDEApp.swift,\ SampleMedia.swift,\ SelfTest.swift,\ SettingsView.swift,\ SheetKit.swift,\ SoundEffects.swift,\ StockSheet.swift,\ TemplateLibrary.swift,\ TemplatePreviews.swift,\ TemplatesView.swift,\ TextRenderer.swift,\ TextSheets.swift,\ Thumbnails.swift,\ TimelinePanel.swift,\ Tokens.swift,\ ToolDock.swift,\ ToolSheets.swift,\ GeneratedAssetSymbols.swift /Users/runner/work/scydenet/scydenet/App/Screens/Projects/ProjectsView.swift /Users/runner/work/scydenet/scydenet/App/Screens/Shell/RootView.swift /Users/runner/work/scydenet/scydenet/App/SCYDEApp.swift /Users/runner/work/scydenet/scydenet/App/App/SampleMedia.swift /Users/runner/work/scydenet/scydenet/App/App/SelfTest.swift /Users/runner/work/scydenet/scydenet/App/Screens/Me/SettingsView.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/SheetKit.swift /Users/runner/work/scydenet/scydenet/App/Engine/SoundEffects.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/StockSheet.swift /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplateLibrary.swift /Users/runner/work/scydenet/scydenet/App/Engine/TemplatePreviews.swift /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplatesView.swift /Users/runner/work/scydenet/scydenet/App/Engine/TextRenderer.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TextSheets.swift /Users/runner/work/scydenet/scydenet/App/Engine/Thumbnails.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TimelinePanel.swift /Users/runner/work/scydenet/scydenet/App/DesignSystem/Tokens.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolDock.swift /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolSheets.swift /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'SCYDE' from project 'SCYDE')
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Projects/ProjectsView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Shell/RootView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/SCYDEApp.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/App/SampleMedia.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/App/SelfTest.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Me/SettingsView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/SheetKit.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/SoundEffects.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/StockSheet.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplateLibrary.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/TemplatePreviews.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Templates/TemplatesView.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/TextRenderer.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TextSheets.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Engine/Thumbnails.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/TimelinePanel.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/DesignSystem/Tokens.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolDock.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/App/Screens/Editor/ToolSheets.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftCompile normal arm64 /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling AILabView.swift, AppModel.swift, ArtIcon.swift, AudioTools.swift, AuroraBackground.swift, BlankVideo.swift, ClipBlock.swift, CollageView.swift, Components.swift, CompositionBuilder.swift, Compositor.swift, Demo.swift, EditHomeView.swift, EditorView.swift, EditorViewModel+Motion.swift, EditorViewModel+Pro.swift, EditorViewModel+Snapshot.swift, EditorViewModel+Tools.swift, EditorViewModel.swift, Effects.swift (in target 'SCYDE' from project 'SCYDE')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ExportSheet.swift, Exporter.swift, Fonts.swift, Launch.swift, LibrarySheets.swift, Looks.swift, MeView.swift, MediaImporter.swift, MediaLibrary.swift, MediaStore.swift, MediaTools.swift, MotionSheets.swift, NewProjectSheet.swift, OnboardingView.swift, Pexels.swift, PhotoEditorView.swift, PlansView.swift, PlayerView.swift, ProSheets.swift, ProjectCard.swift (in target 'SCYDE' from project 'SCYDE')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling ProjectsView.swift, RootView.swift, SCYDEApp.swift, SampleMedia.swift, SelfTest.swift, SettingsView.swift, SheetKit.swift, SoundEffects.swift, StockSheet.swift, TemplateLibrary.swift, TemplatePreviews.swift, TemplatesView.swift, TextRenderer.swift, TextSheets.swift, Thumbnails.swift, TimelinePanel.swift, Tokens.swift, ToolDock.swift, ToolSheets.swift, GeneratedAssetSymbols.swift (in target 'SCYDE' from project 'SCYDE')
+
+SwiftDriver\ Compilation SCYDE normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    builtin-Swift-Compilation -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SCYDE -Onone -enforce-exclusivity\=checked @/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target x86_64-apple-ios16.0-simulator -g -module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/scydenet/scydenet/build-sim/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -F /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/scydenet/scydenet/build-sim/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-generated-files.hmap -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-own-target-headers.hmap -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE-e9717986a1d4c76074e7694014315372-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-project-headers.hmap -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources-normal/x86_64 -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources/x86_64 -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE-Swift.h -working-directory /Users/runner/work/scydenet/scydenet -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE.debug.dylib normal x86_64 (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-ios16.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -filelist /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE.LinkFileList -install_name @rpath/SCYDE.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE.swiftmodule @/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE-linker-args.resp -Wl,-no_warn_duplicate_libraries -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE.debug.dylib -Xlinker -add_ast_path -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDECore.build/Debug-iphonesimulator/SCYDECore.build/Objects-normal/x86_64/SCYDECore.swiftmodule @/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDECore.build/Debug-iphonesimulator/SCYDECore.build/Objects-normal/x86_64/SCYDECore-linker-args.resp
+
+ConstructStubExecutorLinkFileList /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-ExecutorLinkFileList-normal-x86_64.txt (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    construct-stub-executor-link-file-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE.debug.dylib /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-ExecutorLinkFileList-normal-x86_64.txt
+note: Using stub executor library with Swift entry point. (in target 'SCYDE' from project 'SCYDE')
+
+Ld /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE normal x86_64 (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-ios16.0-simulator -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-DebugDylibPath-normal-x86_64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-DebugDylibInstallName-normal-x86_64.txt -Xlinker -filelist -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-ExecutorLinkFileList-normal-x86_64.txt /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE.debug.dylib -o /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE
+
+SwiftDriverJobDiscovery normal arm64 Compiling ProjectsView.swift, RootView.swift, SCYDEApp.swift, SampleMedia.swift, SelfTest.swift, SettingsView.swift, SheetKit.swift, SoundEffects.swift, StockSheet.swift, TemplateLibrary.swift, TemplatePreviews.swift, TemplatesView.swift, TextRenderer.swift, TextSheets.swift, Thumbnails.swift, TimelinePanel.swift, Tokens.swift, ToolDock.swift, ToolSheets.swift, GeneratedAssetSymbols.swift (in target 'SCYDE' from project 'SCYDE')
+
+SwiftDriver\ Compilation SCYDE normal arm64 com.apple.xcode.tools.swift.compiler (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    builtin-Swift-Compilation -- /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name SCYDE -Onone -enforce-exclusivity\=checked @/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios16.0-simulator -g -module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/runner/work/scydenet/scydenet/build-sim/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -F /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -c -j3 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/scydenet/scydenet/build-sim/SDKStatCaches.noindex/iphonesimulator26.2-23C57-dc75598d0054f22ec865fa860f139d72e244bd9a5feaf902f95f61bf06266e52.sdkstatcache -output-file-map /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/scydenet/scydenet/build-sim/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-generated-files.hmap -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-own-target-headers.hmap -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE-e9717986a1d4c76074e7694014315372-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-project-headers.hmap -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE-Swift.h -working-directory /Users/runner/work/scydenet/scydenet -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE.debug.dylib normal arm64 (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios16.0-simulator -dynamiclib -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -filelist /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE.LinkFileList -install_name @rpath/SCYDE.debug.dylib -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE.swiftmodule @/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE-linker-args.resp -Wl,-no_warn_duplicate_libraries -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -o /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE.debug.dylib -Xlinker -add_ast_path -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDECore.build/Debug-iphonesimulator/SCYDECore.build/Objects-normal/arm64/SCYDECore.swiftmodule @/Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDECore.build/Debug-iphonesimulator/SCYDECore.build/Objects-normal/arm64/SCYDECore-linker-args.resp
+
+ConstructStubExecutorLinkFileList /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-ExecutorLinkFileList-normal-arm64.txt (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    construct-stub-executor-link-file-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE.debug.dylib /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'SCYDE' from project 'SCYDE')
+
+CreateUniversalBinary /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/SCYDE.debug.dylib normal arm64\ x86_64 (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE.debug.dylib /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE.debug.dylib -output /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/SCYDE.debug.dylib
+
+Ld /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE normal arm64 (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios16.0-simulator -isysroot /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -O0 -L/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -F/Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/PackageFrameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE-ExecutorLinkFileList-normal-arm64.txt /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE.debug.dylib -o /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE
+
+CreateUniversalBinary /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/SCYDE normal arm64\ x86_64 (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo -create /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/Binary/SCYDE /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/Binary/SCYDE -output /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/SCYDE
+
+CopySwiftLibs /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/SCYDE.debug.dylib --scan-folder /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/Frameworks --scan-folder /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/PlugIns --scan-folder /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/SystemExtensions --scan-folder /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/Extensions --platform iphonesimulator --toolchain /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.nQPiAx/Metal.xctoolchain --toolchain /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os --back-deploy-swift-span
+Ignoring --strip-bitcode because --sign was not passed
+
+ExtractAppIntentsMetadata (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.3.7003.10.nQPiAx/Metal.xctoolchain --module-name SCYDE --sdk-root /Applications/Xcode_26.3.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk --xcode-version 17C529 --platform-family iOS --deployment-target 16.0 --bundle-identifier dev.scyde.editor --output /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app --target-triple arm64-apple-ios16.0-simulator --target-triple x86_64-apple-ios16.0-simulator --binary-file /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/SCYDE --dependency-file /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE_dependency_info.dat --dependency-file /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE_dependency_info.dat --stringsdata-file /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --stringsdata-file /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE.SwiftFileList --source-file-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE.SwiftFileList --metadata-file-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/arm64/SCYDE.SwiftConstValuesFileList --swift-const-vals-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/Objects-normal/x86_64/SCYDE.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-10-16 22:41:59.069 appintentsmetadataprocessor[3673:14544] Starting appintentsmetadataprocessor export
+2026-10-16 22:41:59.073 appintentsmetadataprocessor[3673:14544] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+AppIntentsSSUTraining (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /Applications/Xcode_26.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/Info.plist --temp-dir-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/ssu --bundle-id dev.scyde.editor --product-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app --extracted-metadata-path /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app/Metadata.appintents --metadata-file-list /Users/runner/work/scydenet/scydenet/build-sim/Build/Intermediates.noindex/SCYDE.build/Debug-iphonesimulator/SCYDE.build/SCYDE.DependencyMetadataFileList --archive-ssu-assets
+2026-10-16 22:41:59.102 appintentsnltrainingprocessor[3674:14545] Parsing options for appintentsnltrainingprocessor
+2026-10-16 22:41:59.103 appintentsnltrainingprocessor[3674:14545] No AppShortcuts found - Skipping.
+
+RegisterExecutionPolicyException /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    builtin-RegisterExecutionPolicyException /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app
+
+Validate /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    builtin-validationUtility /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app (in target 'SCYDE' from project 'SCYDE')
+    cd /Users/runner/work/scydenet/scydenet
+    /usr/bin/touch -c /Users/runner/work/scydenet/scydenet/build-sim/Build/Products/Debug-iphonesimulator/SCYDE.app
+
+** BUILD SUCCEEDED **
+

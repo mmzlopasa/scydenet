@@ -1,0 +1,400 @@
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:15 seconds
+
+[2026-10-16 22:42:22 +0000] Status=2, isTerminal=NO, Elapsed=00:20.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:16 seconds
+
+[2026-10-16 22:42:24 +0000] Status=2, isTerminal=NO, Elapsed=00:21.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:17 seconds
+
+[2026-10-16 22:42:25 +0000] Status=2, isTerminal=NO, Elapsed=00:22.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:18 seconds
+
+[2026-10-16 22:42:26 +0000] Status=2, isTerminal=NO, Elapsed=00:23.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:19 seconds
+
+[2026-10-16 22:42:27 +0000] Status=2, isTerminal=NO, Elapsed=00:24.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:20 seconds
+
+[2026-10-16 22:42:28 +0000] Status=2, isTerminal=NO, Elapsed=00:25.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:21 seconds
+
+[2026-10-16 22:42:29 +0000] Status=2, isTerminal=NO, Elapsed=00:26.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:22 seconds
+
+[2026-10-16 22:42:30 +0000] Status=2, isTerminal=NO, Elapsed=00:27.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:23 seconds
+
+[2026-10-16 22:42:31 +0000] Status=2, isTerminal=NO, Elapsed=00:28.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:24 seconds
+
+[2026-10-16 22:42:32 +0000] Status=2, isTerminal=NO, Elapsed=00:29.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:25 seconds
+
+[2026-10-16 22:42:33 +0000] Status=2, isTerminal=NO, Elapsed=00:30.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:26 seconds
+
+[2026-10-16 22:42:33 +0000] Status=2, isTerminal=NO, Elapsed=00:31.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:27 seconds
+
+[2026-10-16 22:42:34 +0000] Status=2, isTerminal=NO, Elapsed=00:32.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:28 seconds
+
+[2026-10-16 22:42:35 +0000] Status=2, isTerminal=NO, Elapsed=00:33.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:29 seconds
+
+[2026-10-16 22:42:36 +0000] Status=2, isTerminal=NO, Elapsed=00:34.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:30 seconds
+
+[2026-10-16 22:42:37 +0000] Status=2, isTerminal=NO, Elapsed=00:35.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:31 seconds
+
+[2026-10-16 22:42:38 +0000] Status=2, isTerminal=NO, Elapsed=00:36.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:32 seconds
+
+[2026-10-16 22:42:42 +0000] Status=2, isTerminal=NO, Elapsed=00:39.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.-0LaunchServicesMigrator (00LaunchServicesMigrator.migrator, user-agnostic)
+		Migration Elapsed:00:33 seconds
+
+[2026-10-16 22:42:43 +0000] Status=2, isTerminal=NO, Elapsed=00:40.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.addressbook.migrator (AddressBookLegacy.migrator)
+		Migration Elapsed:00:35 seconds
+
+[2026-10-16 22:42:43 +0000] Status=2, isTerminal=NO, Elapsed=00:41.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:36 seconds
+
+[2026-10-16 22:42:44 +0000] Status=2, isTerminal=NO, Elapsed=00:41.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:37 seconds
+
+[2026-10-16 22:42:45 +0000] Status=2, isTerminal=NO, Elapsed=00:42.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:38 seconds
+
+[2026-10-16 22:42:46 +0000] Status=2, isTerminal=NO, Elapsed=00:43.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:39 seconds
+
+[2026-10-16 22:42:47 +0000] Status=2, isTerminal=NO, Elapsed=00:44.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:40 seconds
+
+[2026-10-16 22:42:48 +0000] Status=2, isTerminal=NO, Elapsed=00:45.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:41 seconds
+
+[2026-10-16 22:42:49 +0000] Status=2, isTerminal=NO, Elapsed=00:46.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:42 seconds
+
+[2026-10-16 22:42:50 +0000] Status=2, isTerminal=NO, Elapsed=00:47.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:43 seconds
+
+[2026-10-16 22:42:51 +0000] Status=2, isTerminal=NO, Elapsed=00:48.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:44 seconds
+
+[2026-10-16 22:42:51 +0000] Status=2, isTerminal=NO, Elapsed=00:49.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:45 seconds
+
+[2026-10-16 22:42:52 +0000] Status=2, isTerminal=NO, Elapsed=00:50.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:46 seconds
+
+[2026-10-16 22:42:54 +0000] Status=2, isTerminal=NO, Elapsed=00:51.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:47 seconds
+
+[2026-10-16 22:42:54 +0000] Status=2, isTerminal=NO, Elapsed=00:52.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:48 seconds
+
+[2026-10-16 22:42:55 +0000] Status=2, isTerminal=NO, Elapsed=00:53.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:49 seconds
+
+[2026-10-16 22:42:56 +0000] Status=2, isTerminal=NO, Elapsed=00:54.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:50 seconds
+
+[2026-10-16 22:42:57 +0000] Status=2, isTerminal=NO, Elapsed=00:55.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:51 seconds
+
+[2026-10-16 22:42:58 +0000] Status=2, isTerminal=NO, Elapsed=00:56.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:52 seconds
+
+[2026-10-16 22:42:59 +0000] Status=2, isTerminal=NO, Elapsed=00:57.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:53 seconds
+
+[2026-10-16 22:43:00 +0000] Status=2, isTerminal=NO, Elapsed=00:58.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:54 seconds
+
+[2026-10-16 22:43:06 +0000] Status=2, isTerminal=NO, Elapsed=01:04.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.locationd.migrator (CoreLocationMigrator.migrator) (Concurrent: Running plugin com.apple.MobileSlideShow (MobileSlideShow.migrator, concurrent after com.apple.accounts.migrator))
+		Migration Elapsed:00:55 seconds
+
+[2026-10-16 22:43:07 +0000] Status=4, isTerminal=NO, Elapsed=01:04.
+	Waiting on System App
+
+[2026-10-16 22:43:08 +0000] Status=4, isTerminal=NO, Elapsed=01:05.
+	Waiting on System App
+
+[2026-10-16 22:43:08 +0000] Status=4, isTerminal=NO, Elapsed=01:06.
+	Waiting on System App
+
+[2026-10-16 22:43:09 +0000] Status=4, isTerminal=NO, Elapsed=01:06.
+	Waiting on System App
+
+[2026-10-16 22:43:10 +0000] Status=4, isTerminal=NO, Elapsed=01:07.
+	Waiting on System App
+
+[2026-10-16 22:43:11 +0000] Status=4, isTerminal=NO, Elapsed=01:09.
+	Waiting on System App
+
+[2026-10-16 22:43:15 +0000] Status=4294967295, isTerminal=YES, Elapsed=01:12.
+	Finished
+
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-edit-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-edit-light.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-templates-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/template-sheet.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-templates-light.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-stock.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-ai-light.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-projects-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-projects-empty.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/tab-me-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/settings-light.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/editor-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/editor-light.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/editor-empty-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/export-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/export-light.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-portrait.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-photo.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-landscape.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-playing.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-export.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-look.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-cover.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-speed.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-text.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/photo-empty.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/hr-edit.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/hr-editor.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/hr-settings.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-transform.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-transition.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-volume.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-chroma.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-pip.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/collage-empty.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-sticker.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-dock-video.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-effects.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-textstyle.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-textanim.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-mask.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-crop.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-beats.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-sticker.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-canvas.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/media-dissolve.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-speedcurve.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-stabilize.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/selftest.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/onboarding.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/hr-onboarding.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/plans-dark.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/hr-plans.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-music.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-library.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/sheet-animate.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/templates-real.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/template-real-sheet.png
+Detected file type 'PNG' from extension
+Wrote screenshot to: ci-out/screenshots/hr-sheet-effects.png
+total 114760
+drwxr-xr-x  61 runner  staff     1952 Oct 16 22:58 .
+drwxr-xr-x   6 runner  staff      192 Oct 16 22:41 ..
+-rw-r--r--   1 runner  staff   226394 Oct 16 22:58 collage-empty.png
+-rw-r--r--   1 runner  staff   928055 Oct 16 22:58 editor-dark.png
+-rw-r--r--   1 runner  staff   895874 Oct 16 22:58 editor-empty-dark.png
+-rw-r--r--   1 runner  staff  1251611 Oct 16 22:58 editor-light.png
+-rw-r--r--   1 runner  staff   766289 Oct 16 22:58 export-dark.png
+-rw-r--r--   1 runner  staff  1145012 Oct 16 22:58 export-light.png
+-rw-r--r--   1 runner  staff  1814228 Oct 16 22:58 hr-edit.png
+-rw-r--r--   1 runner  staff   774338 Oct 16 22:58 hr-editor.png
+-rw-r--r--   1 runner  staff   688710 Oct 16 22:58 hr-onboarding.png
+-rw-r--r--   1 runner  staff  1899545 Oct 16 22:58 hr-plans.png
+-rw-r--r--   1 runner  staff  1664067 Oct 16 22:58 hr-settings.png
+-rw-r--r--   1 runner  staff   977332 Oct 16 22:58 hr-sheet-effects.png
+-rw-r--r--   1 runner  staff  1136642 Oct 16 22:58 media-dissolve.png
+-rw-r--r--   1 runner  staff  1197311 Oct 16 22:58 media-dock-video.png
+-rw-r--r--   1 runner  staff   808408 Oct 16 22:58 media-export.png
+-rw-r--r--   1 runner  staff  1562614 Oct 16 22:58 media-landscape.png
+-rw-r--r--   1 runner  staff   713208 Oct 16 22:58 media-photo.png
+-rw-r--r--   1 runner  staff  1062741 Oct 16 22:58 media-pip.png
+-rw-r--r--   1 runner  staff   600349 Oct 16 22:58 media-playing.png
+-rw-r--r--   1 runner  staff  1592369 Oct 16 22:58 media-portrait.png
+-rw-r--r--   1 runner  staff  1594969 Oct 16 22:58 media-sticker.png
+-rw-r--r--   1 runner  staff   679362 Oct 16 22:58 onboarding.png
+-rw-r--r--   1 runner  staff   206413 Oct 16 22:58 photo-empty.png
+-rw-r--r--   1 runner  staff  1496439 Oct 16 22:58 plans-dark.png
+-rw-r--r--   1 runner  staff   920971 Oct 16 22:58 selftest.png
+-rw-r--r--   1 runner  staff  1654894 Oct 16 22:58 settings-light.png
+-rw-r--r--   1 runner  staff   599719 Oct 16 22:58 sheet-animate.png
+-rw-r--r--   1 runner  staff   928243 Oct 16 22:58 sheet-beats.png
+-rw-r--r--   1 runner  staff   612524 Oct 16 22:58 sheet-canvas.png
+-rw-r--r--   1 runner  staff   478245 Oct 16 22:58 sheet-chroma.png
+-rw-r--r--   1 runner  staff   689843 Oct 16 22:58 sheet-cover.png
+-rw-r--r--   1 runner  staff   560780 Oct 16 22:58 sheet-crop.png
+-rw-r--r--   1 runner  staff   977832 Oct 16 22:58 sheet-effects.png
+-rw-r--r--   1 runner  staff  1544512 Oct 16 22:58 sheet-library.png
+-rw-r--r--   1 runner  staff   401908 Oct 16 22:58 sheet-look.png
+-rw-r--r--   1 runner  staff   493075 Oct 16 22:58 sheet-mask.png
+-rw-r--r--   1 runner  staff   681272 Oct 16 22:58 sheet-music.png
+-rw-r--r--   1 runner  staff   458374 Oct 16 22:58 sheet-speed.png
+-rw-r--r--   1 runner  staff   619807 Oct 16 22:58 sheet-speedcurve.png
+-rw-r--r--   1 runner  staff  1185455 Oct 16 22:58 sheet-stabilize.png
+-rw-r--r--   1 runner  staff   444459 Oct 16 22:58 sheet-sticker.png
+-rw-r--r--   1 runner  staff   934259 Oct 16 22:58 sheet-stock.png
+-rw-r--r--   1 runner  staff   858277 Oct 16 22:58 sheet-text.png
+-rw-r--r--   1 runner  staff   851231 Oct 16 22:58 sheet-textanim.png
+-rw-r--r--   1 runner  staff   594368 Oct 16 22:58 sheet-textstyle.png
+-rw-r--r--   1 runner  staff   527928 Oct 16 22:58 sheet-transform.png
+-rw-r--r--   1 runner  staff  1001399 Oct 16 22:58 sheet-transition.png
+-rw-r--r--   1 runner  staff   405378 Oct 16 22:58 sheet-volume.png
+-rw-r--r--   1 runner  staff  2167166 Oct 16 22:58 tab-ai-light.png
+-rw-r--r--   1 runner  staff  1845024 Oct 16 22:58 tab-edit-dark.png
+-rw-r--r--   1 runner  staff  2036267 Oct 16 22:58 tab-edit-light.png
+-rw-r--r--   1 runner  staff  1222691 Oct 16 22:58 tab-me-dark.png
+-rw-r--r--   1 runner  staff  1278506 Oct 16 22:58 tab-projects-dark.png
+-rw-r--r--   1 runner  staff   493046 Oct 16 22:58 tab-projects-empty.png
+-rw-r--r--   1 runner  staff  1768123 Oct 16 22:58 tab-templates-dark.png
+-rw-r--r--   1 runner  staff  1585768 Oct 16 22:58 tab-templates-light.png
+-rw-r--r--   1 runner  staff   701909 Oct 16 22:58 template-real-sheet.png
+-rw-r--r--   1 runner  staff   696161 Oct 16 22:58 template-sheet.png
+-rw-r--r--   1 runner  staff   726712 Oct 16 22:58 templates-real.png

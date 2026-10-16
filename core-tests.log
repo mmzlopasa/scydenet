@@ -1,0 +1,168 @@
+Building for debugging...
+[0/7] /Users/runner/work/scydenet/scydenet/Core/.build/arm64-apple-macosx/debug/SCYDECorePackageTests.derived/runner.swift
+[1/7] Write sources
+[4/7] Write swift-version-1977FEB4D2752686.txt
+[6/15] Compiling SCYDECore Project.swift
+[7/15] Compiling SCYDECore ProjectStore.swift
+[8/15] Compiling SCYDECore Snapping.swift
+[9/18] Emitting module SCYDECore
+[10/18] Compiling SCYDECore Editing.swift
+[11/18] Compiling SCYDECore EditingMore.swift
+[12/18] Compiling SCYDECore ExportSettings.swift
+[13/18] Compiling SCYDECore History.swift
+[14/18] Compiling SCYDECore Styles.swift
+[15/18] Compiling SCYDECore Subtitles.swift
+[16/18] Compiling SCYDECore Timecode.swift
+[17/22] Compiling SCYDECoreTests MotionAndSubtitleTests.swift
+[18/22] Compiling SCYDECoreTests EditingTests.swift
+[19/22] Compiling SCYDECoreTests HistoryAndStoreTests.swift
+[20/22] Emitting module SCYDECoreTests
+[21/23] Compiling SCYDECoreTests StylesAndBeatsTests.swift
+[22/25] Compiling SCYDECorePackageTests runner.swift
+[23/25] Emitting module SCYDECorePackageTests
+[23/25] Write Objects.LinkFileList
+[24/25] Linking SCYDECorePackageTests
+Build complete! (15.94s)
+Test Suite 'All tests' started at 2026-10-16 22:41:02.254.
+Test Suite 'SCYDECorePackageTests.xctest' started at 2026-10-16 22:41:02.256.
+Test Suite 'CurvesAndRampsTests' started at 2026-10-16 22:41:02.256.
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testMaskAndEffectRamps]' started.
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testMaskAndEffectRamps]' passed (0.002 seconds).
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testSourceTimeFollowsCurveAndEnds]' started.
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testSourceTimeFollowsCurveAndEnds]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testSpeedCurveSlicesSumToSource]' started.
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testSpeedCurveSlicesSumToSource]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testSplitDropsSpeedCurve]' started.
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testSplitDropsSpeedCurve]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testStabilizationInterpolates]' started.
+Test Case '-[SCYDECoreTests.CurvesAndRampsTests testStabilizationInterpolates]' passed (0.000 seconds).
+Test Suite 'CurvesAndRampsTests' passed at 2026-10-16 22:41:02.259.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'EditingTests' started at 2026-10-16 22:41:02.259.
+Test Case '-[SCYDECoreTests.EditingTests testAppendPlacesClipsBackToBack]' started.
+Test Case '-[SCYDECoreTests.EditingTests testAppendPlacesClipsBackToBack]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testClipUnderPrefersMainTrack]' started.
+Test Case '-[SCYDECoreTests.EditingTests testClipUnderPrefersMainTrack]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testDeleteWithoutRippleLeavesGap]' started.
+Test Case '-[SCYDECoreTests.EditingTests testDeleteWithoutRippleLeavesGap]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testDeleteWithRippleClosesGap]' started.
+Test Case '-[SCYDECoreTests.EditingTests testDeleteWithRippleClosesGap]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testDuplicateGoesAfterOriginal]' started.
+Test Case '-[SCYDECoreTests.EditingTests testDuplicateGoesAfterOriginal]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testMoveClampsToZero]' started.
+Test Case '-[SCYDECoreTests.EditingTests testMoveClampsToZero]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testMoveSlidesToFreeSlotInsteadOfOverlapping]' started.
+Test Case '-[SCYDECoreTests.EditingTests testMoveSlidesToFreeSlotInsteadOfOverlapping]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testPhotoCanBeStretchedFreely]' started.
+Test Case '-[SCYDECoreTests.EditingTests testPhotoCanBeStretchedFreely]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testSnapFindsNearestTargetWithinThreshold]' started.
+Test Case '-[SCYDECoreTests.EditingTests testSnapFindsNearestTargetWithinThreshold]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testSnapMoveAlignsClipEndToTarget]' started.
+Test Case '-[SCYDECoreTests.EditingTests testSnapMoveAlignsClipEndToTarget]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testSplitCreatesTwoClipsWithCorrectSourceOffsets]' started.
+Test Case '-[SCYDECoreTests.EditingTests testSplitCreatesTwoClipsWithCorrectSourceOffsets]' passed (0.001 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testSplitRejectsEdgesAndOutsideTimes]' started.
+Test Case '-[SCYDECoreTests.EditingTests testSplitRejectsEdgesAndOutsideTimes]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testSplitRespectsSpeed]' started.
+Test Case '-[SCYDECoreTests.EditingTests testSplitRespectsSpeed]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testTrimKeepsMinimumDuration]' started.
+Test Case '-[SCYDECoreTests.EditingTests testTrimKeepsMinimumDuration]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testTrimLeadingAdvancesSourceIn]' started.
+Test Case '-[SCYDECoreTests.EditingTests testTrimLeadingAdvancesSourceIn]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testTrimLeadingCannotRevealBeforeSourceStart]' started.
+Test Case '-[SCYDECoreTests.EditingTests testTrimLeadingCannotRevealBeforeSourceStart]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testTrimTrailingShortensAndExtendsWithinSource]' started.
+Test Case '-[SCYDECoreTests.EditingTests testTrimTrailingShortensAndExtendsWithinSource]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.EditingTests testVolumeClampsAndReportsChange]' started.
+Test Case '-[SCYDECoreTests.EditingTests testVolumeClampsAndReportsChange]' passed (0.000 seconds).
+Test Suite 'EditingTests' passed at 2026-10-16 22:41:02.265.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.003 (0.006) seconds
+Test Suite 'HistoryAndStoreTests' started at 2026-10-16 22:41:02.265.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testCancelledTransactionRestoresStart]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testCancelledTransactionRestoresStart]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testHistoryLimit]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testHistoryLimit]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testListSkipsCorruptFiles]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testListSkipsCorruptFiles]' passed (0.004 seconds).
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testNewEditClearsRedo]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testNewEditClearsRedo]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testNoOpDoesNotCreateUndoStep]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testNoOpDoesNotCreateUndoStep]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testStoreRoundTripAndOrdering]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testStoreRoundTripAndOrdering]' passed (0.002 seconds).
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testTransactionIsASingleUndoStep]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testTransactionIsASingleUndoStep]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testUndoRedoRestoresExactState]' started.
+Test Case '-[SCYDECoreTests.HistoryAndStoreTests testUndoRedoRestoresExactState]' passed (0.000 seconds).
+Test Suite 'HistoryAndStoreTests' passed at 2026-10-16 22:41:02.273.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+Test Suite 'MotionAndSubtitleTests' started at 2026-10-16 22:41:02.273.
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testKeyframesInterpolateAndClamp]' started.
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testKeyframesInterpolateAndClamp]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSetKeyframeReplacesNearbyAndRemoves]' started.
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSetKeyframeReplacesNearbyAndRemoves]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSplitShiftsKeyframesIntoRightClip]' started.
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSplitShiftsKeyframesIntoRightClip]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSRTParserToleratesCRLFAndDots]' started.
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSRTParserToleratesCRLFAndDots]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSRTRoundTrip]' started.
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testSRTRoundTrip]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testTransformWithoutKeyframesUsesStaticValue]' started.
+Test Case '-[SCYDECoreTests.MotionAndSubtitleTests testTransformWithoutKeyframesUsesStaticValue]' passed (0.000 seconds).
+Test Suite 'MotionAndSubtitleTests' passed at 2026-10-16 22:41:02.275.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'StylesAndBeatsTests' started at 2026-10-16 22:41:02.275.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testAdjustmentsNormalise]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testAdjustmentsNormalise]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testCentredCrop]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testCentredCrop]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testFreezeSplitsAndInsertsStill]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testFreezeSplitsAndInsertsStill]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testInsertRippleShiftsLaterClips]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testInsertRippleShiftsLaterClips]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testMarkersToggleAndSnap]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testMarkersToggleAndSnap]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testOldProjectJSONStillDecodes]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testOldProjectJSONStillDecodes]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testSyncToMarkersCutsOnBeats]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testSyncToMarkersCutsOnBeats]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testTextStyleDecodesWithMissingKeys]' started.
+Test Case '-[SCYDECoreTests.StylesAndBeatsTests testTextStyleDecodesWithMissingKeys]' passed (0.000 seconds).
+Test Suite 'StylesAndBeatsTests' passed at 2026-10-16 22:41:02.277.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'TimecodeAndExportTests' started at 2026-10-16 22:41:02.277.
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testEstimatedSizeScalesWithDurationAndCodec]' started.
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testEstimatedSizeScalesWithDurationAndCodec]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testPixelSizeIsAlwaysEven]' started.
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testPixelSizeIsAlwaysEven]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testPixelSizeKeepsShortSideAtResolution]' started.
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testPixelSizeKeepsShortSideAtResolution]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testTimecodeFormatting]' started.
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testTimecodeFormatting]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testTimecodeNeverShowsFrameEqualToFps]' started.
+Test Case '-[SCYDECoreTests.TimecodeAndExportTests testTimecodeNeverShowsFrameEqualToFps]' passed (0.000 seconds).
+Test Suite 'TimecodeAndExportTests' passed at 2026-10-16 22:41:02.278.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'ToolOperationTests' started at 2026-10-16 22:41:02.279.
+Test Case '-[SCYDECoreTests.ToolOperationTests testCutAtClipStartAndEnd]' started.
+Test Case '-[SCYDECoreTests.ToolOperationTests testCutAtClipStartAndEnd]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.ToolOperationTests testCutRemovesMiddleSpanAndCloses]' started.
+Test Case '-[SCYDECoreTests.ToolOperationTests testCutRemovesMiddleSpanAndCloses]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.ToolOperationTests testOldProjectJSONWithoutNewFieldsStillDecodes]' started.
+Test Case '-[SCYDECoreTests.ToolOperationTests testOldProjectJSONWithoutNewFieldsStillDecodes]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.ToolOperationTests testSpeedChangesDurationAndRipplesLaterClips]' started.
+Test Case '-[SCYDECoreTests.ToolOperationTests testSpeedChangesDurationAndRipplesLaterClips]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.ToolOperationTests testSpeedIgnoresPhotosAndNoOps]' started.
+Test Case '-[SCYDECoreTests.ToolOperationTests testSpeedIgnoresPhotosAndNoOps]' passed (0.000 seconds).
+Test Case '-[SCYDECoreTests.ToolOperationTests testUpdateClipCannotChangeTiming]' started.
+Test Case '-[SCYDECoreTests.ToolOperationTests testUpdateClipCannotChangeTiming]' passed (0.000 seconds).
+Test Suite 'ToolOperationTests' passed at 2026-10-16 22:41:02.280.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'SCYDECorePackageTests.xctest' passed at 2026-10-16 22:41:02.280.
+	 Executed 56 tests, with 0 failures (0 unexpected) in 0.017 (0.024) seconds
+Test Suite 'All tests' passed at 2026-10-16 22:41:02.280.
+	 Executed 56 tests, with 0 failures (0 unexpected) in 0.017 (0.026) seconds
+◇ Test run started.
+↳ Testing Library Version: 1501
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
