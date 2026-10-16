@@ -14,6 +14,7 @@ struct StockSheet: View {
     @State private var hasKey = Pexels.APIKey.load() != nil
     @State private var downloading: Int?
     @State private var topic: String?
+    @State private var source = 0
 
     private let topics = ["Cars", "City", "Nature", "Ocean", "People", "Travel", "Food", "Sport", "Night", "Abstract"]
     private let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
@@ -29,8 +30,15 @@ struct StockSheet: View {
         ZStack {
             SX.C.bg.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 14) {
-                SheetHeader(title: "Stock videos", subtitle: "Free videos from Pexels, added to your timeline.") { dismiss() }
-                if hasKey {
+                SheetHeader(title: "Stock videos", subtitle: "Free footage, added to your timeline.") { dismiss() }
+                Picker("", selection: $source) {
+                    Text("SCYDE library").tag(0)
+                    Text("Pexels").tag(1)
+                }
+                .pickerStyle(.segmented)
+                if source == 0 {
+                    LibraryBrowser(model: model) { dismiss() }
+                } else if hasKey {
                     browser
                 } else {
                     keySetup
@@ -39,8 +47,8 @@ struct StockSheet: View {
             .padding(.horizontal, 16)
             .padding(.top, 20)
         }
-        .task {
-            if hasKey && videos.isEmpty { await load() }
+        .onChange(of: source) { s in
+            if s == 1 && hasKey && videos.isEmpty { Task { await load() } }
         }
     }
 

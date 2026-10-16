@@ -88,6 +88,10 @@ struct RootView: View {
                 .environmentObject(app)
                 .preferredColorScheme(app.appearance.scheme)
         }
+        .sheet(isPresented: $app.showPlans) {
+            PlansView()
+                .presentationDragIndicator(.visible)
+        }
         .fullScreenCover(isPresented: $app.showCollage) {
             CollageView()
                 .environmentObject(app)

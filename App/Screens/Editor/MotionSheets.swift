@@ -1,4 +1,6 @@
+import CoreImage
 import SwiftUI
+import UIKit
 import SCYDECore
 
 // MARK: - Transform & keyframes
@@ -112,6 +114,7 @@ struct TransitionSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var kind: TransitionKind?
     @State private var duration: Double = 0.6
+    @State private var thumbs: [TransitionKind: UIImage] = [:]
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
 
     var body: some View {
@@ -123,7 +126,10 @@ struct TransitionSheet: View {
                     LazyVGrid(columns: columns, spacing: 10) {
                         option(nil, icon: "nosign", title: "None")
                         ForEach(TransitionKind.allCases, id: \.self) { k in
-                            option(k, icon: Self.icon(k), title: k.title)
+                            PreviewTile(image: thumbs[k], fallback: Self.icon(k), title: k.title, selected: kind == k) {
+                                kind = k
+                                apply()
+                            }
                         }
                     }
                     if kind != nil {
@@ -156,6 +162,29 @@ struct TransitionSheet: View {
         .onAppear {
             kind = model.selectedClip?.transitionIn?.kind
             duration = model.selectedClip?.transitionIn?.duration ?? 0.6
+        }
+        .task {
+            let base = await model.frameForThumbnails()
+            guard let cg = base.cgImage else { return }
+            thumbs = await Task.detached(priority: .userInitiated) { () -> [TransitionKind: UIImage] in
+                let ci = CIImage(cgImage: cg)
+                let canvas = ci.extent
+                let context = CIContext(options: [.cacheIntermediates: false])
+                var out: [TransitionKind: UIImage] = [:]
+                for k in TransitionKind.allCases {
+                    var clip = Clip(kind: .video, name: "", start: 0, duration: 2)
+                    clip.transitionIn = ClipTransition(kind: k, duration: 1)
+                    var img = SXCompositor.transition(ci, clip: clip, out: nil, now: 0.22, canvas: canvas)
+                    if k == .dissolve {
+                        img = SXCompositor.opacity(ci, 0.5).composited(over: ci.sx("CIPhotoEffectNoir"))
+                    }
+                    let black = CIImage(color: CIColor(red: 0, green: 0, blue: 0)).cropped(to: canvas)
+                    if let r = context.createCGImage(img.cropped(to: canvas).composited(over: black), from: canvas) {
+                        out[k] = UIImage(cgImage: r)
+                    }
+                }
+                return out
+            }.value
         }
     }
 

@@ -14,6 +14,8 @@ struct EffectsSheet: View {
     @State private var ramp = false
     @State private var endIntensity = 0.0
     @State private var group = Effects.groups[0]
+    @State private var base: UIImage?
+    @State private var thumbs: [String: UIImage] = [:]
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
 
     var body: some View {
@@ -36,7 +38,7 @@ struct EffectsSheet: View {
                         commit()
                     }
                     ForEach(Effects.all.filter { $0.group == group }) { e in
-                        OptionTile(icon: e.icon, title: e.name, selected: kind == e.id) {
+                        PreviewTile(image: thumbs[e.id], fallback: e.icon, title: e.name, selected: kind == e.id) {
                             kind = e.id
                             commit()
                         }
@@ -65,6 +67,31 @@ struct EffectsSheet: View {
             endIntensity = target?.effect?.endIntensity ?? 0
             if let k = kind, let info = Effects.info(k) { group = info.group }
         }
+        .task {
+            base = await model.frameForThumbnails()
+            await renderThumbs()
+        }
+        .onChange(of: group) { _ in
+            Task { await renderThumbs() }
+        }
+    }
+
+    /// Each effect in the group applied to the current frame.
+    private func renderThumbs() async {
+        guard let img = base, let cg = img.cgImage else { return }
+        let ids = Effects.all.filter { $0.group == group && thumbs[$0.id] == nil }.map { $0.id }
+        let rendered = await Task.detached(priority: .userInitiated) { () -> [String: UIImage] in
+            let ci = CIImage(cgImage: cg)
+            let canvas = ci.extent
+            let context = CIContext(options: [.cacheIntermediates: false])
+            var out: [String: UIImage] = [:]
+            for id in ids {
+                let fx = Effects.apply(ci, VideoEffect(kind: id, intensity: 0.8), canvas: canvas, t: 0.6).sx("CIColorClamp")
+                if let r = context.createCGImage(fx.cropped(to: canvas), from: canvas) { out[id] = UIImage(cgImage: r) }
+            }
+            return out
+        }.value
+        thumbs.merge(rendered) { $1 }
     }
 
     private func commit() {
@@ -439,5 +466,50 @@ struct BeatsSheet: View {
                 .foregroundColor(SX.C.muted)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+
+/// A selectable tile showing a real rendered preview (falls back to an illustrated icon).
+struct PreviewTile: View {
+    let image: UIImage?
+    let fallback: String
+    let title: String
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.selection()
+            action()
+        } label: {
+            VStack(spacing: 6) {
+                ZStack {
+                    if let image = image {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        ArtIcon(symbol: fallback, palette: ArtPalette.forName(title), size: 44)
+                    }
+                }
+                .frame(width: 68, height: 68)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(selected ? SX.C.accent : SX.C.line2, lineWidth: selected ? 2.5 : 1)
+                )
+                .shadow(color: selected ? SX.C.accent.opacity(0.4) : .clear, radius: 8)
+                .scaleEffect(selected ? 1.04 : 1)
+                .animation(SX.spring, value: selected)
+                Text(title.loc)
+                    .font(.ui(11, .medium, fixed: true))
+                    .foregroundColor(selected ? SX.C.ink : SX.C.body)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(title.loc)
     }
 }

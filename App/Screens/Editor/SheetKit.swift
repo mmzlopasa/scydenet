@@ -192,6 +192,12 @@ extension TextAnimation {
         case .blur: return "Blur"
         case .spin: return "Spin"
         case .drop: return "Drop"
+        case .rise: return "Rise"
+        case .flip: return "Flip"
+        case .stretch: return "Stretch"
+        case .swing: return "Swing"
+        case .glitch: return "Glitch"
+        case .shrink: return "Shrink"
         }
     }
 }
@@ -206,6 +212,9 @@ extension TextLoop {
         case .blink: return "Blink"
         case .shake: return "Shake"
         case .heartbeat: return "Heartbeat"
+        case .spin: return "Spin"
+        case .jelly: return "Jelly"
+        case .sway: return "Sway"
         }
     }
 }

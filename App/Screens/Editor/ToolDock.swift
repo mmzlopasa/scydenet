@@ -90,6 +90,7 @@ struct ToolDock: View {
                 ToolButton(icon: "square.split.diagonal.2x2", title: "Transition", enabled: true) { model.activeSheet = .transition }
             }
             ToolButton(icon: "sparkles", title: "Effects", enabled: true) { model.activeSheet = .effects }
+            ToolButton(icon: "wand.and.rays", title: "Animation", enabled: true) { model.activeSheet = .animate }
             ToolButton(icon: "camera.filters", title: "Filters", enabled: true) { model.activeSheet = .look }
             ToolButton(icon: "slider.horizontal.3", title: "Adjust", enabled: true) { model.activeSheet = .look }
             ToolButton(icon: "crop.rotate", title: "Crop", enabled: true) { model.activeSheet = .crop }
@@ -187,29 +188,23 @@ private struct ToolItem: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            ZStack {
-                if prominent {
-                    RoundedRectangle(cornerRadius: SX.R.m, style: .continuous)
-                        .fill(SX.accentGradient)
-                        .shadow(color: SX.C.accent.opacity(0.35), radius: 10, x: 0, y: 4)
-                } else {
-                    RoundedRectangle(cornerRadius: SX.R.m, style: .continuous)
-                        .fill(SX.C.glass)
-                    RoundedRectangle(cornerRadius: SX.R.m, style: .continuous)
-                        .strokeBorder(SX.C.line2, lineWidth: 1)
-                }
-                Image(systemName: icon)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(prominent ? SX.C.onAccent : (destructive ? SX.C.err : SX.C.ink))
-            }
-            .frame(width: 46, height: 46)
+            ArtIcon(symbol: icon, palette: palette, size: 44, dimmed: !enabled)
+                .frame(width: 46, height: 46)
             Text(title.loc)
                 .font(.ui(11, .medium, fixed: true))
                 .foregroundColor(SX.C.body)
                 .lineLimit(1)
         }
         .frame(width: 64)
-        .opacity(enabled ? 1 : 0.35)
+        .opacity(enabled ? 1 : 0.6)
         .animation(SX.spring, value: enabled)
+    }
+
+    private var palette: ArtPalette {
+        if prominent { return .gold }
+        if destructive { return .ruby }
+        if title == "Back" { return .graphite }
+        let key = title.lowercased().replacingOccurrences(of: " ", with: "")
+        return ArtPalette.forTool(key)
     }
 }

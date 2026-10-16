@@ -60,20 +60,31 @@ struct TextAnimState {
     var dy = 0.0
     var rotation = 0.0
     var blur = 0.0
+    /// Non-uniform stretch on top of `scale`.
+    var scaleX = 1.0
+    var scaleY = 1.0
     /// Fraction of characters shown (typewriter).
     var chars = 1.0
 
     static func at(_ style: TextStyle, local: Double, duration: Double) -> TextAnimState {
+        at(animIn: style.animIn, animOut: style.animOut, loop: style.loop, animDuration: style.animDuration, local: local, duration: duration)
+    }
+
+    static func at(_ motion: ClipAnimation, local: Double, duration: Double) -> TextAnimState {
+        at(animIn: motion.animIn, animOut: motion.animOut, loop: motion.loop, animDuration: motion.duration, local: local, duration: duration)
+    }
+
+    static func at(animIn: TextAnimation, animOut: TextAnimation, loop: TextLoop, animDuration: Double, local: Double, duration: Double) -> TextAnimState {
         var s = TextAnimState()
-        let d = max(0.05, min(style.animDuration, duration / 2))
-        if style.animIn != .none, local < d {
-            s.apply(style.animIn, max(0, local / d), entering: true)
+        let d = max(0.05, min(animDuration, duration / 2))
+        if animIn != .none, local < d {
+            s.apply(animIn, max(0, local / d), entering: true)
         }
-        if style.animOut != .none, local > duration - d {
-            s.apply(style.animOut, max(0, (duration - local) / d), entering: false)
+        if animOut != .none, local > duration - d {
+            s.apply(animOut, max(0, (duration - local) / d), entering: false)
         }
         let tau = 2 * Double.pi
-        switch style.loop {
+        switch loop {
         case .none: break
         case .pulse: s.scale *= 1 + 0.06 * sin(local * tau * 1.2)
         case .wiggle: s.rotation += 5 * sin(local * tau * 1.6)
@@ -85,6 +96,12 @@ struct TextAnimState {
         case .heartbeat:
             let ph = local.truncatingRemainder(dividingBy: 1)
             s.scale *= 1 + 0.12 * exp(-pow((ph - 0.1) / 0.06, 2)) + 0.08 * exp(-pow((ph - 0.32) / 0.06, 2))
+        case .spin: s.rotation += local * 90
+        case .jelly:
+            let w = sin(local * tau * 1.8) * 0.07
+            s.scaleX *= 1 + w
+            s.scaleY *= 1 - w
+        case .sway: s.dx += 0.02 * sin(local * tau * 0.5)
         }
         return s
     }
@@ -147,6 +164,28 @@ struct TextAnimState {
         case .drop:
             dy -= (1 - Self.backOut(p)) * 0.6
             opacity *= min(1, p * 3)
+        case .rise:
+            dy += sign * (1 - e) * 0.05
+            blur = max(blur, (1 - e) * 10)
+            opacity *= e
+        case .flip:
+            scaleY *= max(0.02, Self.backOut(p))
+            opacity *= min(1, p * 3)
+        case .stretch:
+            scaleX *= 1 + (1 - e) * 1.2
+            scaleY *= max(0.05, e)
+            opacity *= e
+        case .swing:
+            rotation += sign * (1 - Self.backOut(p)) * -35
+            opacity *= min(1, p * 2)
+        case .glitch:
+            let jitter = sin(p * 97) * (1 - p)
+            dx += jitter * 0.06
+            opacity *= (p < 0.6 && Int(p * 20) % 2 == 0) ? 0.25 : 1
+        case .shrink:
+            scale *= 1 + (1 - e) * 0.6
+            blur = max(blur, (1 - e) * 8)
+            opacity *= e
         }
     }
 }

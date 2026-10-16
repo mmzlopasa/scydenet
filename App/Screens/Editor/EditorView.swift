@@ -80,12 +80,14 @@ struct EditorView: View {
                 case .beats: BeatsSheet(model: model)
                 case .animate: AnimateSheet(model: model)
                 case .stabilize: StabilizeSheet(model: model)
+                case .music: MusicSheet(model: model)
                 }
             }
-            .presentationDetents(sheet == .cover || sheet == .stock ? [.large] : [.medium, .large])
+            .presentationDetents(sheet == .cover || sheet == .stock || sheet == .music ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .confirmationDialog("Add audio", isPresented: $model.showAudioMenu, titleVisibility: .visible) {
+            Button("Music and sound effects") { model.activeSheet = .music }
             Button("Music from Files") { model.showMusicImporter = true }
             Button("Record voice-over") { model.activeSheet = .voiceover }
             Button("Cancel", role: .cancel) {}

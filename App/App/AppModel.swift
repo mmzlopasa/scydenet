@@ -47,6 +47,7 @@ final class AppModel: ObservableObject {
     @Published var showNewProject = false
     @Published var photoEditor: PhotoEditorEntry?
     @Published var showCollage = false
+    @Published var showPlans = false
     @Published private(set) var toast: String?
     @Published var defaultAspect: CanvasAspect {
         didSet { UserDefaults.standard.set(defaultAspect.rawValue, forKey: "defaultAspect") }
@@ -73,6 +74,7 @@ final class AppModel: ObservableObject {
         if Launch.screen == "settings" { tab = .me }
         if Launch.screen == "photo" { photoEditor = PhotoEditorEntry(tab: 0) }
         if Launch.screen == "collage" { showCollage = true }
+        if Launch.screen == "plans" { showPlans = true }
         reload()
         if Launch.sampleMedia {
             Task { [weak self] in
@@ -102,6 +104,34 @@ final class AppModel: ObservableObject {
             if let clip = await MediaImporter.clip(from: item) { clips.append(clip) }
         }
         guard !clips.isEmpty else { return false }
+        let project = Self.templateProject(template, clips: clips)
+        save(project)
+        reload()
+        openProject = project
+        return true
+    }
+
+    /// Builds the template with SCYDE's sample footage so it can be tried without picking media.
+    func createFromTemplateWithSamples(_ template: ProjectTemplate) async -> Bool {
+        let library = MediaLibrary.shared
+        await library.load()
+        let videos = library.videos(for: template.category.rawValue)
+        guard !videos.isEmpty else { return false }
+        var clips: [Clip] = []
+        for (i, slot) in template.slots.enumerated() {
+            let v = videos[i % videos.count]
+            if let c = await library.clip(for: v, duration: slot, aspect: template.aspect) { clips.append(c) }
+        }
+        guard !clips.isEmpty else { return false }
+        let project = Self.templateProject(template, clips: clips)
+        save(project)
+        reload()
+        openProject = project
+        return true
+    }
+
+    /// The template recipe applied to clips: slot lengths, look, transitions, motion and a styled title.
+    nonisolated static func templateProject(_ template: ProjectTemplate, clips: [Clip]) -> Project {
         var project = Project(name: template.name.loc, aspect: template.aspect)
         for (i, imported) in clips.enumerated() {
             var clip = imported
@@ -111,21 +141,23 @@ final class AppModel: ObservableObject {
             if i > 0, let kind = template.transition {
                 clip.transitionIn = ClipTransition(kind: kind, duration: min(0.6, clip.duration))
             }
-            if template.kenBurns && clip.kind == .photo {
+            let base = clip.transform ?? .identity
+            if template.kenBurns {
+                var end = base
+                end.scale = base.scale * 1.14
                 clip.keyframes = [
-                    Keyframe(time: 0, transform: ClipTransform(scale: 1)),
-                    Keyframe(time: clip.duration, transform: ClipTransform(scale: 1.14)),
+                    Keyframe(time: 0, transform: base),
+                    Keyframe(time: clip.duration, transform: end),
                 ]
             }
             project.addClip(clip, role: .main)
         }
         if let title = template.title {
-            project.addClip(Clip(kind: .text, name: "Title", duration: min(2.2, project.duration), text: title), role: .text, at: 0)
+            var t = Clip(kind: .text, name: "Title", duration: min(2.4, project.duration), text: title)
+            t.textStyle = template.category.titleStyle
+            project.addClip(t, role: .text, at: 0)
         }
-        save(project)
-        reload()
-        openProject = project
-        return true
+        return project
     }
 
     func showToast(_ text: String) {

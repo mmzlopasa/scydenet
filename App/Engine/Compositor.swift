@@ -241,7 +241,8 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     }
                 } else if layer.isMain {
                     let fill = Self.backdrop(source, canvas: canvas, background: layer.background)
-                    let fit = Self.apply(transform, to: Self.place(source, in: canvas, fill: false), canvas: canvas)
+                    var fit = Self.apply(transform, to: Self.place(source, in: canvas, fill: false), canvas: canvas)
+                    if let clip = layer.clip { fit = Self.animate(fit, clip: clip, now: now, canvas: canvas) }
                     piece = fit.composited(over: fill)
                     // A masked main clip reveals the black canvas, not its own blurred fill.
                     if let m = mask { piece = Masks.apply(piece.cropped(to: canvas), m, canvas: canvas, offset: transform) }
@@ -250,6 +251,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     let w = canvas.width * 0.55
                     let rect = CGRect(x: (canvas.width - w) / 2, y: (canvas.height - w) / 2, width: w, height: w)
                     piece = Self.apply(transform, to: Self.place(source, in: rect, fill: false), canvas: canvas)
+                    if let clip = layer.clip { piece = Self.animate(piece, clip: clip, now: now, canvas: canvas) }
                     if let m = mask { piece = Masks.apply(piece, m, canvas: canvas, offset: transform) }
                 }
                 if let clip = layer.clip, let effect = clip.effect {
@@ -296,6 +298,24 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         case .text, .sticker:
             return nil
         }
+    }
+
+    /// Clip entrance / exit / loop motion around the canvas centre.
+    static func animate(_ image: CIImage, clip: Clip, now: Double, canvas: CGRect) -> CIImage {
+        guard let motion = clip.motion, !motion.isNone else { return image }
+        let a = TextAnimState.at(motion, local: now - clip.start, duration: clip.duration)
+        var out = image
+        if a.blur > 0.3 {
+            out = out.clampedToExtent().applyingGaussianBlur(sigma: a.blur).cropped(to: image.extent.insetBy(dx: -CGFloat(a.blur) * 3, dy: -CGFloat(a.blur) * 3))
+        }
+        let cx = canvas.midX, cy = canvas.midY
+        let m = CGAffineTransform(translationX: -cx, y: -cy)
+            .concatenating(CGAffineTransform(scaleX: CGFloat(a.scale * a.scaleX), y: CGFloat(a.scale * a.scaleY)))
+            .concatenating(CGAffineTransform(rotationAngle: CGFloat(-a.rotation * .pi / 180)))
+            .concatenating(CGAffineTransform(translationX: cx + CGFloat(a.dx) * canvas.width, y: cy - CGFloat(a.dy) * canvas.height))
+        out = out.transformed(by: m)
+        if a.opacity < 0.999 { out = opacity(out, max(0, a.opacity)) }
+        return out
     }
 
     /// Effect with its intensity ramp evaluated at `now`.
@@ -412,7 +432,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         let angle = CGFloat(-(t.rotation + anim.rotation) * .pi / 180)
         let cx = canvas.midX + CGFloat(t.x + anim.dx) * canvas.width
         let cy = canvas.midY - CGFloat(style.anchorY + t.y + anim.dy) * canvas.height
-        img = img.transformed(by: CGAffineTransform(scaleX: s, y: s)
+        img = img.transformed(by: CGAffineTransform(scaleX: s * CGFloat(anim.scaleX), y: s * CGFloat(anim.scaleY))
             .concatenating(CGAffineTransform(rotationAngle: angle))
             .concatenating(CGAffineTransform(translationX: cx, y: cy)))
         let o = t.opacity * anim.opacity

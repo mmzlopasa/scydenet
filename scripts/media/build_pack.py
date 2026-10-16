@@ -13,13 +13,22 @@ import re
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
 API = "https://commons.wikimedia.org/w/api.php"
 UA = "SCYDE-media-pack/1.0 (https://scyde.dev; https://github.com/mmzlopasa/scydenet)"
 OK_LICENSES = ("cc0", "public domain", "pd", "cc by 4.0", "cc by 3.0", "cc by 2.5", "cc by 2.0")
-BLOCK = re.compile(r"nude|naked|sex|porn|erotic|blood|corpse|dead|war\b|weapon|gun|execution|nazi|riot|accident|crash|injur|surgery|autopsy|hunting|slaughter", re.I)
+BLOCK = re.compile(
+    r"nude|naked|sex|porn|erotic|blood|corpse|dead|death|kill|war\b|weapon|gun|shoot|shot\b|execution|nazi|riot|"
+    r"accident|crash|injur|surgery|autopsy|hunting|slaughter|police|sheriff|deputy|suspect|bodycam|arrest|chase|"
+    r"fight|protest|attack|bomb|military|army|missile|fire department|funeral|prison|drug|smok|cigar|alcohol|beer|"
+    r"politic|president|election|campaign|religio|church service|sora|openai|ai generated|nasa animation|ntsb",
+    re.I,
+)
+# Stock-footage sources on Commons (their uploads are CC0 and look like stock).
+SOURCES = ['insource:"pexels.com"', 'insource:"pixabay.com"', 'insource:"videvo"', 'insource:"mixkit"']
 
 VIDEO_QUERIES = {
     "cars": ["car driving road", "sports car", "highway traffic aerial", "car interior driving"],
@@ -77,12 +86,12 @@ def clean(text):
     return html.unescape(text).strip()[:120]
 
 
-def search(query, kind):
+def search(query, kind, source=""):
     data = api({
         "action": "query",
         "generator": "search",
         "gsrnamespace": 6,
-        "gsrsearch": f"{query} filetype:{kind}",
+        "gsrsearch": f"{query} filetype:{kind} {source}".strip(),
         "gsrlimit": 40,
         "prop": "videoinfo",
         "viprop": "url|size|mime|mediatype|extmetadata|derivatives",
@@ -113,7 +122,7 @@ def search(query, kind):
             "duration": float(info.get("duration") or 0),
             "size": info.get("size") or 0,
             "derivatives": info.get("derivatives") or [],
-            "rank": 0 if lic.lower().startswith(("cc0", "public domain", "pd")) else 1,
+            "rank": (0 if lic.lower().startswith(("cc0", "public domain", "pd")) else 1) + (0 if source else 2),
         })
     return out
 
@@ -127,6 +136,31 @@ def best_video_source(c):
     return c["url"]
 
 
+def fetch(url, path):
+    """Polite download: one request at a time, honours 429 Retry-After, retries with backoff."""
+    for attempt in range(6):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=120) as r, open(path, "wb") as f:
+                while True:
+                    chunk = r.read(1 << 16)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+            time.sleep(1.0)
+            return True
+        except urllib.error.HTTPError as e:
+            wait = int(e.headers.get("Retry-After") or 0) or (5 * (attempt + 1))
+            print(f"download {e.code}, waiting {wait}s", flush=True)
+            if e.code in (404, 410):
+                return False
+            time.sleep(min(wait, 60))
+        except Exception as e:  # noqa: BLE001
+            print("download error", e, flush=True)
+            time.sleep(5 * (attempt + 1))
+    return False
+
+
 def run(cmd, timeout=240):
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
@@ -138,19 +172,30 @@ def run(cmd, timeout=240):
         return False
 
 
+TMP = "/tmp/scyde-src"
+
+
 def make_clip(c, out_path):
     src = best_video_source(c)
+    if c["size"] and c["size"] > 400_000_000 and src == c["url"]:
+        return False
+    if not fetch(src, TMP):
+        return False
     dur = c["duration"] or 12
     start = max(0.0, min(dur * 0.25, dur - 6)) if dur > 7 else 0
     vf = ("scale=w='if(gt(iw,ih),960,-2)':h='if(gt(iw,ih),-2,960)',"
           "fps=30,format=yuv420p")
-    return run(["ffmpeg", "-y", "-loglevel", "error", "-user_agent", UA, "-ss", f"{start:.2f}", "-i", src,
+    return run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{start:.2f}", "-i", TMP,
                 "-t", "5", "-an", "-vf", vf, "-c:v", "libx264", "-preset", "veryfast", "-crf", "25",
                 "-movflags", "+faststart", out_path])
 
 
 def make_track(c, out_path):
-    return run(["ffmpeg", "-y", "-loglevel", "error", "-user_agent", UA, "-i", c["url"], "-t", "90",
+    if c["size"] and c["size"] > 150_000_000:
+        return False
+    if not fetch(c["url"], TMP):
+        return False
+    return run(["ffmpeg", "-y", "-loglevel", "error", "-i", TMP, "-t", "90",
                 "-af", "afade=t=in:d=0.5,afade=t=out:st=86:d=4", "-vn", "-c:a", "aac", "-b:a", "128k",
                 "-movflags", "+faststart", out_path], timeout=300)
 
@@ -175,13 +220,18 @@ def main():
     for cat, queries in VIDEO_QUERIES.items():
         pool = []
         for q in queries:
-            for c in search(q, "video"):
-                if c["page"] in used or c["width"] < 900 and c["height"] < 900:
-                    continue
-                if c["duration"] and c["duration"] < 4:
-                    continue
-                c["query"] = q
-                pool.append(c)
+            for src in SOURCES:
+                found = search(q, "video", src)
+                print(f"  search '{q}' {src or 'any'}: {len(found)}", flush=True)
+                for c in found:
+                    if c["page"] in used or c["width"] < 900 and c["height"] < 900:
+                        continue
+                    if c["duration"] and (c["duration"] < 4 or c["duration"] > 600):
+                        continue
+                    c["query"] = q
+                    pool.append(c)
+                if sum(1 for c in pool if c["query"] == q and c["rank"] < 2) >= 3:
+                    break
         # One per query first (variety), CC0 first, larger frames first.
         pool.sort(key=lambda c: (c["rank"], -max(c["width"], c["height"])))
         picked, seen_q = [], set()
@@ -193,6 +243,10 @@ def main():
                 break
             if c["page"] not in used:
                 picked.append(c); used.add(c["page"])
+        # General Commons results (rank 2+) are only a fallback when stock sources are thin.
+        stock = [c for c in picked if c["rank"] < 2]
+        if len(stock) >= VIDEOS_PER_CATEGORY:
+            picked = stock + [c for c in picked if c["rank"] >= 2]
         n = 0
         for c in picked:
             if n >= VIDEOS_PER_CATEGORY:

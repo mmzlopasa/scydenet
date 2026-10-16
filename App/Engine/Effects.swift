@@ -57,9 +57,27 @@ enum Effects {
         EffectInfo(id: "thermal", name: "Thermal", icon: "thermometer.sun", group: "Art"),
         EffectInfo(id: "xray", name: "X-ray", icon: "rays", group: "Art"),
         EffectInfo(id: "invert", name: "Invert", icon: "circle.righthalf.filled", group: "Art"),
+        EffectInfo(id: "pushin", name: "Push in", icon: "arrow.up.left.and.arrow.down.right", group: "Motion"),
+        EffectInfo(id: "pushout", name: "Pull out", icon: "arrow.down.right.and.arrow.up.left", group: "Motion"),
+        EffectInfo(id: "slowspin", name: "Slow spin", icon: "arrow.triangle.2.circlepath", group: "Motion"),
+        EffectInfo(id: "flicker", name: "Flicker", icon: "lightbulb", group: "Motion"),
+        EffectInfo(id: "chromatic", name: "Chromatic", icon: "circle.hexagongrid", group: "Retro"),
+        EffectInfo(id: "filmburn", name: "Film burn", icon: "flame", group: "Retro"),
+        EffectInfo(id: "lensflare", name: "Lens flare", icon: "sun.max.circle", group: "Light"),
+        EffectInfo(id: "sparkle", name: "Sparkle", icon: "sparkles", group: "Light"),
+        EffectInfo(id: "fisheye", name: "Fisheye", icon: "eye", group: "Frame"),
+        EffectInfo(id: "vortex", name: "Vortex", icon: "hurricane", group: "Frame"),
+        EffectInfo(id: "snow", name: "Snow", icon: "snowflake", group: "Particles"),
+        EffectInfo(id: "rain", name: "Rain", icon: "cloud.rain", group: "Particles"),
+        EffectInfo(id: "confetti", name: "Confetti", icon: "party.popper", group: "Particles"),
+        EffectInfo(id: "hearts", name: "Hearts", icon: "heart", group: "Particles"),
+        EffectInfo(id: "bubbles", name: "Bubbles", icon: "bubbles.and.sparkles", group: "Particles"),
+        EffectInfo(id: "stars", name: "Stars", icon: "star", group: "Particles"),
+        EffectInfo(id: "infrared", name: "Infrared", icon: "flame.circle", group: "Art"),
+        EffectInfo(id: "cartoon", name: "Cartoon", icon: "paintbrush.pointed", group: "Art"),
     ]
 
-    static let groups = ["Motion", "Retro", "Light", "Frame", "Art"]
+    static let groups = ["Motion", "Retro", "Light", "Particles", "Frame", "Art"]
 
     static func info(_ id: String) -> EffectInfo? { all.first { $0.id == id } }
 
@@ -192,6 +210,85 @@ enum Effects {
             return mix(image.sx("CIXRay"), over: image, k)
         case "invert":
             return mix(image.sx("CIColorInvert"), over: image, k)
+        case "pushin":
+            return zoom(image, 1 + 0.25 * k * CGFloat(min(t / 4, 1)), canvas)
+        case "pushout":
+            return zoom(image, 1 + 0.25 * k * CGFloat(max(0, 1 - t / 4)), canvas)
+        case "slowspin":
+            let a = CGFloat(t) * 0.25 * k
+            let z = 1 + 0.35 * k
+            return image.transformed(by: CGAffineTransform(translationX: -canvas.midX, y: -canvas.midY)
+                .concatenating(CGAffineTransform(scaleX: z, y: z))
+                .concatenating(CGAffineTransform(rotationAngle: a))
+                .concatenating(CGAffineTransform(translationX: canvas.midX, y: canvas.midY))).cropped(to: canvas)
+        case "flicker":
+            let v = sin(t * 47) * sin(t * 23)
+            return image.sx("CIColorControls", [kCIInputBrightnessKey: CGFloat(v) * 0.18 * k])
+        case "chromatic":
+            return rgbSplit(image, dx: w * 0.008 * k)
+        case "filmburn":
+            let x = canvas.minX + w * CGFloat(0.2 + 0.6 * (sin(t * 0.9) + 1) / 2)
+            let burn = CIImage.empty().sx("CIRadialGradient", [
+                kCIInputCenterKey: CIVector(x: x, y: canvas.maxY - h * 0.15),
+                "inputRadius0": 0,
+                "inputRadius1": max(w, h) * 0.55,
+                "inputColor0": CIColor(red: 1, green: 0.45, blue: 0.05, alpha: 0.95 * k),
+                "inputColor1": CIColor(red: 0.8, green: 0.1, blue: 0.1, alpha: 0),
+            ]).cropped(to: canvas)
+            let flick = 1 + 0.08 * CGFloat(sin(t * 31))
+            return burn.sx("CIScreenBlendMode", [kCIInputBackgroundImageKey: image.sx("CIColorControls", [kCIInputBrightnessKey: flick - 1])])
+        case "lensflare":
+            let fx = canvas.minX + w * CGFloat(0.75 + 0.08 * sin(t * 0.6))
+            let fy = canvas.minY + h * 0.78
+            var flare = CIImage.empty().sx("CIRadialGradient", [
+                kCIInputCenterKey: CIVector(x: fx, y: fy), "inputRadius0": 0, "inputRadius1": w * 0.35,
+                "inputColor0": CIColor(red: 1, green: 0.95, blue: 0.8, alpha: 0.9 * k),
+                "inputColor1": CIColor(red: 1, green: 0.6, blue: 0.2, alpha: 0),
+            ]).cropped(to: canvas)
+            // Ghost rings along the line through the centre.
+            for i in 1...3 {
+                let u = CGFloat(i) * 0.45
+                let gx = fx + (canvas.midX - fx) * u * 2, gy = fy + (canvas.midY - fy) * u * 2
+                let ring = CIImage.empty().sx("CIRadialGradient", [
+                    kCIInputCenterKey: CIVector(x: gx, y: gy), "inputRadius0": w * 0.02 * CGFloat(i), "inputRadius1": w * 0.05 * CGFloat(i),
+                    "inputColor0": CIColor(red: 0.6, green: 0.8, blue: 1, alpha: 0.25 * k),
+                    "inputColor1": CIColor(red: 0.6, green: 0.8, blue: 1, alpha: 0),
+                ]).cropped(to: canvas)
+                flare = ring.sx("CIAdditionCompositing", [kCIInputBackgroundImageKey: flare])
+            }
+            return flare.sx("CIScreenBlendMode", [kCIInputBackgroundImageKey: image]).cropped(to: canvas)
+        case "sparkle":
+            let glow = image.sx("CIColorControls", [kCIInputBrightnessKey: -0.55, kCIInputContrastKey: 3])
+                .clampedToExtent().sx("CIBloom", [kCIInputRadiusKey: w * 0.02, kCIInputIntensityKey: 1.5 * k]).cropped(to: canvas)
+            let stars = Particles.layer(.stars, canvas: canvas, t: t, amount: k)
+            return stars.composited(over: glow.sx("CIScreenBlendMode", [kCIInputBackgroundImageKey: image]))
+        case "fisheye":
+            return image.clampedToExtent().sx("CIBumpDistortion", [kCIInputCenterKey: c, kCIInputRadiusKey: max(w, h) * 0.7, kCIInputScaleKey: 0.6 * k]).cropped(to: canvas)
+        case "vortex":
+            return image.clampedToExtent().sx("CIVortexDistortion", [kCIInputCenterKey: c, kCIInputRadiusKey: min(w, h) * 0.5, kCIInputAngleKey: CGFloat(sin(t * 1.2)) * 200 * k]).cropped(to: canvas)
+        case "snow":
+            return Particles.layer(.snow, canvas: canvas, t: t, amount: k).composited(over: image)
+        case "rain":
+            return Particles.layer(.rain, canvas: canvas, t: t, amount: k).composited(over: image.sx("CIColorControls", [kCIInputBrightnessKey: -0.08 * k, kCIInputSaturationKey: 1 - 0.3 * k]))
+        case "confetti":
+            return Particles.layer(.confetti, canvas: canvas, t: t, amount: k).composited(over: image)
+        case "hearts":
+            return Particles.layer(.hearts, canvas: canvas, t: t, amount: k).composited(over: image)
+        case "bubbles":
+            return Particles.layer(.bubbles, canvas: canvas, t: t, amount: k).composited(over: image)
+        case "stars":
+            return Particles.layer(.stars, canvas: canvas, t: t, amount: k).composited(over: image)
+        case "infrared":
+            let ir = image.sx("CIFalseColor", [
+                "inputColor0": CIColor(red: 0.15, green: 0.0, blue: 0.25),
+                "inputColor1": CIColor(red: 1, green: 0.55, blue: 0.75),
+            ])
+            return mix(ir, over: image, k)
+        case "cartoon":
+            let flat = image.sx("CIColorPosterize", ["inputLevels": 6]).sx("CIColorControls", [kCIInputSaturationKey: 1.4])
+            let lines = image.sx("CIPhotoEffectMono").sx("CIEdges", [kCIInputIntensityKey: 5]).sx("CIColorInvert")
+            let toon = flat.sx("CIMultiplyBlendMode", [kCIInputBackgroundImageKey: lines]).cropped(to: canvas)
+            return mix(toon, over: image, k)
         default:
             return image
         }
@@ -462,5 +559,113 @@ enum Blends {
         // Blend only where the overlay is, keep the base elsewhere.
         let blended = top.sx(name, [kCIInputBackgroundImageKey: base]).cropped(to: top.extent.intersection(base.extent))
         return blended.composited(over: base)
+    }
+}
+
+
+/// Falling or rising particles drawn with Core Graphics, deterministic for a given time.
+enum Particles {
+    enum Kind { case snow, rain, confetti, hearts, bubbles, stars }
+
+    private static func hash(_ n: Int, _ salt: Int) -> Double {
+        var x = UInt64(truncatingIfNeeded: n &* 73_856_093 ^ salt &* 19_349_663)
+        x = (x ^ (x >> 33)) &* 0xff51afd7ed558ccd
+        x = (x ^ (x >> 33)) &* 0xc4ceb9fe1a85ec53
+        x ^= x >> 33
+        return Double(x % 10_000) / 10_000
+    }
+
+    static func layer(_ kind: Kind, canvas: CGRect, t: Double, amount: CGFloat) -> CIImage {
+        // Drawn at half resolution; particles are soft enough not to need more.
+        let scale: CGFloat = 0.5
+        let size = CGSize(width: max(2, canvas.width * scale), height: max(2, canvas.height * scale))
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let count: Int
+        switch kind {
+        case .rain: count = Int(140 * amount) + 20
+        case .snow: count = Int(110 * amount) + 15
+        case .stars: count = Int(40 * amount) + 8
+        default: count = Int(55 * amount) + 10
+        }
+        let w = Double(size.width), h = Double(size.height)
+        let palette: [UIColor] = [UIColor(hex: 0xFFD76A), UIColor(hex: 0xC4BBFF), UIColor(hex: 0x8EF0C8), UIColor(hex: 0xFF9AA8), UIColor(hex: 0x6EC6FF), .white]
+        let img = UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            let g = ctx.cgContext
+            for n in 0..<count {
+                let r1 = hash(n, 1), r2 = hash(n, 2), r3 = hash(n, 3)
+                switch kind {
+                case .snow:
+                    let speed = 0.06 + r3 * 0.1
+                    let y = (r2 + t * speed).truncatingRemainder(dividingBy: 1)
+                    let x = r1 + 0.02 * sin(t * 1.5 + r3 * 6)
+                    let d = 2 + r3 * 5
+                    g.setFillColor(UIColor(white: 1, alpha: 0.55 + 0.4 * r3).cgColor)
+                    g.fillEllipse(in: CGRect(x: x.truncatingRemainder(dividingBy: 1) * w, y: y * h, width: d, height: d))
+                case .rain:
+                    let y = (r2 + t * (0.9 + r3 * 0.6)).truncatingRemainder(dividingBy: 1)
+                    let x = r1 * w
+                    let len = 8 + r3 * 14
+                    g.setStrokeColor(UIColor(white: 0.85, alpha: 0.25 + 0.3 * r3).cgColor)
+                    g.setLineWidth(1)
+                    g.move(to: CGPoint(x: x, y: y * h))
+                    g.addLine(to: CGPoint(x: x - len * 0.15, y: y * h + len))
+                    g.strokePath()
+                case .confetti:
+                    let y = (r2 + t * (0.12 + r3 * 0.12)).truncatingRemainder(dividingBy: 1)
+                    let x = (r1 + 0.03 * sin(t * 2 + r3 * 9)).truncatingRemainder(dividingBy: 1)
+                    g.saveGState()
+                    g.translateBy(x: x * w, y: y * h)
+                    g.rotate(by: CGFloat(t * (2 + r3 * 4) + r1 * 6))
+                    g.setFillColor(palette[n % palette.count].cgColor)
+                    g.fill(CGRect(x: -3, y: -1.5, width: 6, height: 3 * (0.4 + abs(sin(t * 5 + r2 * 7)))))
+                    g.restoreGState()
+                case .hearts, .bubbles:
+                    // Rising from the bottom.
+                    let y = 1 - (r2 + t * (0.08 + r3 * 0.1)).truncatingRemainder(dividingBy: 1)
+                    let x = (r1 + 0.03 * sin(t * 1.3 + r3 * 7)).truncatingRemainder(dividingBy: 1)
+                    let d = (kind == .hearts ? 10 : 6) + r3 * 14
+                    let rect = CGRect(x: x * w - d / 2, y: y * h - d / 2, width: d, height: d)
+                    if kind == .hearts {
+                        let p = UIBezierPath()
+                        p.move(to: CGPoint(x: rect.midX, y: rect.maxY))
+                        p.addCurve(to: CGPoint(x: rect.minX, y: rect.minY + d * 0.3), controlPoint1: CGPoint(x: rect.minX + d * 0.2, y: rect.minY + d * 0.75), controlPoint2: CGPoint(x: rect.minX, y: rect.minY + d * 0.55))
+                        p.addArc(withCenter: CGPoint(x: rect.minX + d * 0.25, y: rect.minY + d * 0.3), radius: d * 0.25, startAngle: .pi, endAngle: 0, clockwise: true)
+                        p.addArc(withCenter: CGPoint(x: rect.minX + d * 0.75, y: rect.minY + d * 0.3), radius: d * 0.25, startAngle: .pi, endAngle: 0, clockwise: true)
+                        p.addCurve(to: CGPoint(x: rect.midX, y: rect.maxY), controlPoint1: CGPoint(x: rect.maxX, y: rect.minY + d * 0.55), controlPoint2: CGPoint(x: rect.maxX - d * 0.2, y: rect.minY + d * 0.75))
+                        UIColor(hex: n % 3 == 0 ? 0xFF9AA8 : 0xFF5A6E, alpha: 0.85).setFill()
+                        p.fill()
+                    } else {
+                        g.setStrokeColor(UIColor(white: 1, alpha: 0.7).cgColor)
+                        g.setLineWidth(1.2)
+                        g.strokeEllipse(in: rect)
+                        g.setFillColor(UIColor(white: 1, alpha: 0.12).cgColor)
+                        g.fillEllipse(in: rect)
+                    }
+                case .stars:
+                    let twinkle = 0.5 + 0.5 * sin(t * (2 + r3 * 4) + r1 * 20)
+                    let d = (3 + r3 * 7) * twinkle
+                    let cx = r1 * w, cy = r2 * h
+                    g.setFillColor(UIColor(white: 1, alpha: 0.9 * twinkle).cgColor)
+                    let p = UIBezierPath()
+                    p.move(to: CGPoint(x: cx, y: cy - d))
+                    p.addLine(to: CGPoint(x: cx + d * 0.22, y: cy - d * 0.22))
+                    p.addLine(to: CGPoint(x: cx + d, y: cy))
+                    p.addLine(to: CGPoint(x: cx + d * 0.22, y: cy + d * 0.22))
+                    p.addLine(to: CGPoint(x: cx, y: cy + d))
+                    p.addLine(to: CGPoint(x: cx - d * 0.22, y: cy + d * 0.22))
+                    p.addLine(to: CGPoint(x: cx - d, y: cy))
+                    p.addLine(to: CGPoint(x: cx - d * 0.22, y: cy - d * 0.22))
+                    p.close()
+                    p.fill()
+                }
+            }
+        }
+        guard let cg = img.cgImage else { return CIImage.empty() }
+        return CIImage(cgImage: cg)
+            .transformed(by: CGAffineTransform(scaleX: 1 / scale, y: 1 / scale)
+                .concatenating(CGAffineTransform(translationX: canvas.minX, y: canvas.minY)))
+            .cropped(to: canvas)
     }
 }

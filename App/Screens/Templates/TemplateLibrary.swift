@@ -58,6 +58,52 @@ enum TemplateCategory: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
+    /// Emoji shown on chips and cards.
+    var emoji: String {
+        switch self {
+        case .cars: return "🏎️"
+        case .travel: return "✈️"
+        case .vlog: return "🎥"
+        case .beat: return "🎧"
+        case .cinematic: return "🎬"
+        case .retro: return "📼"
+        case .minimal: return "◻️"
+        case .slideshow: return "🖼️"
+        case .birthday: return "🎂"
+        case .fitness: return "💪"
+        case .food: return "🍜"
+        case .fashion: return "👗"
+        case .product: return "📦"
+        case .realEstate: return "🏡"
+        case .sports: return "⚽️"
+        case .wedding: return "💍"
+        case .pets: return "🐶"
+        case .nature: return "🌿"
+        case .night: return "🌙"
+        case .intro: return "✨"
+        }
+    }
+
+    /// Title look for the category's templates.
+    var titleStyle: TextStyle {
+        let id: String
+        switch self {
+        case .cars, .sports, .fitness: id = "bold-outline"
+        case .beat, .birthday: id = "yellow"
+        case .cinematic, .wedding, .realEstate: id = "cinema"
+        case .retro: id = "retro"
+        case .night, .intro: id = "neon"
+        case .minimal, .fashion, .product: id = "minimal"
+        case .vlog, .food, .pets: id = "highlight"
+        default: id = "title"
+        }
+        var style = TextPreset.all.first { $0.id == id }?.style ?? .caption
+        style.anchorY = id == "minimal" ? 0.32 : 0
+        if style.animIn == .none { style.animIn = .rise }
+        if style.animOut == .none { style.animOut = .fade }
+        return style
+    }
+
     /// Two-colour palette used by the preview artwork.
     var colors: [UInt32] {
         switch self {

@@ -167,12 +167,17 @@ enum Captioner {
 // MARK: - Voice effects (offline AVAudioEngine render)
 
 enum VoicePreset: String, CaseIterable, Identifiable {
-    case chipmunk, deep, robot, echo, hall, radio
+    case clean, chipmunk, deep, robot, echo, hall, radio, phone, monster, underwater, cathedral
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
+        case .clean: return "Clean voice"
+        case .phone: return "Phone"
+        case .monster: return "Monster"
+        case .underwater: return "Underwater"
+        case .cathedral: return "Cathedral"
         case .chipmunk: return "High"
         case .deep: return "Deep"
         case .robot: return "Robot"
@@ -184,6 +189,11 @@ enum VoicePreset: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .clean: return "waveform.badge.magnifyingglass"
+        case .phone: return "phone"
+        case .monster: return "flame"
+        case .underwater: return "drop"
+        case .cathedral: return "building.2"
         case .chipmunk: return "arrow.up.circle"
         case .deep: return "arrow.down.circle"
         case .robot: return "cpu"
@@ -196,6 +206,8 @@ enum VoicePreset: String, CaseIterable, Identifiable {
     var tail: Double {
         switch self {
         case .echo, .hall: return 1.5
+        case .cathedral: return 2.5
+        case .underwater: return 0.5
         default: return 0
         }
     }
@@ -223,6 +235,58 @@ enum VoiceFX {
 
         var chain: [AVAudioNode] = []
         switch preset {
+        case .clean:
+            // Cut rumble and hiss, lift presence a little.
+            let eq = AVAudioUnitEQ(numberOfBands: 3)
+            eq.bands[0].filterType = .highPass
+            eq.bands[0].frequency = 90
+            eq.bands[1].filterType = .lowPass
+            eq.bands[1].frequency = 9_500
+            eq.bands[2].filterType = .parametric
+            eq.bands[2].frequency = 3_200
+            eq.bands[2].bandwidth = 1.2
+            eq.bands[2].gain = 3
+            for b in eq.bands { b.bypass = false }
+            let dyn = AVAudioUnitEffect(audioComponentDescription: AudioComponentDescription(
+                componentType: kAudioUnitType_Effect,
+                componentSubType: kAudioUnitSubType_DynamicsProcessor,
+                componentManufacturer: kAudioUnitManufacturer_Apple,
+                componentFlags: 0,
+                componentFlagsMask: 0
+            ))
+            chain = [eq, dyn]
+        case .phone:
+            let eq = AVAudioUnitEQ(numberOfBands: 2)
+            eq.bands[0].filterType = .highPass
+            eq.bands[0].frequency = 400
+            eq.bands[1].filterType = .lowPass
+            eq.bands[1].frequency = 3_000
+            for b in eq.bands { b.bypass = false }
+            let d = AVAudioUnitDistortion()
+            d.loadFactoryPreset(.speechRadioTower)
+            d.wetDryMix = 25
+            chain = [eq, d]
+        case .monster:
+            let p = AVAudioUnitTimePitch()
+            p.pitch = -1000
+            let d = AVAudioUnitDistortion()
+            d.loadFactoryPreset(.multiDecimated1)
+            d.wetDryMix = 20
+            chain = [p, d]
+        case .underwater:
+            let eq = AVAudioUnitEQ(numberOfBands: 1)
+            eq.bands[0].filterType = .lowPass
+            eq.bands[0].frequency = 650
+            eq.bands[0].bypass = false
+            let r = AVAudioUnitReverb()
+            r.loadFactoryPreset(.mediumChamber)
+            r.wetDryMix = 35
+            chain = [eq, r]
+        case .cathedral:
+            let r = AVAudioUnitReverb()
+            r.loadFactoryPreset(.cathedral)
+            r.wetDryMix = 45
+            chain = [r]
         case .chipmunk:
             let p = AVAudioUnitTimePitch()
             p.pitch = 700

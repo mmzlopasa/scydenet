@@ -8,10 +8,11 @@ import Foundation
 
 public enum TextAnimation: String, Codable, CaseIterable, Sendable {
     case none, fade, pop, slideUp, slideDown, slideLeft, slideRight, zoom, typewriter, bounce, blur, spin, drop
+    case rise, flip, stretch, swing, glitch, shrink
 }
 
 public enum TextLoop: String, Codable, CaseIterable, Sendable {
-    case none, pulse, wiggle, float, blink, shake, heartbeat
+    case none, pulse, wiggle, float, blink, shake, heartbeat, spin, jelly, sway
 }
 
 public enum TextBackground: String, Codable, CaseIterable, Sendable {
@@ -121,6 +122,35 @@ public struct TextStyle: Codable, Equatable, Sendable {
         animOut = (try? c.decodeIfPresent(TextAnimation.self, forKey: .animOut)) ?? d.animOut
         loop = (try? c.decodeIfPresent(TextLoop.self, forKey: .loop)) ?? d.loop
         animDuration = try c.decodeIfPresent(Double.self, forKey: .animDuration) ?? d.animDuration
+    }
+}
+
+// MARK: - Clip animation
+
+/// Entrance, exit and loop motion for a video or photo clip (same vocabulary as text).
+public struct ClipAnimation: Codable, Equatable, Sendable {
+    public var animIn: TextAnimation
+    public var animOut: TextAnimation
+    public var loop: TextLoop
+    public var duration: Double
+
+    public init(animIn: TextAnimation = .none, animOut: TextAnimation = .none, loop: TextLoop = .none, duration: Double = 0.5) {
+        self.animIn = animIn
+        self.animOut = animOut
+        self.loop = loop
+        self.duration = duration
+    }
+
+    public var isNone: Bool { animIn == .none && animOut == .none && loop == .none }
+
+    private enum CodingKeys: String, CodingKey { case animIn, animOut, loop, duration }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        animIn = (try? c.decodeIfPresent(TextAnimation.self, forKey: .animIn)) ?? TextAnimation.none
+        animOut = (try? c.decodeIfPresent(TextAnimation.self, forKey: .animOut)) ?? TextAnimation.none
+        loop = (try? c.decodeIfPresent(TextLoop.self, forKey: .loop)) ?? TextLoop.none
+        duration = (try? c.decodeIfPresent(Double.self, forKey: .duration)) ?? 0.5
     }
 }
 

@@ -99,6 +99,34 @@ struct MeView: View {
                         stat("Storage", StorageInfo.formatter.string(fromByteCount: storage.mediaBytes), icon: "internaldrive")
                     }
 
+                    Button {
+                        Haptics.light()
+                        app.showPlans = true
+                    } label: {
+                        HStack(spacing: 14) {
+                            ArtIcon(symbol: "crown.fill", palette: .gold, size: 48)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("SCYDE Pro")
+                                    .font(.display(19, bold: true))
+                                    .foregroundColor(SX.C.ink)
+                                Text("4K export, pro effects, cloud backup. Free during the beta.")
+                                    .font(.ui(12.5))
+                                    .foregroundColor(SX.C.body)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
+                            Text("Plans")
+                                .font(.ui(13, .semibold, fixed: true))
+                                .foregroundColor(SX.C.onAccent)
+                                .padding(.horizontal, 14)
+                                .frame(height: 32)
+                                .background(Capsule().fill(SX.accentGradient))
+                        }
+                        .padding(14)
+                        .sxCard(radius: SX.R.l)
+                    }
+                    .buttonStyle(PressableStyle(scale: 0.98))
+
                     VStack(spacing: 0) {
                         MeRow(icon: "folder", title: "Projects") { app.tab = .projects }
                         Divider().overlay(SX.C.line).padding(.leading, 52)

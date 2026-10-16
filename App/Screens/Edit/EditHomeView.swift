@@ -20,18 +20,21 @@ struct EditHomeView: View {
     }
 
     private let tools: [Tool] = [
-        Tool(id: "captions", icon: "captions.bubble", title: "Auto captions", action: .editorTool("Captions")),
-        Tool(id: "cutout", icon: "person.crop.rectangle", title: "Remove background", action: .photo(3)),
+        Tool(id: "captions", icon: "captions.bubble.fill", title: "Auto captions", action: .editorTool("Captions")),
+        Tool(id: "cutout", icon: "person.crop.rectangle.fill", title: "Remove background", action: .photo(3)),
         Tool(id: "autocut", icon: "wand.and.stars", title: "AutoCut", action: .editorTool("AutoCut")),
         Tool(id: "enhance", icon: "sparkles", title: "Auto enhance", action: .photo(1)),
-        Tool(id: "voice", icon: "mic", title: "Voice-over", action: .editorTool("Audio")),
+        Tool(id: "voice", icon: "mic.fill", title: "Voice-over", action: .editorTool("Audio")),
         Tool(id: "speed", icon: "speedometer", title: "Speed", action: .editorTool("Speed")),
-        Tool(id: "cover", icon: "photo.on.rectangle.angled", title: "Cover maker", action: .editorTool("Cover")),
-        Tool(id: "collage", icon: "square.grid.2x2", title: "Collage", action: .collage),
-        Tool(id: "templates", icon: "rectangle.stack", title: "Templates", action: .templates),
-        Tool(id: "stock", icon: "play.square.stack", title: "Stock videos", action: .editorTool("Stock")),
-        Tool(id: "photo", icon: "photo", title: "Photo editor", action: .photo(0)),
-        Tool(id: "captions2", icon: "text.bubble", title: "Subtitles", action: .editorTool("Text")),
+        Tool(id: "cover", icon: "photo.fill.on.rectangle.fill", title: "Cover maker", action: .editorTool("Cover")),
+        Tool(id: "collage", icon: "square.grid.2x2.fill", title: "Collage", action: .collage),
+        Tool(id: "templates", icon: "rectangle.stack.fill", title: "Templates", action: .templates),
+        Tool(id: "stock", icon: "play.square.stack.fill", title: "Stock videos", action: .editorTool("Stock")),
+        Tool(id: "photo", icon: "photo.fill", title: "Photo editor", action: .photo(0)),
+        Tool(id: "subtitles", icon: "text.bubble.fill", title: "Subtitles", action: .editorTool("Text")),
+        Tool(id: "music", icon: "music.note", title: "Music", action: .editorTool("Audio")),
+        Tool(id: "effects", icon: "wand.and.rays", title: "Effects", action: .editorTool("Effects")),
+        Tool(id: "stickers", icon: "face.smiling.inverse", title: "Stickers", action: .editorTool("Stickers")),
     ]
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
@@ -92,6 +95,24 @@ struct EditHomeView: View {
                     (Text("scyde").foregroundColor(.white) + Text(".").foregroundColor(SX.C.gold))
                         .font(.display(26, bold: true, fixed: true))
                     Spacer()
+                    Button {
+                        Haptics.light()
+                        app.showPlans = true
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 12, weight: .bold))
+                            Text("Pro")
+                                .font(.ui(14, .semibold, fixed: true))
+                        }
+                        .foregroundColor(Color(UIColor(hex: 0x1B1530)))
+                        .padding(.horizontal, 12)
+                        .frame(height: 34)
+                        .background(Capsule().fill(LinearGradient(colors: [Color(UIColor(hex: 0xFFE7A0)), Color(UIColor(hex: 0xE9B84A))], startPoint: .top, endPoint: .bottom)))
+                        .shadow(color: SX.C.gold.opacity(0.5), radius: 10, y: 4)
+                    }
+                    .buttonStyle(PressableStyle())
+                    .padding(.trailing, 6)
                     Menu {
                         Picker("Appearance", selection: $app.appearance) {
                             ForEach(AppModel.Appearance.allCases) { option in
@@ -161,12 +182,7 @@ struct EditHomeView: View {
             }
         } label: {
             VStack(spacing: 10) {
-                Image(systemName: tool.icon)
-                    .font(.system(size: 22, weight: .regular))
-                    .foregroundColor(SX.C.ink)
-                    .frame(width: 58, height: 58)
-                    .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(SX.C.glass))
-                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(SX.C.line2, lineWidth: 1))
+                ArtIcon(symbol: tool.icon, palette: ArtPalette.forTool(tool.id), size: 58)
                 Text(tool.title.loc)
                     .font(.ui(13, .medium, fixed: true))
                     .foregroundColor(SX.C.body)

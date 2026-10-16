@@ -308,6 +308,96 @@ extension EditorViewModel {
         editClip(id, "Mask animation") { $0.maskEnd = mask }
     }
 
+    // MARK: Library media
+
+    func addPackTrack(_ track: MediaPack.Track) async {
+        busyMessage = "Downloading"
+        defer { busyMessage = nil }
+        guard let assetID = await MediaLibrary.shared.importToMedia(track.file) else {
+            showToast("Could not download that track")
+            return
+        }
+        let at = playhead
+        var newID: UUID?
+        perform("Add music") { p in
+            newID = p.addClip(Clip(kind: .audio, name: "\(track.title) · \(track.author)", assetID: assetID, sourceDuration: track.duration, duration: track.duration), role: .audio, at: at)
+            return true
+        }
+        selection = newID
+        Haptics.success()
+        showToast("Music: %@ (%@)".locf(track.author, track.license))
+    }
+
+    func addPackVideo(_ video: MediaPack.Video) async {
+        busyMessage = "Downloading"
+        defer { busyMessage = nil }
+        guard let clip = await MediaLibrary.shared.clip(for: video, duration: video.duration, aspect: project.aspect) else {
+            showToast("Could not download that clip")
+            return
+        }
+        var newID: UUID?
+        perform("Add library clip") { p in
+            newID = p.addClip(clip, role: .main)
+            return true
+        }
+        selection = newID
+        if let id = newID, let c = project.clip(id) { playhead = c.start }
+        Haptics.success()
+    }
+
+    func addSoundEffect(_ effect: SoundEffects.Effect) {
+        do {
+            let assetID = try SoundEffects.asset(effect)
+            let at = playhead
+            var newID: UUID?
+            perform("Add sound effect") { p in
+                newID = p.addClip(Clip(kind: .audio, name: effect.name, assetID: assetID, sourceDuration: effect.length, duration: effect.length), role: .audio, at: at)
+                return true
+            }
+            selection = newID
+            Haptics.light()
+        } catch {
+            showToast(error.localizedDescription)
+        }
+    }
+
+    // MARK: Thumbnails
+
+    /// A small frame to render live tool previews on: the clip under the playhead, or a sample.
+    func frameForThumbnails() async -> UIImage {
+        var target = selectedClip
+        if target == nil || target?.assetID == nil || !(target?.kind == .video || target?.kind == .photo) {
+            target = project.clip(at: playhead, role: .main) ?? project.tracks.first(where: { $0.role == .main })?.clips.first
+        }
+        if let c = target, let assetID = c.assetID, c.kind == .video || c.kind == .photo {
+            let t = c.sourceTime(at: min(max(playhead, c.start), c.end))
+            if let img = await ThumbnailCache.shared.image(assetID: assetID, kind: c.kind, at: t) { return img }
+        }
+        return Self.sampleFrame
+    }
+
+    static let sampleFrame: UIImage = {
+        let size = CGSize(width: 160, height: 200)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            let colors = [UIColor(hex: 0x5A49E6).cgColor, UIColor(hex: 0xFFD76A).cgColor] as CFArray
+            if let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) {
+                ctx.cgContext.drawLinearGradient(g, start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
+            }
+            UIColor(white: 1, alpha: 0.9).setFill()
+            ctx.cgContext.fillEllipse(in: CGRect(x: 50, y: 70, width: 60, height: 60))
+            UIColor(hex: 0x1B1530, alpha: 0.6).setFill()
+            ctx.cgContext.fill(CGRect(x: 0, y: 150, width: size.width, height: 50))
+        }
+    }()
+
+    // MARK: Clip animation
+
+    func setMotion(_ id: UUID, _ motion: ClipAnimation?) {
+        editClip(id, "Animation") { $0.motion = (motion?.isNone ?? true) ? nil : motion }
+    }
+
     // MARK: Text to speech
 
     func readAloud(_ text: String, language: String, rate: Double, pitch: Double) async {

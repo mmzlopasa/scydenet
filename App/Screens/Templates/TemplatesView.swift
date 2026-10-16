@@ -51,8 +51,8 @@ struct TemplatesView: View {
                                 withAnimation(SX.spring) { category = c }
                             } label: {
                                 HStack(spacing: 6) {
-                                    Image(systemName: c.icon)
-                                        .font(.system(size: 12, weight: .semibold))
+                                    Text(c.emoji)
+                                        .font(.system(size: 14))
                                     Text(c.title.loc)
                                         .font(.ui(14, .medium, fixed: true))
                                 }
@@ -121,7 +121,7 @@ private struct TemplateCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: SX.R.l, style: .continuous))
                     .overlay(alignment: .topLeading) {
                         HStack(spacing: 4) {
-                            Image(systemName: template.category.icon)
+                            Text(template.category.emoji)
                             Text(template.category.title.loc)
                         }
                         .font(.mono(9.5, medium: true))
@@ -173,7 +173,7 @@ private struct TemplateSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack {
                         HStack(spacing: 6) {
-                            Image(systemName: template.category.icon)
+                            Text(template.category.emoji)
                             Text(template.category.title.loc)
                         }
                         .font(.mono(11, medium: true))
@@ -217,10 +217,43 @@ private struct TemplateSheet: View {
                     }
                     .buttonStyle(PrimaryButtonStyle())
                     .disabled(building)
+                    Button {
+                        building = true
+                        Task {
+                            let ok = await app.createFromTemplateWithSamples(template)
+                            building = false
+                            if ok { dismiss() } else { app.showToast("Sample clips need an internet connection") }
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "play.rectangle.on.rectangle")
+                            Text("Try it with sample clips")
+                        }
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .disabled(building)
                     Text("Clips fill the slots in the order you pick them. Videos are trimmed to each slot; you can change everything in the editor.")
                         .font(.ui(12.5))
                         .foregroundColor(SX.C.muted)
                         .fixedSize(horizontal: false, vertical: true)
+                    let credits = MediaLibrary.shared.videos(for: template.category.rawValue)
+                    if !credits.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Preview footage".loc.uppercased())
+                                .font(.mono(9.5, medium: true))
+                                .tracking(1.2)
+                                .foregroundColor(SX.C.muted)
+                            ForEach(credits) { v in
+                                Text("\(v.title) · \(v.author) · \(v.license)")
+                                    .font(.ui(11))
+                                    .foregroundColor(SX.C.muted)
+                                    .lineLimit(1)
+                            }
+                            Text("Wikimedia Commons")
+                                .font(.ui(11))
+                                .foregroundColor(SX.C.muted)
+                        }
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)

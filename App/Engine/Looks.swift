@@ -121,6 +121,20 @@ enum Looks {
                 "inputPoint4": CIVector(x: 1, y: CGFloat(1 + min(0, hi) * 0.1)),
             ])
         }
+        if let v = a.vibrance, abs(v) > 0.005 {
+            out = out.applyingFilter("CIVibrance", parameters: ["inputAmount": v])
+        }
+        if let h = a.hue, abs(h) > 0.5 {
+            out = out.applyingFilter("CIHueAdjust", parameters: [kCIInputAngleKey: h * .pi / 180])
+        }
+        if let sm = a.smooth, sm > 0.005 {
+            // Soft-light blend of a blurred copy: evens out skin and noise, keeps edges readable.
+            let r = max(out.extent.width, out.extent.height)
+            let sigma = (r.isFinite ? Double(r) : 1000) * 0.004 * sm
+            let soft = out.clampedToExtent().applyingGaussianBlur(sigma: sigma).cropped(to: image.extent)
+                .applyingFilter("CINoiseReduction", parameters: ["inputNoiseLevel": 0.04 * sm, kCIInputSharpnessKey: 0.3])
+            out = SXCompositor.opacity(soft, min(0.85, 0.35 + sm * 0.5)).composited(over: out)
+        }
         if let t = a.tint, abs(t) > 0.005 {
             out = matrix(out, r: 1 + CGFloat(t) * 0.06, g: 1 - CGFloat(t) * 0.1, b: 1 + CGFloat(t) * 0.06, bias: (0, 0, 0))
         }

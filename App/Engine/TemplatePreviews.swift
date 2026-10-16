@@ -10,6 +10,8 @@ actor TemplatePreviews {
     static let shared = TemplatePreviews()
 
     private var inFlight: [String: Task<URL?, Never>] = [:]
+    /// Real-footage renders run one at a time so scrolling the grid never floods the GPU.
+    private var queue: Task<Void, Never>?
 
     private static var directory: URL {
         let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -20,16 +22,32 @@ actor TemplatePreviews {
         return dir
     }
 
+    static func realURL(for t: ProjectTemplate) -> URL {
+        directory.appendingPathComponent("\(t.id)-real-v1.mp4")
+    }
+
     static func cachedURL(for t: ProjectTemplate) -> URL? {
+        let real = realURL(for: t)
+        if FileManager.default.fileExists(atPath: real.path) { return real }
         let url = directory.appendingPathComponent("\(t.id)-v3.mp4")
         return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
 
+    static func hasReal(_ t: ProjectTemplate) -> Bool {
+        FileManager.default.fileExists(atPath: realURL(for: t).path)
+    }
+
+    /// The best preview available: real footage when the media pack is reachable, otherwise artwork.
     func video(for t: ProjectTemplate) async -> URL? {
-        if let cached = Self.cachedURL(for: t) { return cached }
+        if Self.hasReal(t) { return Self.realURL(for: t) }
         if let task = inFlight[t.id] { return await task.value }
-        let url = Self.directory.appendingPathComponent("\(t.id)-v3.mp4")
+        let previous = queue
+        let realURL = Self.realURL(for: t)
         let task = Task.detached(priority: .utility) { () -> URL? in
+            await previous?.value
+            if await Self.renderReal(t, to: realURL) { return realURL }
+            if let cached = Self.cachedURL(for: t) { return cached }
+            let url = Self.directory.appendingPathComponent("\(t.id)-v3.mp4")
             do {
                 try await Self.render(t, to: url)
                 return url
@@ -38,10 +56,58 @@ actor TemplatePreviews {
                 return nil
             }
         }
+        queue = Task { _ = await task.value }
         inFlight[t.id] = task
         let result = await task.value
         inFlight[t.id] = nil
         return result
+    }
+
+    // MARK: Real footage
+
+    /// Renders the template exactly as the editor would, with SCYDE's sample clips for its category.
+    @MainActor
+    static func renderReal(_ t: ProjectTemplate, to url: URL) async -> Bool {
+        let library = MediaLibrary.shared
+        await library.load()
+        let videos = library.videos(for: t.category.rawValue)
+        guard !videos.isEmpty else { return false }
+        let factor = min(1, 6.5 / max(t.totalDuration, 0.1))
+        let short = ProjectTemplate(
+            id: t.id, name: t.name, summary: t.summary, category: t.category, aspect: t.aspect,
+            slots: t.slots.map { max(0.5, $0 * factor) }, colors: t.colors, transition: t.transition,
+            filter: t.filter, title: t.title, kenBurns: t.kenBurns
+        )
+        var clips: [Clip] = []
+        for (i, slot) in short.slots.enumerated() {
+            let v = videos[(i + t.id.unicodeScalars.reduce(0) { $0 + Int($1.value) } % 3) % videos.count]
+            guard let c = await library.clip(for: v, duration: slot, aspect: t.aspect) else { return false }
+            clips.append(c)
+        }
+        let project = AppModel.templateProject(short, clips: clips)
+        let size = size(for: t.aspect)
+        let builder = CompositionBuilder()
+        guard let built = await builder.build(project, renderSize: size, fps: 24),
+              let session = AVAssetExportSession(asset: built.composition, presetName: AVAssetExportPresetMediumQuality) else { return false }
+        try? FileManager.default.removeItem(at: url)
+        let tmp = url.deletingLastPathComponent().appendingPathComponent(UUID().uuidString + ".mp4")
+        session.outputURL = tmp
+        session.outputFileType = .mp4
+        session.videoComposition = built.videoComposition
+        session.shouldOptimizeForNetworkUse = true
+        await withCheckedContinuation { (c: CheckedContinuation<Void, Never>) in
+            session.exportAsynchronously { c.resume() }
+        }
+        guard session.status == .completed else {
+            try? FileManager.default.removeItem(at: tmp)
+            return false
+        }
+        do {
+            try FileManager.default.moveItem(at: tmp, to: url)
+            return true
+        } catch {
+            return false
+        }
     }
 
     // MARK: Artwork
@@ -306,7 +372,7 @@ struct TemplatePreviewView: View {
         }
         .clipped()
         .task(id: template.id) {
-            if poster == nil { poster = TemplatePreviews.poster(template) }
+            if poster == nil && !TemplatePreviews.hasReal(template) { poster = TemplatePreviews.poster(template) }
             let rendered = await TemplatePreviews.shared.video(for: template)
             withAnimation(.easeOut(duration: 0.25)) { url = rendered }
         }

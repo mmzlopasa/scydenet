@@ -50,6 +50,12 @@ public struct Adjustments: Codable, Equatable, Sendable {
     public var fade: Double?
     /// 0...1 film grain.
     public var grain: Double?
+    /// -1...1 boosts muted colours more than saturated ones.
+    public var vibrance: Double?
+    /// Degrees of hue rotation, -180...180.
+    public var hue: Double?
+    /// 0...1 skin and noise smoothing.
+    public var smooth: Double?
     /// -1...1 midtone contrast.
     public var clarity: Double?
 
@@ -72,6 +78,9 @@ public struct Adjustments: Codable, Equatable, Sendable {
         a.fade = z(fade)
         a.grain = z(grain)
         a.clarity = z(clarity)
+        a.vibrance = z(vibrance)
+        a.hue = z(hue)
+        a.smooth = z(smooth)
         return a
     }
 
@@ -224,6 +233,8 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
     public var stabilization: Stabilization?
     /// Mask at the end of the clip; the mask animates from `mask` to this.
     public var maskEnd: ClipMask?
+    /// Entrance, exit and loop motion for visual clips.
+    public var motion: ClipAnimation?
 
     public var end: Double { start + duration }
 

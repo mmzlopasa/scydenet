@@ -343,7 +343,7 @@ struct AnimateSheet: View {
     @State private var style = TextStyle.sticker
 
     var body: some View {
-        ToolSheetScaffold(title: "Animate", subtitle: "Entrance, exit and loop.", onClose: { dismiss() }) {
+        ToolSheetScaffold(title: "Animation", subtitle: "Entrance, exit and loop.", onClose: { dismiss() }) {
             if model.selectedIsGraphic {
                 if model.selectedIsSticker {
                     SXSlider(title: "Size", value: $style.size, range: 0.8...8, format: "%.0f%%", scale: 100 / 3, onCommit: commit)
@@ -360,21 +360,62 @@ struct AnimateSheet: View {
                     }
                 }
                 AnimationPanel(style: $style, onCommit: commit)
+            } else if model.selectedIsVisual {
+                SubLabel(text: "Presets")
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Self.combos.indices, id: \.self) { i in
+                            WordChip(title: Self.combos[i].0, selected: false) {
+                                let c = Self.combos[i].1
+                                style.animIn = c.animIn
+                                style.animOut = c.animOut
+                                style.loop = c.loop
+                                style.animDuration = c.duration
+                                commit()
+                            }
+                            .frame(width: 104)
+                        }
+                    }
+                }
+                AnimationPanel(style: $style, onCommit: commit)
             } else {
-                Text("Select a text or sticker first.")
+                Text("Select a clip, text or sticker first.")
                     .font(.ui(14))
                     .foregroundColor(SX.C.muted)
             }
         }
         .onAppear {
             let c = model.selectedClip
-            style = c?.textStyle ?? (c?.kind == .sticker ? .sticker : .caption)
+            if let c = c, c.kind == .video || c.kind == .photo {
+                let m = c.motion ?? ClipAnimation()
+                style = TextStyle(animIn: m.animIn, animOut: m.animOut, loop: m.loop, animDuration: m.duration)
+            } else {
+                style = c?.textStyle ?? (c?.kind == .sticker ? .sticker : .caption)
+            }
         }
     }
 
+    /// Ready-made clip motion combinations.
+    static let combos: [(String, ClipAnimation)] = [
+        ("Zoom in", ClipAnimation(animIn: .zoom, duration: 0.5)),
+        ("Pop", ClipAnimation(animIn: .pop, duration: 0.45)),
+        ("Swing", ClipAnimation(animIn: .swing, animOut: .fade, duration: 0.6)),
+        ("Slide", ClipAnimation(animIn: .slideLeft, animOut: .slideLeft, duration: 0.45)),
+        ("Spin", ClipAnimation(animIn: .spin, duration: 0.6)),
+        ("Blur in", ClipAnimation(animIn: .blur, animOut: .blur, duration: 0.5)),
+        ("Bounce", ClipAnimation(animIn: .bounce, duration: 0.7)),
+        ("Shake", ClipAnimation(loop: .shake)),
+        ("Pulse", ClipAnimation(loop: .pulse)),
+        ("Jelly", ClipAnimation(loop: .jelly)),
+    ]
+
     private func commit() {
-        guard let id = model.selection else { return }
-        model.setTextStyle(id, style)
+        guard let id = model.selection, let c = model.selectedClip else { return }
+        if c.kind == .video || c.kind == .photo {
+            model.setMotion(id, ClipAnimation(animIn: style.animIn, animOut: style.animOut, loop: style.loop, duration: style.animDuration))
+        } else {
+            model.setTextStyle(id, style)
+        }
     }
 }
 
