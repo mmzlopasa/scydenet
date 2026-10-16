@@ -211,20 +211,21 @@ enum Effects {
     }
 
     static func rgbSplit(_ image: CIImage, dx: CGFloat) -> CIImage {
-        // Only the green copy carries alpha, so adding the three never pushes alpha above 1.
+        // Each copy keeps one colour channel and the original alpha; the per-component
+        // maximum of the three puts the colour back together without overflowing alpha.
         func channel(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> CIImage {
             image.sx("CIColorMatrix", [
                 "inputRVector": CIVector(x: r, y: 0, z: 0, w: 0),
                 "inputGVector": CIVector(x: 0, y: g, z: 0, w: 0),
                 "inputBVector": CIVector(x: 0, y: 0, z: b, w: 0),
-                "inputAVector": CIVector(x: 0, y: 0, z: 0, w: g),
+                "inputAVector": CIVector(x: 0, y: 0, z: 0, w: 1),
             ])
         }
         let red = channel(1, 0, 0).transformed(by: CGAffineTransform(translationX: dx, y: 0))
         let green = channel(0, 1, 0)
         let blue = channel(0, 0, 1).transformed(by: CGAffineTransform(translationX: -dx, y: 0))
-        let rg = red.sx("CIAdditionCompositing", [kCIInputBackgroundImageKey: green])
-        return blue.sx("CIAdditionCompositing", [kCIInputBackgroundImageKey: rg]).sx("CIColorClamp").cropped(to: image.extent)
+        let rg = red.sx("CIMaximumCompositing", [kCIInputBackgroundImageKey: green])
+        return blue.sx("CIMaximumCompositing", [kCIInputBackgroundImageKey: rg]).cropped(to: image.extent)
     }
 
     static func scanlines(_ image: CIImage, canvas: CGRect, opacity: CGFloat, spacing: CGFloat) -> CIImage {
