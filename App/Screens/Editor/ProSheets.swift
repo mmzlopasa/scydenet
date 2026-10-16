@@ -234,7 +234,7 @@ struct CropSheet: View {
 struct BlendSheet: View {
     @ObservedObject var model: EditorViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var mode: BlendMode = .normal
+    @State private var mode: LayerBlend = .normal
     @State private var opacity = 1.0
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
 
@@ -247,7 +247,7 @@ struct BlendSheet: View {
                 if model.selectedIsOverlay {
                     SubLabel(text: "Mode")
                     LazyVGrid(columns: columns, spacing: 8) {
-                        ForEach(BlendMode.allCases, id: \.self) { m in
+                        ForEach(LayerBlend.allCases, id: \.self) { m in
                             WordChip(title: Blends.title(m), selected: mode == m) {
                                 mode = m
                                 model.setBlend(id, m)

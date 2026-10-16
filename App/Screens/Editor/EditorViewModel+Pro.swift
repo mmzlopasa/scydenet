@@ -110,7 +110,7 @@ extension EditorViewModel {
         Haptics.light()
     }
 
-    func setBlend(_ id: UUID, _ mode: BlendMode) {
+    func setBlend(_ id: UUID, _ mode: LayerBlend) {
         editClip(id, "Blend") { $0.blend = mode == .normal ? nil : mode }
     }
 

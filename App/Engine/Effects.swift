@@ -413,7 +413,7 @@ enum Masks {
 
 /// Blend modes for overlay clips.
 enum Blends {
-    static func filterName(_ mode: BlendMode) -> String? {
+    static func filterName(_ mode: LayerBlend) -> String? {
         switch mode {
         case .normal: return nil
         case .multiply: return "CIMultiplyBlendMode"
@@ -434,7 +434,7 @@ enum Blends {
         }
     }
 
-    static func title(_ mode: BlendMode) -> String {
+    static func title(_ mode: LayerBlend) -> String {
         switch mode {
         case .normal: return "Normal"
         case .multiply: return "Multiply"
@@ -455,7 +455,7 @@ enum Blends {
         }
     }
 
-    static func apply(_ top: CIImage, over base: CIImage, _ mode: BlendMode) -> CIImage {
+    static func apply(_ top: CIImage, over base: CIImage, _ mode: LayerBlend) -> CIImage {
         guard let name = filterName(mode) else { return top.composited(over: base) }
         // Blend only where the overlay is, keep the base elsewhere.
         let blended = top.sx(name, [kCIInputBackgroundImageKey: base]).cropped(to: top.extent.intersection(base.extent))

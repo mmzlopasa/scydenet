@@ -216,7 +216,7 @@ public struct CropRect: Codable, Equatable, Sendable {
 
 // MARK: - Blend
 
-public enum BlendMode: String, Codable, CaseIterable, Sendable {
+public enum LayerBlend: String, Codable, CaseIterable, Sendable {
     case normal, multiply, screen, overlay, softLight, hardLight, darken, lighten
     case colorDodge, colorBurn, difference, exclusion, add, hue, color, luminosity
 }

@@ -214,7 +214,7 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
     /// Quarter turns clockwise applied to the source (0...3).
     public var quarterTurns: Int?
     /// How an overlay clip mixes with what is under it.
-    public var blend: BlendMode?
+    public var blend: LayerBlend?
     /// True when the media file holds the reversed source.
     public var reversed: Bool?
 
