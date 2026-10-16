@@ -7,8 +7,10 @@
   - Phase 3: CompositionBuilder + SXCompositor (Core Image) + AVPlayer preview with chase-seek; filmstrip thumbnails. Note: source AVURLAssets must stay alive or inserts fail with -11800; photos and empty tails use a generated blank clip.
   - Phase 5: export via AVAssetExportSession with the shared compositor, progress, cancel, save to Photos, share.
   - Tools: speed, text/captions layer, filters + adjust + auto enhance, Vision background removal, on-device auto captions, AutoCut (silence removal), music from Files, voice-over recording, voice effects, cover maker, built-in templates, photo editor, collage.
+  - Phases 7-11: transform + eased keyframes with drag/pinch/rotate on the preview (LiveTransforms, no rebuild while dragging), overlay track import, six single-source transitions at cuts (fade, flash, zoom, blur, slide, spin), volume up to 200% with fade in/out ramps, real waveforms, chroma key (colour cube), SRT import/export. Core type is `ClipTransition` (SwiftUI already has `Transition`).
+  - Phase 13 (part): Croatian localisation (hr.lproj Localizable + InfoPlist strings, `.loc` / `.locf` helpers); CI captures screenshots in Croatian.
 - NOT verified on a real device yet: gestures, microphone, speech recognition, Photos saving, export speed.
-- NEXT: keyframes/PiP transforms and transitions (Phases 7-8), real waveforms and beat markers (Phase 9), masks/chroma key (Phase 10), SRT import/export (Phase 11), HR localisation (Phase 13).
+- NEXT: beat markers, masks (shape/linear), text styles and animations, stickers, cross-dissolve (needs A/B tracks), onboarding, performance pass on older iPhones.
 
 ## Scope and honesty
 - Target: every core feature of a CapCut-class editor, implemented natively. Not copied: CapCut name, logo, UI art, effect/template/music libraries (ByteDance IP and cloud services). We ship our own assets and let users import theirs.
