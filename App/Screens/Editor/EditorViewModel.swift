@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import PhotosUI
 import QuartzCore
 import SwiftUI
@@ -45,6 +46,9 @@ final class EditorViewModel: ObservableObject {
     private var pendingSeek: Double?
     private var playerDrivesPlayhead = false
     private var autoplayPending = false
+    private var statusCancellable: AnyCancellable?
+    @Published private(set) var diagnostics = ""
+    private var buildInfo = ""
     private var dirty = false
     private var lastSnapped = false
 
@@ -68,7 +72,10 @@ final class EditorViewModel: ObservableObject {
             selection = main.clips[i].id
         }
         updateFallbackPreview()
-        if Launch.autoplay { autoplayPending = true }
+        if Launch.autoplay {
+            if hasPlayer { togglePlay() } else { autoplayPending = true }
+        }
+        if Launch.isAutomation { startDiagnostics() }
         if Launch.screen == "export" {
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 900_000_000)
@@ -418,13 +425,25 @@ final class EditorViewModel: ObservableObject {
             stopPlayback()
             player.replaceCurrentItem(with: nil)
             hasPlayer = false
+            buildInfo = "build: nil (media clips \(project.clipCount))"
             return
         }
+        buildInfo = "build: \(String(format: "%.2f", built.duration))s · instr \(built.videoComposition.instructions.count) · tracks \(built.composition.tracks.count)"
         let wasPlaying = isPlaying
         let item = AVPlayerItem(asset: built.composition)
         item.videoComposition = built.videoComposition
         item.audioMix = built.audioMix
         player.replaceCurrentItem(with: item)
+        statusCancellable = item.publisher(for: \.status)
+            .receive(on: RunLoop.main)
+            .sink { [weak self, weak item] status in
+                guard let self = self else { return }
+                switch status {
+                case .readyToPlay: self.buildInfo += " · ready"
+                case .failed: self.buildInfo += " · FAILED \(item?.error?.localizedDescription ?? "?") \(String(describing: (item?.error as NSError?)?.userInfo[NSUnderlyingErrorKey] ?? ""))"
+                default: break
+                }
+            }
         hasPlayer = true
         isSeeking = false
         pendingSeek = playhead
@@ -434,6 +453,20 @@ final class EditorViewModel: ObservableObject {
         } else if autoplayPending {
             autoplayPending = false
             togglePlay()
+        }
+    }
+
+    // MARK: CI diagnostics (automation only)
+
+    private func startDiagnostics() {
+        Task { [weak self] in
+            while !Task.isCancelled {
+                guard let self = self else { return }
+                let item = self.player.currentItem
+                let err = item?.error.map { " · item error \($0.localizedDescription)" } ?? ""
+                self.diagnostics = "\(self.buildInfo)\nplayer \(self.hasPlayer ? "yes" : "no") · status \(item?.status.rawValue ?? -1)\(err)\n\(CompositorStats.shared.summary)"
+                try? await Task.sleep(nanoseconds: 500_000_000)
+            }
         }
     }
 

@@ -48,6 +48,28 @@ final class SXInstruction: NSObject, AVVideoCompositionInstructionProtocol, @unc
     }
 }
 
+/// Counters shown in the CI diagnostics overlay.
+final class CompositorStats: @unchecked Sendable {
+    static let shared = CompositorStats()
+    private let lock = NSLock()
+    private var frames = 0
+    private var missing = 0
+    private var lastError = ""
+
+    func frame(missingSources: Int) {
+        lock.lock(); frames += 1; missing += missingSources; lock.unlock()
+    }
+
+    func error(_ text: String) {
+        lock.lock(); lastError = text; lock.unlock()
+    }
+
+    var summary: String {
+        lock.lock(); defer { lock.unlock() }
+        return "frames \(frames) · missing \(missing)" + (lastError.isEmpty ? "" : " · \(lastError)")
+    }
+}
+
 final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
     private let queue = DispatchQueue(label: "dev.scyde.compositor", qos: .userInteractive)
     private let context = CIContext(options: [.cacheIntermediates: false])
@@ -109,6 +131,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
             return
         }
         guard let output = request.renderContext.newPixelBuffer() else {
+            CompositorStats.shared.error("no output buffer")
             request.finish(with: NSError(domain: "dev.scyde.compositor", code: 1))
             return
         }
@@ -116,9 +139,13 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         let canvas = CGRect(origin: .zero, size: size)
         var image = CIImage(color: CIColor(red: 0, green: 0, blue: 0)).cropped(to: canvas)
 
+        var missing = 0
         if let instruction = request.videoCompositionInstruction as? SXInstruction {
             for layer in instruction.layers {
-                guard let source = sourceImage(for: layer, request: request) else { continue }
+                guard let source = sourceImage(for: layer, request: request) else {
+                    missing += 1
+                    continue
+                }
                 if layer.isMain {
                     let fill = Self.place(source, in: canvas, fill: true)
                         .clampedToExtent()
@@ -137,7 +164,10 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     image = Self.place(source, in: rect, fill: false).composited(over: image)
                 }
             }
+        } else {
+            CompositorStats.shared.error("unexpected instruction type")
         }
+        CompositorStats.shared.frame(missingSources: missing)
 
         context.render(image, to: output, bounds: canvas, colorSpace: colorSpace)
         request.finish(withComposedVideoFrame: output)

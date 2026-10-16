@@ -139,6 +139,15 @@ private struct PreviewCanvas: View {
                 }
             }
             .frame(width: w, height: h)
+            .overlay(alignment: .topLeading) {
+                if Launch.isAutomation && !model.diagnostics.isEmpty {
+                    Text(model.diagnostics)
+                        .font(.mono(9))
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.7))
+                }
+            }
             .clipShape(shape)
             .overlay(shape.strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
             .shadow(color: Color.black.opacity(0.45), radius: 30, x: 0, y: 18)
