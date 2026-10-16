@@ -33,6 +33,8 @@ struct EditHomeView: View {
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
 
+    @State private var topInset: CGFloat = 54
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
@@ -67,7 +69,13 @@ struct EditHomeView: View {
             }
             .padding(.bottom, 20)
         }
+        .ignoresSafeArea(edges: .top)
         .background(SX.C.bg.ignoresSafeArea())
+        .background(
+            GeometryReader { geo in
+                Color.clear.onAppear { topInset = max(geo.safeAreaInsets.top, 20) }
+            }
+        )
     }
 
     // MARK: Hero
@@ -75,7 +83,7 @@ struct EditHomeView: View {
     private var hero: some View {
         ZStack(alignment: .topLeading) {
             HeroBackdrop()
-                .frame(height: 460)
+                .frame(height: 460 + topInset)
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     (Text("scyde").foregroundColor(.white) + Text(".").foregroundColor(SX.C.gold))
@@ -132,7 +140,7 @@ struct EditHomeView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 8)
+            .padding(.top, topInset + 8)
         }
     }
 

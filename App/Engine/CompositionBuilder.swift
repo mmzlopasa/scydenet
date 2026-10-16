@@ -19,6 +19,8 @@ final class CompositionBuilder {
     }
 
     private struct Source {
+        /// Kept alive on purpose: a track whose asset is released fails to insert (-11800).
+        let asset: AVURLAsset
         let video: AVAssetTrack?
         let audio: AVAssetTrack?
         let duration: CMTime
@@ -78,6 +80,10 @@ final class CompositionBuilder {
 
                 if clip.kind == .photo {
                     placed.append(PlacedLayer(range: range, layer: Self.layer(.photo(assetID: assetID), clip: clip, isMain: role == .main)))
+                    if role == .main {
+                        Self.pad(vTrack, to: at)
+                        await fill(vTrack, at: at, length: length)
+                    }
                     continue
                 }
 
@@ -132,9 +138,12 @@ final class CompositionBuilder {
             }
         }
 
-        // Keep the main video track as long as the edit so trailing photos still render.
+        // Keep the main video track as long as the edit (text or overlays past the last clip).
         let total = Self.ct(project.duration)
-        Self.pad(mainV, to: total)
+        let mainEnd = mainV.timeRange.isValid ? mainV.timeRange.end : .zero
+        if total > mainEnd {
+            await fill(mainV, at: mainEnd, length: CMTimeSubtract(total, mainEnd))
+        }
 
         for track in [overV, mainA, overA, musicA] where track.segments.isEmpty {
             composition.removeTrack(track)
@@ -161,6 +170,34 @@ final class CompositionBuilder {
     }
 
     // MARK: Helpers
+
+    private var blank: Source?
+
+    /// Inserts a stretch of the generated blank video so the track has real media there.
+    private func fill(_ track: AVMutableCompositionTrack, at: CMTime, length: CMTime) async {
+        guard length > .zero else { return }
+        if blank == nil, let url = await BlankVideo.url() {
+            let asset = AVURLAsset(url: url)
+            if let v = try? await asset.loadTracks(withMediaType: .video).first,
+               let d = try? await asset.load(.duration) {
+                blank = Source(asset: asset, video: v, audio: nil, duration: d, orientation: CGImagePropertyOrientation.up.rawValue)
+            }
+        }
+        guard let b = blank, let v = b.video else {
+            notes.append("blank video unavailable")
+            Self.pad(track, to: CMTimeAdd(at, length))
+            return
+        }
+        let piece = CMTimeMinimum(b.duration, length)
+        do {
+            try track.insertTimeRange(CMTimeRange(start: .zero, duration: piece), of: v, at: at)
+            if piece != length {
+                track.scaleTimeRange(CMTimeRange(start: at, duration: piece), toDuration: length)
+            }
+        } catch {
+            notes.append("blank insert failed \((error as NSError).code)")
+        }
+    }
 
     private static func layer(_ source: SXLayer.Source, clip: Clip, isMain: Bool) -> SXLayer {
         SXLayer(
@@ -255,7 +292,7 @@ final class CompositionBuilder {
                 let t = try await video.load(.preferredTransform)
                 orientation = Self.orientation(for: t).rawValue
             }
-            let s = Source(video: video, audio: audio, duration: duration, orientation: orientation)
+            let s = Source(asset: asset, video: video, audio: audio, duration: duration, orientation: orientation)
             sources[assetID] = s
             return s
         } catch {
