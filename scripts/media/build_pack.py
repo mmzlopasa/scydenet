@@ -24,7 +24,8 @@ BLOCK = re.compile(
     r"nude|naked|sex|porn|erotic|blood|corpse|dead|death|kill|war\b|weapon|gun|shoot|shot\b|execution|nazi|riot|"
     r"accident|crash|injur|surgery|autopsy|hunting|slaughter|police|sheriff|deputy|suspect|bodycam|arrest|chase|"
     r"fight|protest|attack|bomb|military|army|missile|fire department|funeral|prison|drug|smok|cigar|alcohol|beer|"
-    r"politic|president|election|campaign|religio|church service|sora|openai|ai generated|nasa animation|ntsb",
+    r"politic|president|election|campaign|religio|church service|sora|openai|ai generated|nasa animation|ntsb|"
+    r"scp|test\b|hell|zombie|horror|lion cub|reel-|setaf|interview|lecture|news|documentary|trailer",
     re.I,
 )
 # Stock-footage sources on Commons (their uploads are CC0 and look like stock).
@@ -53,6 +54,30 @@ VIDEO_QUERIES = {
     "intro": ["abstract light", "particles", "smoke", "bokeh"],
 }
 VIDEOS_PER_CATEGORY = 4
+
+# Extra search terms used only when building candidate sheets.
+EXTRA_QUERIES = {
+    "cars": ["vintage car", "car rally", "electric car", "race track"],
+    "travel": ["aerial view coast", "drone footage island", "eiffel tower", "venice canal"],
+    "vlog": ["street market", "tram city", "people walking park", "train station"],
+    "beat": ["laser show", "led lights", "fireworks night", "carnival"],
+    "cinematic": ["timelapse clouds", "aurora borealis", "milky way timelapse", "volcano"],
+    "retro": ["steam locomotive", "classic car", "jukebox", "typewriter"],
+    "minimal": ["water drops", "sand dunes", "snow falling", "calm lake"],
+    "slideshow": ["tulips", "cherry blossom", "butterfly", "sunflower"],
+    "birthday": ["fireworks display", "party", "celebration", "cake"],
+    "fitness": ["marathon", "swimming", "climbing", "skateboarding"],
+    "food": ["bakery", "barbecue", "sushi", "market vegetables"],
+    "fashion": ["runway", "textile", "sewing", "dress"],
+    "product": ["clock mechanism", "keyboard typing", "smartwatch", "lamp"],
+    "realEstate": ["villa", "kitchen interior", "skyscraper", "garden house"],
+    "sports": ["tennis", "cycling race", "sailing", "snowboard"],
+    "wedding": ["bride", "wedding dance", "bouquet", "wedding car"],
+    "pets": ["horse", "parrot", "rabbit", "dogs playing"],
+    "nature": ["mountain lake", "river", "wildflowers", "sea turtle"],
+    "night": ["city lights timelapse", "moon", "night bridge", "neon city"],
+    "intro": ["light leaks", "ink in water", "paint mixing", "glitter"],
+}
 
 MUSIC_QUERIES = {
     "Upbeat": ["Kevin MacLeod upbeat", "happy upbeat music"],
@@ -95,6 +120,7 @@ def search(query, kind, source=""):
         "gsrlimit": 40,
         "prop": "videoinfo",
         "viprop": "url|size|mime|mediatype|extmetadata|derivatives",
+        "viurlwidth": 320,
         "viextmetadatafilter": "LicenseShortName|Artist|ObjectName",
     })
     pages = (data.get("query") or {}).get("pages") or []
@@ -117,6 +143,8 @@ def search(query, kind, source=""):
             "author": clean((meta.get("Artist") or {}).get("value", "")) or "Unknown",
             "license": lic,
             "url": info.get("url"),
+            "thumb": info.get("thumburl"),
+            "page_title": title,
             "width": info.get("width") or 0,
             "height": info.get("height") or 0,
             "duration": float(info.get("duration") or 0),
@@ -211,13 +239,120 @@ def probe(path):
         return 0, 0, 0.0
 
 
+def candidates(out):
+    """Contact sheets of the best-looking search results per category, for human curation."""
+    os.makedirs(out, exist_ok=True)
+    listing = {}
+    font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    for cat, queries in VIDEO_QUERIES.items():
+        pool, seen = [], set()
+        for q in queries + EXTRA_QUERIES.get(cat, []):
+            for c in search(q, "video"):
+                if c["page"] in seen or (c["width"] < 1200 and c["height"] < 1200):
+                    continue
+                if c["duration"] and (c["duration"] < 4 or c["duration"] > 900):
+                    continue
+                seen.add(c["page"])
+                pool.append(c)
+        pool.sort(key=lambda c: (c["rank"], -max(c["width"], c["height"])))
+        pool = pool[:16]
+        listing[cat] = [c["page_title"] for c in pool]
+        frames = []
+        for i, c in enumerate(pool):
+            if not c.get("thumb"):
+                continue
+            jpg = os.path.join(out, f"{cat}-{i:02d}.jpg")
+            if fetch(c["thumb"], jpg):
+                lab = os.path.join(out, f"{cat}-{i:02d}-l.jpg")
+                ok = run(["ffmpeg", "-y", "-loglevel", "error", "-i", jpg, "-vf",
+                          "scale=320:180:force_original_aspect_ratio=increase,crop=320:180,"
+                          f"drawbox=x=0:y=0:w=46:h=34:color=black@0.7:t=fill,"
+                          f"drawtext=fontfile={font}:text='{i}':x=8:y=6:fontsize=24:fontcolor=white", lab])
+                if ok:
+                    frames.append(lab)
+        if frames:
+            args = ["ffmpeg", "-y", "-loglevel", "error"]
+            for f in frames:
+                args += ["-i", f]
+            n = len(frames)
+            pads = "".join(f"[{k}:v]" for k in range(n))
+            cols = 4
+            rows = (n + cols - 1) // cols
+            layout = "|".join(f"{(k % cols) * 320}_{(k // cols) * 180}" for k in range(n))
+            args += ["-filter_complex", f"{pads}xstack=inputs={n}:layout={layout}:fill=black", "-frames:v", "1",
+                     os.path.join(out, f"sheet-{cat}.jpg")] if n > 1 else ["-frames:v", "1", os.path.join(out, f"sheet-{cat}.jpg")]
+            run(args)
+            _ = rows
+        print(f"[{cat}] {len(frames)} candidates", flush=True)
+    with open(os.path.join(out, "candidates.json"), "w") as f:
+        json.dump(listing, f, ensure_ascii=False, indent=1)
+
+
+def curated_pool(cat, titles):
+    """Looks up curated file pages by title."""
+    out = []
+    for t in titles:
+        data = api({
+            "action": "query", "titles": t, "prop": "videoinfo",
+            "viprop": "url|size|mime|mediatype|extmetadata|derivatives",
+            "viextmetadatafilter": "LicenseShortName|Artist|ObjectName",
+        })
+        for p in (data.get("query") or {}).get("pages") or []:
+            info = (p.get("videoinfo") or [None])[0]
+            if not info:
+                continue
+            meta = info.get("extmetadata") or {}
+            lic = clean((meta.get("LicenseShortName") or {}).get("value", ""))
+            if not lic.lower().startswith(OK_LICENSES):
+                print("skipping (licence)", t, lic, flush=True)
+                continue
+            title = p.get("title", "")
+            out.append({
+                "title": clean((meta.get("ObjectName") or {}).get("value", "")) or title.replace("File:", ""),
+                "page": "https://commons.wikimedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_")),
+                "author": clean((meta.get("Artist") or {}).get("value", "")) or "Unknown",
+                "license": lic, "url": info.get("url"), "width": info.get("width") or 0,
+                "height": info.get("height") or 0, "duration": float(info.get("duration") or 0),
+                "size": info.get("size") or 0, "derivatives": info.get("derivatives") or [], "rank": 0,
+            })
+    return out
+
+
 def main():
+    if sys.argv[1] == "candidates":
+        candidates(sys.argv[2])
+        return
     out = sys.argv[1]
+    curated_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "curated.json")
+    curated = json.load(open(curated_path)) if os.path.exists(curated_path) else {}
     os.makedirs(out, exist_ok=True)
     manifest = {"version": 1, "built": time.strftime("%Y-%m-%d"), "videos": [], "music": []}
     used = set()
 
     for cat, queries in VIDEO_QUERIES.items():
+        if cat in curated:
+            picked = curated_pool(cat, curated[cat])
+            n = 0
+            for c in picked:
+                name = f"{cat}-{n + 1}.mp4"
+                path = os.path.join(out, name)
+                print(f"[{cat}] {c['title']} ({c['license']})", flush=True)
+                if not make_clip(c, path):
+                    continue
+                w, h, d = probe(path)
+                if d < 2 or w == 0:
+                    os.remove(path)
+                    continue
+                manifest["videos"].append({
+                    "id": name[:-4], "category": cat, "file": name, "width": w, "height": h,
+                    "duration": round(d, 2), "title": c["title"], "author": c["author"],
+                    "license": c["license"], "source": c["page"],
+                })
+                n += 1
+            print(f"[{cat}] {n} curated clips", flush=True)
+            continue
+        # Footage is only published after a person has reviewed the candidate sheets.
+        continue
         pool = []
         for q in queries:
             for src in SOURCES:

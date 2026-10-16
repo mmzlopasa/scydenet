@@ -27,10 +27,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install ffmpeg
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Candidate sheets for review
+        run: python3 scripts/media/build_pack.py candidates candidates 2>&1 | tee candidates.log
       - name: Build pack
         run: python3 scripts/media/build_pack.py pack 2>&1 | tee pack.log
       - name: Contact sheet
-        run: scripts/media/contact_sheet.sh pack review
+        run: ls pack/*.mp4 >/dev/null 2>&1 && scripts/media/contact_sheet.sh pack review || true
       - name: Publish release
         run: |
           ls -la pack | tail -n +1
@@ -45,6 +47,8 @@ jobs:
           cp pack.log out/ 2>/dev/null || true
           cp pack/manifest.json out/ 2>/dev/null || true
           cp review/sheet.jpg review/order.txt out/ 2>/dev/null || true
+          cp candidates.log out/ 2>/dev/null || true
+          mkdir -p out/candidates && cp candidates/sheet-*.jpg candidates/candidates.json out/candidates/ 2>/dev/null || true
           cd out
           git init -q
           git checkout -q -b media-results
