@@ -9,6 +9,8 @@
   - Tools: speed, text/captions layer, filters + adjust + auto enhance, Vision background removal, on-device auto captions, AutoCut (silence removal), music from Files, voice-over recording, voice effects, cover maker, built-in templates, photo editor, collage.
   - Phases 7-11: transform + eased keyframes with drag/pinch/rotate on the preview (LiveTransforms, no rebuild while dragging), overlay track import, six single-source transitions at cuts (fade, flash, zoom, blur, slide, spin), volume up to 200% with fade in/out ramps, real waveforms, chroma key (colour cube), SRT import/export. Core type is `ClipTransition` (SwiftUI already has `Transition`).
   - Phase 13 (part): Croatian localisation (hr.lproj Localizable + InfoPlist strings, `.loc` / `.locf` helpers); CI captures screenshots in Croatian.
+  - Template library: 120 own recipes (20 categories x 6) with on-device rendered looping previews (Engine/TemplatePreviews.swift); recipes apply transitions, look, Ken Burns and title. CapCut or other third-party templates are not used (copyright).
+  - Pexels stock videos with the user's free API key (Keychain), credited per clip.
 - NOT verified on a real device yet: gestures, microphone, speech recognition, Photos saving, export speed.
 - NEXT: beat markers, masks (shape/linear), text styles and animations, stickers, cross-dissolve (needs A/B tracks), onboarding, performance pass on older iPhones.
 
