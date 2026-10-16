@@ -3,6 +3,7 @@ import CoreImage
 import NaturalLanguage
 import Vision
 import UIKit
+import SCYDECore
 
 /// Writes a reversed copy of part of a video (no audio).
 enum VideoReverser {
