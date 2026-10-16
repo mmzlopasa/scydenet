@@ -42,7 +42,7 @@ final class CompositionBuilder {
         CMTime(seconds: max(0, seconds), preferredTimescale: 600)
     }
 
-    func build(_ project: Project, renderSize: CGSize) async -> Output? {
+    func build(_ project: Project, renderSize: CGSize, fps: Int? = nil) async -> Output? {
         let composition = AVMutableComposition()
         guard
             let mainV = composition.addMutableTrack(withMediaType: .video, preferredTrackID: Self.mainVideoID),
@@ -119,7 +119,7 @@ final class CompositionBuilder {
         let videoComposition = AVMutableVideoComposition()
         videoComposition.customVideoCompositorClass = SXCompositor.self
         videoComposition.renderSize = renderSize
-        videoComposition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(max(project.fps, 1)))
+        videoComposition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(max(fps ?? project.fps, 1)))
         videoComposition.instructions = Self.instructions(for: placed, duration: duration)
 
         let mix = AVMutableAudioMix()

@@ -33,9 +33,14 @@ shot() {
   xcrun simctl io "$UDID" screenshot "$OUT/$name.png" || echo "screenshot failed: $name"
 }
 
-shot home-dark   -scydeDemo YES -scydeTheme dark  -scydeScreen home
-shot home-light  -scydeDemo YES -scydeTheme light -scydeScreen home
-shot home-empty-dark -scydeTheme dark -scydeScreen home
+shot tab-edit-dark       -scydeDemo YES -scydeTheme dark  -scydeTab edit
+shot tab-edit-light      -scydeDemo YES -scydeTheme light -scydeTab edit
+shot tab-templates-dark  -scydeTheme dark  -scydeTab templates
+shot tab-ai-light        -scydeTheme light -scydeTab ai
+shot tab-projects-dark   -scydeDemo YES -scydeTheme dark  -scydeTab projects
+shot tab-projects-empty  -scydeTheme light -scydeTab projects
+shot tab-me-dark         -scydeDemo YES -scydeTheme dark  -scydeTab me
+shot settings-light      -scydeTheme light -scydeScreen settings
 shot editor-dark  -scydeDemo YES -scydeTheme dark  -scydeScreen editor -scydePlayhead 4.1 -scydeSelect 1
 shot editor-light -scydeDemo YES -scydeTheme light -scydeScreen editor -scydePlayhead 4.1 -scydeSelect 1
 shot editor-empty-dark -scydeTheme dark -scydeScreen editor
@@ -47,6 +52,7 @@ SLEEP=9 shot media-portrait  -scydeSampleMedia YES -scydeTheme dark -scydePlayhe
 SLEEP=9 shot media-photo     -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 4.0
 SLEEP=9 shot media-landscape -scydeSampleMedia YES -scydeTheme light -scydePlayhead 6.5 -scydeSelect 2
 SLEEP=8 shot media-playing   -scydeSampleMedia YES -scydeTheme dark -scydeAutoplay YES
+SLEEP=25 shot media-export  -scydeSampleMedia YES -scydeTheme dark -scydeScreen export -scydeAutoExport YES
 
 xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
 # Keep the repo small: downscale to 900px wide.

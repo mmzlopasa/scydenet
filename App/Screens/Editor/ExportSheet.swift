@@ -4,6 +4,7 @@ import SCYDECore
 struct ExportSheet: View {
     @ObservedObject var model: EditorViewModel
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var exporter = Exporter()
 
     private static let bytes: ByteCountFormatter = {
         let f = ByteCountFormatter()
@@ -31,7 +32,7 @@ struct ExportSheet: View {
                                 .foregroundColor(SX.C.body)
                         }
                         Spacer()
-                        GlassIconButton(systemName: "xmark", label: "Close", size: 36) { dismiss() }
+                        GlassIconButton(systemName: "xmark", label: "Close", size: 36, enabled: !exporter.isBusy) { dismiss() }
                     }
 
                     summary(width: size.width, height: size.height, estimate: estimate, settings: settings)
@@ -70,22 +71,8 @@ struct ExportSheet: View {
                         }
                     }
 
-                    VStack(spacing: 10) {
-                        Button {} label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "square.and.arrow.down")
-                                    .font(.system(size: 15, weight: .bold))
-                                Text("Export video")
-                            }
-                        }
-                        .buttonStyle(PrimaryButtonStyle())
-                        .disabled(true)
-
-                        Text("Rendering arrives in the next build. These settings are saved with the project.")
-                            .font(.ui(12.5))
-                            .foregroundColor(SX.C.muted)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
+                    VStack(spacing: 12) {
+                        exportControls
                     }
                     .padding(.top, 4)
                 }
@@ -94,6 +81,122 @@ struct ExportSheet: View {
                 .padding(.bottom, 30)
             }
         }
+        .interactiveDismissDisabled(exporter.isBusy)
+        .onAppear {
+            if Launch.autoExport {
+                exporter.start(project: model.project)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var exportControls: some View {
+        switch exporter.state {
+        case .idle:
+            Button {
+                model.stopPlayback()
+                exporter.start(project: model.project)
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.system(size: 15, weight: .bold))
+                    Text("Export video")
+                }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(model.project.isEmpty)
+            Text("Renders with the same engine as the preview. Settings are saved with the project.")
+                .font(.ui(12.5))
+                .foregroundColor(SX.C.muted)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+
+        case .preparing:
+            ExportProgress(progress: nil)
+
+        case let .exporting(progress):
+            ExportProgress(progress: progress)
+            Button {
+                exporter.cancel()
+            } label: {
+                Text("Cancel")
+            }
+            .buttonStyle(SecondaryButtonStyle())
+
+        case let .finished(url):
+            HStack(spacing: 14) {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(SX.C.onAccent)
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(SX.accentGradient))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Export finished")
+                        .font(.display(18))
+                        .foregroundColor(SX.C.ink)
+                    Text(Self.fileSize(url))
+                        .font(.mono(11))
+                        .foregroundColor(SX.C.muted)
+                }
+                Spacer()
+            }
+            .padding(16)
+            .sxCard(radius: SX.R.l)
+
+            Button {
+                Task { await exporter.saveToPhotos() }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: exporter.savedToPhotos ? "checkmark.circle.fill" : "photo.on.rectangle")
+                        .font(.system(size: 15, weight: .bold))
+                    Text(exporter.savedToPhotos ? "Saved to Photos" : "Save to Photos")
+                }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(exporter.savedToPhotos)
+
+            HStack(spacing: 10) {
+                ShareLink(item: url) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Share")
+                    }
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                Button {
+                    exporter.reset()
+                } label: {
+                    Text("Export again")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+            }
+
+        case let .failed(message):
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(SX.C.err)
+                Text(message)
+                    .font(.ui(14))
+                    .foregroundColor(SX.C.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            .padding(16)
+            .sxCard(radius: SX.R.l)
+            Button {
+                exporter.reset()
+            } label: {
+                Text("Try again")
+            }
+            .buttonStyle(SecondaryButtonStyle())
+        }
+    }
+
+    private static func fileSize(_ url: URL) -> String {
+        let bytes = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.int64Value ?? 0
+        let f = ByteCountFormatter()
+        f.countStyle = .file
+        return "\(f.string(fromByteCount: bytes)) · MP4"
     }
 
     private func summary(width: Int, height: Int, estimate: Int64, settings: ExportSettings) -> some View {
@@ -129,6 +232,35 @@ struct ExportSheet: View {
             }
         }
         .padding(16)
+        .sxCard(radius: SX.R.l)
+    }
+}
+
+private struct ExportProgress: View {
+    let progress: Double?
+
+    var body: some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .stroke(SX.C.line2, lineWidth: 8)
+                Circle()
+                    .trim(from: 0, to: CGFloat(progress ?? 0.04))
+                    .stroke(SX.accentGradient, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .shadow(color: SX.C.accent.opacity(0.5), radius: 8)
+                    .animation(.linear(duration: 0.12), value: progress ?? 0)
+                Text(progress.map { "\(Int(($0 * 100).rounded()))%" } ?? "…")
+                    .font(.dot(26))
+                    .foregroundColor(SX.C.ink)
+            }
+            .frame(width: 120, height: 120)
+            Text(progress == nil ? "Preparing" : "Rendering your video")
+                .font(.ui(14, .medium, fixed: true))
+                .foregroundColor(SX.C.body)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 22)
         .sxCard(radius: SX.R.l)
     }
 }

@@ -10,6 +10,7 @@ enum Launch {
     static var demo: Bool { defaults.bool(forKey: "scydeDemo") }
     static var theme: String? { defaults.string(forKey: "scydeTheme") }
     static var screen: String? { defaults.string(forKey: "scydeScreen") }
+    static var tab: String? { defaults.string(forKey: "scydeTab") }
 
     static var playhead: Double? {
         defaults.object(forKey: "scydePlayhead") == nil ? nil : defaults.double(forKey: "scydePlayhead")
@@ -25,6 +26,9 @@ enum Launch {
     /// Start playback as soon as the preview is ready. CI only.
     static var autoplay: Bool { defaults.bool(forKey: "scydeAutoplay") }
 
+    /// Start an export as soon as the export sheet opens. CI only.
+    static var autoExport: Bool { defaults.bool(forKey: "scydeAutoExport") }
+
     /// True when any automation flag is present (disables decorative animation for stable screenshots).
-    static var isAutomation: Bool { screen != nil || demo || sampleMedia }
+    static var isAutomation: Bool { screen != nil || tab != nil || demo || sampleMedia }
 }

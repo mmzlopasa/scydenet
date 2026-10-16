@@ -12,6 +12,11 @@ final class ThumbnailCache {
     private var images: [String: UIImage] = [:]
     private var generators: [String: AVAssetImageGenerator] = [:]
 
+    func removeAll() {
+        images.removeAll()
+        generators.removeAll()
+    }
+
     static func quantise(_ seconds: Double) -> Double {
         (max(0, seconds) * 2).rounded() / 2
     }

@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 import SCYDECore
 
@@ -42,6 +43,15 @@ final class AppModel: ObservableObject {
     }
     @Published private(set) var projects: [Project] = []
     @Published var openProject: Project?
+    @Published var tab: AppTab = .edit
+    @Published var showNewProject = false
+    @Published private(set) var toast: String?
+    @Published var defaultAspect: CanvasAspect {
+        didSet { UserDefaults.standard.set(defaultAspect.rawValue, forKey: "defaultAspect") }
+    }
+    @Published var hapticsEnabled: Bool {
+        didSet { UserDefaults.standard.set(hapticsEnabled, forKey: "haptics") }
+    }
 
     let store: ProjectStore
     let isDemo: Bool
@@ -55,6 +65,10 @@ final class AppModel: ObservableObject {
         } else {
             appearance = Appearance(rawValue: UserDefaults.standard.string(forKey: "appearance") ?? "") ?? .auto
         }
+        defaultAspect = CanvasAspect(rawValue: UserDefaults.standard.string(forKey: "defaultAspect") ?? "") ?? .portrait9x16
+        hapticsEnabled = (UserDefaults.standard.object(forKey: "haptics") as? Bool) ?? true
+        if let t = Launch.tab, let parsed = AppTab(rawValue: t) { tab = parsed }
+        if Launch.screen == "settings" { tab = .me }
         reload()
         if Launch.sampleMedia {
             Task { [weak self] in
@@ -75,6 +89,40 @@ final class AppModel: ObservableObject {
         save(project)
         reload()
         openProject = project
+    }
+
+    /// Imports the picked items and fills the template's slots in order.
+    func createFromTemplate(_ template: ProjectTemplate, items: [PhotosPickerItem]) async -> Bool {
+        var clips: [Clip] = []
+        for item in items {
+            if let clip = await MediaImporter.clip(from: item) { clips.append(clip) }
+        }
+        guard !clips.isEmpty else { return false }
+        var project = Project(name: template.name, aspect: template.aspect)
+        for (i, imported) in clips.enumerated() {
+            var clip = imported
+            let slot = template.slots[i % template.slots.count]
+            clip.duration = min(slot, clip.sourceDuration ?? slot)
+            project.addClip(clip, role: .main)
+        }
+        save(project)
+        reload()
+        openProject = project
+        return true
+    }
+
+    func showToast(_ text: String) {
+        withAnimation(SX.spring) { toast = text }
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard let self = self, self.toast == text else { return }
+            withAnimation(SX.spring) { self.toast = nil }
+        }
+    }
+
+    func comingSoon(_ feature: String) {
+        Haptics.light()
+        showToast("\(feature) arrives in a later build")
     }
 
     func open(_ project: Project) {

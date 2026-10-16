@@ -67,6 +67,21 @@ struct PrimaryButtonStyle: ButtonStyle {
     }
 }
 
+/// Glass capsule for secondary actions (Cancel, Share).
+struct SecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.ui(15, .semibold, fixed: true))
+            .foregroundColor(SX.C.ink)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Capsule().fill(SX.C.glass))
+            .overlay(Capsule().strokeBorder(SX.C.line2, lineWidth: 1))
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(SX.spring, value: configuration.isPressed)
+    }
+}
+
 /// Small accent pill (Export button).
 struct PillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -266,8 +281,9 @@ struct ToastView: View {
 
 @MainActor
 enum Haptics {
-    static func light() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
-    static func medium() { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
-    static func selection() { UISelectionFeedbackGenerator().selectionChanged() }
-    static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
+    private static var enabled: Bool { (UserDefaults.standard.object(forKey: "haptics") as? Bool) ?? true }
+    static func light() { if enabled { UIImpactFeedbackGenerator(style: .light).impactOccurred() } }
+    static func medium() { if enabled { UIImpactFeedbackGenerator(style: .medium).impactOccurred() } }
+    static func selection() { if enabled { UISelectionFeedbackGenerator().selectionChanged() } }
+    static func success() { if enabled { UINotificationFeedbackGenerator().notificationOccurred(.success) } }
 }
