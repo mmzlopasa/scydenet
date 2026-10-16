@@ -40,6 +40,7 @@ struct EditHomeView: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
 
     @State private var topInset: CGFloat = 54
+    @State private var appeared = Launch.isAutomation
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -50,8 +51,12 @@ struct EditHomeView: View {
                     .padding(.top, 30)
                     .padding(.bottom, 16)
                 LazyVGrid(columns: columns, spacing: 22) {
-                    ForEach(tools) { tool in
-                        toolTile(tool)
+                    ForEach(Array(tools.indices), id: \.self) { i in
+                        toolTile(tools[i])
+                            .opacity(appeared ? 1 : 0)
+                            .scaleEffect(appeared ? 1 : 0.85)
+                            .offset(y: appeared ? 0 : 14)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(Double(i) * 0.025), value: appeared)
                     }
                 }
                 .padding(.horizontal, 14)
@@ -77,6 +82,7 @@ struct EditHomeView: View {
         }
         .ignoresSafeArea(edges: .top)
         .background(SX.C.bg.ignoresSafeArea())
+        .onAppear { appeared = true }
         .background(
             GeometryReader { geo in
                 Color.clear.onAppear { topInset = max(geo.safeAreaInsets.top, 20) }
