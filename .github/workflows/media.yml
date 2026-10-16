@@ -30,6 +30,9 @@ jobs:
       - name: Candidate sheets for review
         run: python3 scripts/media/build_pack.py candidates candidates 2>&1 | tee candidates.log
       - name: Build pack
+        env:
+          # Optional. With a Pexels key stored as a repository secret, footage comes from Pexels.
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: python3 scripts/media/build_pack.py pack 2>&1 | tee pack.log
       - name: Contact sheet
         run: ls pack/*.mp4 >/dev/null 2>&1 && scripts/media/contact_sheet.sh pack review || true

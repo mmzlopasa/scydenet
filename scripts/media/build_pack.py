@@ -318,6 +318,44 @@ def curated_pool(cat, titles):
     return out
 
 
+def pexels_pool(cat, queries, key, used):
+    """Stock clips from the Pexels API (needs the repository secret PEXELS_API_KEY)."""
+    out = []
+    for q in queries:
+        url = "https://api.pexels.com/videos/search?" + urllib.parse.urlencode(
+            {"query": q, "per_page": 15, "orientation": "portrait", "size": "medium"})
+        try:
+            req = urllib.request.Request(url, headers={"Authorization": key, "User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                data = json.load(r)
+        except Exception as e:  # noqa: BLE001
+            print("pexels error", q, e, flush=True)
+            continue
+        for v in data.get("videos") or []:
+            page = v.get("url") or ""
+            if page in used or not (5 <= (v.get("duration") or 0) <= 60):
+                continue
+            files = [f for f in v.get("video_files") or [] if f.get("file_type") == "video/mp4" and f.get("link")]
+            # The file closest to 1080 px on its short side.
+            files.sort(key=lambda f: abs(min(f.get("width") or 0, f.get("height") or 0) - 1080))
+            if not files:
+                continue
+            user = (v.get("user") or {}).get("name") or "Pexels"
+            slug = page.rstrip("/").split("/")[-1]
+            title = " ".join(w for w in slug.split("-")[:-1]).strip().capitalize() or q.capitalize()
+            if BLOCK.search(title):
+                continue
+            used.add(page)
+            out.append({
+                "title": title, "page": page, "author": user, "license": "Pexels License",
+                "url": files[0]["link"], "width": v.get("width") or 0, "height": v.get("height") or 0,
+                "duration": float(v.get("duration") or 0), "size": 0, "derivatives": [], "rank": 0,
+            })
+            break  # one per query keeps the set varied
+        time.sleep(0.4)
+    return out[:VIDEOS_PER_CATEGORY]
+
+
 def main():
     if sys.argv[1] == "candidates":
         candidates(sys.argv[2])
@@ -329,9 +367,12 @@ def main():
     manifest = {"version": 1, "built": time.strftime("%Y-%m-%d"), "videos": [], "music": []}
     used = set()
 
+    pexels_key = os.environ.get("PEXELS_API_KEY", "").strip()
     for cat, queries in VIDEO_QUERIES.items():
-        if cat in curated:
+        picked = pexels_pool(cat, queries, pexels_key, used) if pexels_key else []
+        if not picked and cat in curated:
             picked = curated_pool(cat, curated[cat])
+        if picked:
             n = 0
             for c in picked:
                 name = f"{cat}-{n + 1}.mp4"
