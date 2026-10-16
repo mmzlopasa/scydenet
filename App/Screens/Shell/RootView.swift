@@ -72,6 +72,16 @@ struct RootView: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
+        .fullScreenCover(item: $app.photoEditor) { entry in
+            PhotoEditorView(initialTab: entry.tab)
+                .environmentObject(app)
+                .preferredColorScheme(app.appearance.scheme)
+        }
+        .fullScreenCover(isPresented: $app.showCollage) {
+            CollageView()
+                .environmentObject(app)
+                .preferredColorScheme(app.appearance.scheme)
+        }
         .fullScreenCover(item: $app.openProject) { project in
             EditorView(
                 project: project,

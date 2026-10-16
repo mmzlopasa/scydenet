@@ -2,6 +2,9 @@ import AVFoundation
 import CoreImage
 import Foundation
 import ImageIO
+import UIKit
+import Vision
+import SCYDECore
 
 // The single compositor used by preview and (from Phase 5) export, so what you
 // see is what you get.
@@ -19,10 +22,15 @@ struct SXLayer: Sendable {
         case video(trackID: CMPersistentTrackID, orientation: UInt32)
         /// A still image from the media folder.
         case photo(assetID: String)
+        /// Caption or title text, drawn in the lower third.
+        case text(String)
     }
 
     let source: Source
     let isMain: Bool
+    var filter: String? = nil
+    var adjust: Adjustments? = nil
+    var cutout: Bool = false
 }
 
 /// Instruction covering a span where the set of visible clips does not change.
@@ -76,7 +84,14 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
     private let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
     private let lock = NSLock()
     private var photoCache: [String: CIImage] = [:]
+    private var textCache: [String: CIImage] = [:]
     private var cancelled = false
+    private lazy var segmentation: VNGeneratePersonSegmentationRequest = {
+        let r = VNGeneratePersonSegmentationRequest()
+        r.qualityLevel = .balanced
+        r.outputPixelFormat = kCVPixelFormatType_OneComponent8
+        return r
+    }()
 
     var sourcePixelBufferAttributes: SXPixelAttributes? {
         [
@@ -142,8 +157,23 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         var missing = 0
         if let instruction = request.videoCompositionInstruction as? SXInstruction {
             for layer in instruction.layers {
-                guard let source = sourceImage(for: layer, request: request) else {
+                if case let .text(text) = layer.source {
+                    if let t = textImage(text, canvas: canvas) {
+                        let e = t.extent
+                        let x = (canvas.width - e.width) / 2
+                        let y = canvas.height * 0.12
+                        image = t.transformed(by: CGAffineTransform(translationX: x - e.minX, y: y - e.minY)).composited(over: image)
+                    }
+                    continue
+                }
+                guard var source = sourceImage(for: layer, request: request) else {
                     missing += 1
+                    continue
+                }
+                source = Looks.apply(source, filter: layer.filter, adjust: layer.adjust)
+                if layer.cutout, let cut = personCutout(source) {
+                    // Person only: placed full-frame so it can sit over the main layer.
+                    image = Self.place(cut, in: canvas, fill: false).composited(over: image)
                     continue
                 }
                 if layer.isMain {
@@ -158,7 +188,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     image = fill.composited(over: image)
                     image = Self.place(source, in: canvas, fill: false).composited(over: image)
                 } else {
-                    // Picture in picture until Phase 7 adds transforms: centred at 55% width.
+                    // Picture in picture: centred at 55% width.
                     let w = canvas.width * 0.55
                     let rect = CGRect(x: (canvas.width - w) / 2, y: (canvas.height - w) / 2, width: w, height: w)
                     image = Self.place(source, in: rect, fill: false).composited(over: image)
@@ -184,7 +214,83 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
             return image
         case let .photo(assetID):
             return photo(assetID)
+        case .text:
+            return nil
         }
+    }
+
+    /// Person cut-out with a transparent background, or nil if Vision finds nothing.
+    private func personCutout(_ image: CIImage) -> CIImage? {
+        let extent = image.extent
+        guard extent.width.isFinite, extent.width > 0 else { return nil }
+        let handler = VNImageRequestHandler(ciImage: image.transformed(by: CGAffineTransform(translationX: -extent.minX, y: -extent.minY)), options: [:])
+        do {
+            try handler.perform([segmentation])
+        } catch {
+            CompositorStats.shared.error("segmentation: \(error.localizedDescription)")
+            return nil
+        }
+        guard let buffer = segmentation.results?.first?.pixelBuffer else { return nil }
+        var mask = CIImage(cvPixelBuffer: buffer)
+        let sx = extent.width / mask.extent.width
+        let sy = extent.height / mask.extent.height
+        mask = mask.transformed(by: CGAffineTransform(scaleX: sx, y: sy).concatenating(CGAffineTransform(translationX: extent.minX, y: extent.minY)))
+        return image.applyingFilter("CIBlendWithMask", parameters: [
+            kCIInputBackgroundImageKey: CIImage.empty(),
+            kCIInputMaskImageKey: mask,
+        ])
+    }
+
+    /// Caption artwork: white Sora Bold on a soft dark pill, cached per text and width.
+    private func textImage(_ text: String, canvas: CGRect) -> CIImage? {
+        let key = "\(Int(canvas.width))|\(text)"
+        lock.lock()
+        if let cached = textCache[key] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+
+        let fontSize = max(canvas.width * 0.055, 14)
+        let font = UIFont(name: "Sora-Bold", size: fontSize) ?? UIFont.boldSystemFont(ofSize: fontSize)
+        let style = NSMutableParagraphStyle()
+        style.alignment = .center
+        style.lineBreakMode = .byWordWrapping
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: UIColor.white,
+            .paragraphStyle: style,
+        ]
+        let maxWidth = canvas.width * 0.84
+        let bounds = (text as NSString).boundingRect(
+            with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: attrs,
+            context: nil
+        ).integral
+        let padH = fontSize * 0.6
+        let padV = fontSize * 0.35
+        let size = CGSize(width: bounds.width + padH * 2, height: bounds.height + padV * 2)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let rendered = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            let pill = UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: fontSize * 0.45)
+            UIColor(white: 0, alpha: 0.55).setFill()
+            pill.fill()
+            (text as NSString).draw(
+                with: CGRect(x: padH, y: padV, width: bounds.width, height: bounds.height),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                attributes: attrs,
+                context: nil
+            )
+        }
+        guard let cg = rendered.cgImage else { return nil }
+        let result = CIImage(cgImage: cg)
+        lock.lock()
+        textCache[key] = result
+        lock.unlock()
+        return result
     }
 
     private func photo(_ assetID: String) -> CIImage? {

@@ -148,3 +148,77 @@ final class EditingTests: XCTestCase {
         XCTAssertEqual(r.time, 2, accuracy: 1e-9)
     }
 }
+
+final class ToolOperationTests: XCTestCase {
+
+    func testSpeedChangesDurationAndRipplesLaterClips() {
+        var p = Project()
+        let a = p.addClip(Clip(kind: .video, name: "A", sourceDuration: 10, duration: 4), role: .main)
+        let b = p.addClip(Clip(kind: .video, name: "B", sourceDuration: 10, duration: 2), role: .main)
+        XCTAssertTrue(p.setSpeed(a, to: 2))
+        XCTAssertEqual(p.clip(a)!.duration, 2, accuracy: 1e-9)
+        XCTAssertEqual(p.clip(b)!.start, 2, accuracy: 1e-9)
+        XCTAssertTrue(p.setSpeed(a, to: 0.5))
+        XCTAssertEqual(p.clip(a)!.duration, 8, accuracy: 1e-9)
+        XCTAssertEqual(p.clip(b)!.start, 8, accuracy: 1e-9)
+    }
+
+    func testSpeedIgnoresPhotosAndNoOps() {
+        var p = Project()
+        let photo = p.addClip(Clip(kind: .photo, name: "P", duration: 3), role: .main)
+        XCTAssertFalse(p.setSpeed(photo, to: 2))
+        let v = p.addClip(Clip(kind: .video, name: "V", sourceDuration: 5, duration: 5), role: .main)
+        XCTAssertFalse(p.setSpeed(v, to: 1))
+    }
+
+    func testUpdateClipCannotChangeTiming() {
+        var p = Project()
+        let id = p.addClip(Clip(kind: .video, name: "A", sourceDuration: 10, duration: 4), role: .main)
+        XCTAssertTrue(p.updateClip(id) { c in
+            c.filter = "mono"
+            c.duration = 99
+            c.adjust = Adjustments(exposure: 0.5)
+        })
+        let c = p.clip(id)!
+        XCTAssertEqual(c.filter, "mono")
+        XCTAssertEqual(c.duration, 4, accuracy: 1e-9)
+        XCTAssertEqual(c.adjust?.exposure ?? 0, 0.5, accuracy: 1e-9)
+        XCTAssertFalse(p.updateClip(id) { c in c.filter = "mono" })
+    }
+
+    func testCutRemovesMiddleSpanAndCloses() {
+        var p = Project()
+        let id = p.addClip(Clip(kind: .video, name: "A", sourceDuration: 10, duration: 10), role: .main)
+        XCTAssertTrue(p.cut(id, from: 3, to: 5))
+        XCTAssertEqual(p.duration, 8, accuracy: 1e-9)
+        let clips = p.tracks.first { $0.role == .main }!.clips
+        XCTAssertEqual(clips.count, 2)
+        XCTAssertEqual(clips[1].start, 3, accuracy: 1e-9)
+        XCTAssertEqual(clips[1].sourceIn, 5, accuracy: 1e-9)
+    }
+
+    func testCutAtClipStartAndEnd() {
+        var p = Project()
+        let id = p.addClip(Clip(kind: .video, name: "A", sourceDuration: 10, duration: 10), role: .main)
+        XCTAssertTrue(p.cut(id, from: 0, to: 2))
+        XCTAssertEqual(p.duration, 8, accuracy: 1e-9)
+        let first = p.tracks.first { $0.role == .main }!.clips[0]
+        XCTAssertEqual(first.sourceIn, 2, accuracy: 1e-9)
+        XCTAssertTrue(p.cut(first.id, from: 6, to: 8))
+        XCTAssertEqual(p.duration, 6, accuracy: 1e-9)
+    }
+
+    func testOldProjectJSONWithoutNewFieldsStillDecodes() throws {
+        let p = Project(name: "Old")
+        let data = try JSONEncoder().encode(p)
+        var obj = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        obj["tracks"] = [["id": UUID().uuidString, "role": "main", "clips": [[
+            "id": UUID().uuidString, "kind": "video", "name": "V", "start": 0, "sourceIn": 0,
+            "duration": 2, "speed": 1, "volume": 1,
+        ]]]]
+        let patched = try JSONSerialization.data(withJSONObject: obj)
+        let decoded = try JSONDecoder().decode(Project.self, from: patched)
+        XCTAssertNil(decoded.tracks[0].clips[0].filter)
+        XCTAssertNil(decoded.tracks[0].clips[0].text)
+    }
+}

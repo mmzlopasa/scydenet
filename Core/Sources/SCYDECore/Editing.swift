@@ -192,6 +192,68 @@ extension Project {
         return others.map { $0.end }.max() ?? s
     }
 
+    // MARK: Speed
+
+    /// Changes playback speed, keeping the same source range. Later clips on the
+    /// track shift so nothing overlaps (and gaps are preserved).
+    @discardableResult
+    public mutating func setSpeed(_ id: UUID, to speed: Double) -> Bool {
+        guard let loc = locate(id) else { return false }
+        var c = tracks[loc.track].clips[loc.clip]
+        guard c.kind == .video || c.kind == .audio else { return false }
+        let s = min(max(speed, 0.1), 8)
+        guard abs(c.speed - s) > 1e-9 else { return false }
+        let sourceLength = c.duration * c.speed
+        let newDuration = max(sourceLength / s, Project.minClipDuration)
+        let delta = newDuration - c.duration
+        c.speed = s
+        c.duration = newDuration
+        tracks[loc.track].clips[loc.clip] = c
+        var i = loc.clip + 1
+        while i < tracks[loc.track].clips.count {
+            tracks[loc.track].clips[i].start = max(0, tracks[loc.track].clips[i].start + delta)
+            i += 1
+        }
+        return true
+    }
+
+    // MARK: Generic clip properties
+
+    /// Applies `change` to one clip. Timing fields should go through the dedicated
+    /// operations; this is for look, text and flags.
+    @discardableResult
+    public mutating func updateClip(_ id: UUID, _ change: (inout Clip) -> Void) -> Bool {
+        guard let loc = locate(id) else { return false }
+        var c = tracks[loc.track].clips[loc.clip]
+        let before = c
+        change(&c)
+        guard c != before else { return false }
+        c.id = before.id
+        c.start = before.start
+        c.duration = before.duration
+        tracks[loc.track].clips[loc.clip] = c
+        return true
+    }
+
+    /// Removes the timeline span [from, to) from a clip on the main track and closes the gap.
+    @discardableResult
+    public mutating func cut(_ id: UUID, from: Double, to: Double) -> Bool {
+        guard let c = clip(id), to > from else { return false }
+        let a = max(from, c.start)
+        let b = min(to, c.end)
+        guard b - a > 1e-6 else { return false }
+        let m = Project.minClipDuration
+        var target = id
+        if a > c.start + m {
+            guard let right = split(id, at: a) else { return false }
+            target = right
+        }
+        if let t = clip(target), b < t.end - m {
+            _ = split(target, at: b)
+        }
+        return delete(target, ripple: true)
+    }
+
     // MARK: Volume
 
     @discardableResult

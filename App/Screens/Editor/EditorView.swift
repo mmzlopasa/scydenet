@@ -1,6 +1,7 @@
 import PhotosUI
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 import SCYDECore
 
 struct EditorView: View {
@@ -49,8 +50,35 @@ struct EditorView: View {
             }
 
             if model.importing {
-                ImportingOverlay()
+                ImportingOverlay(text: "Importing")
                     .transition(.opacity)
+            } else if let busy = model.busyMessage {
+                ImportingOverlay(text: busy)
+                    .transition(.opacity)
+            }
+        }
+        .sheet(item: $model.activeSheet) { sheet in
+            Group {
+                switch sheet {
+                case .speed: SpeedSheet(model: model)
+                case .text: TextSheet(model: model)
+                case .look: LookSheet(model: model)
+                case .voiceover: VoiceOverSheet(model: model)
+                case .voiceFX: VoiceFXSheet(model: model)
+                case .cover: CoverSheet(model: model)
+                }
+            }
+            .presentationDetents(sheet == .cover ? [.large] : [.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+        .confirmationDialog("Add audio", isPresented: $model.showAudioMenu, titleVisibility: .visible) {
+            Button("Music from Files") { model.showMusicImporter = true }
+            Button("Record voice-over") { model.activeSheet = .voiceover }
+            Button("Cancel", role: .cancel) {}
+        }
+        .fileImporter(isPresented: $model.showMusicImporter, allowedContentTypes: [.audio], allowsMultipleSelection: false) { result in
+            if case let .success(urls) = result, let url = urls.first {
+                model.importMusic(from: url)
             }
         }
         .sheet(isPresented: $model.showExport) {
@@ -259,6 +287,8 @@ private struct TransportBar: View {
 // MARK: - Importing overlay
 
 private struct ImportingOverlay: View {
+    var text: String = "Importing"
+
     var body: some View {
         ZStack {
             Color.black.opacity(0.45).ignoresSafeArea()
@@ -267,7 +297,7 @@ private struct ImportingOverlay: View {
                     .progressViewStyle(.circular)
                     .tint(SX.C.accent)
                     .scaleEffect(1.2)
-                Text("Importing")
+                Text(text)
                     .font(.ui(14, .medium, fixed: true))
                     .foregroundColor(SX.C.ink)
             }

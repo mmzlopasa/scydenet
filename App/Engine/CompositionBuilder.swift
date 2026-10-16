@@ -77,7 +77,7 @@ final class CompositionBuilder {
                 let range = CMTimeRange(start: at, duration: length)
 
                 if clip.kind == .photo {
-                    placed.append(PlacedLayer(range: range, layer: SXLayer(source: .photo(assetID: assetID), isMain: role == .main)))
+                    placed.append(PlacedLayer(range: range, layer: Self.layer(.photo(assetID: assetID), clip: clip, isMain: role == .main)))
                     continue
                 }
 
@@ -100,7 +100,7 @@ final class CompositionBuilder {
                 }
                 placed.append(PlacedLayer(
                     range: range,
-                    layer: SXLayer(source: .video(trackID: vTrack.trackID, orientation: src.orientation), isMain: role == .main)
+                    layer: Self.layer(.video(trackID: vTrack.trackID, orientation: src.orientation), clip: clip, isMain: role == .main)
                 ))
                 if let audio = src.audio {
                     Self.pad(aTrack, to: at)
@@ -109,6 +109,16 @@ final class CompositionBuilder {
                     }
                 }
             }
+        }
+
+        // Captions and titles.
+        let textClips = project.tracks.first(where: { $0.role == .text })?.clips ?? []
+        for clip in textClips {
+            guard let text = clip.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { continue }
+            placed.append(PlacedLayer(
+                range: CMTimeRange(start: Self.ct(clip.start), duration: Self.ct(clip.duration)),
+                layer: SXLayer(source: .text(text), isMain: false)
+            ))
         }
 
         // Audio-only clips (music, voice-over).
@@ -151,6 +161,16 @@ final class CompositionBuilder {
     }
 
     // MARK: Helpers
+
+    private static func layer(_ source: SXLayer.Source, clip: Clip, isMain: Bool) -> SXLayer {
+        SXLayer(
+            source: source,
+            isMain: isMain,
+            filter: clip.filter,
+            adjust: clip.adjust,
+            cutout: clip.removeBackground ?? false
+        )
+    }
 
     /// Inserts the clip's source range (scaled for speed) at `at`. Returns false if nothing was inserted.
     private static var lastInsertError = ""
@@ -210,7 +230,13 @@ final class CompositionBuilder {
             let a = unique[i]
             let b = unique[i + 1]
             let active = placed.filter { $0.range.start <= a && a < $0.range.end }
-            let ordered = active.filter { $0.layer.isMain } + active.filter { !$0.layer.isMain }
+            let isText: (PlacedLayer) -> Bool = { p in
+                if case .text = p.layer.source { return true }
+                return false
+            }
+            let ordered = active.filter { $0.layer.isMain }
+                + active.filter { !$0.layer.isMain && !isText($0) }
+                + active.filter { isText($0) }
             result.append(SXInstruction(timeRange: CMTimeRange(start: a, end: b), layers: ordered.map { $0.layer }))
             i += 1
         }

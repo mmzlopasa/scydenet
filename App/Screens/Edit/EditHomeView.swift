@@ -5,24 +5,30 @@ import SCYDECore
 struct EditHomeView: View {
     @EnvironmentObject private var app: AppModel
 
+    private enum Action {
+        case editorTool(String)
+        case photo(Int)
+        case collage
+        case templates
+    }
+
     private struct Tool: Identifiable {
         let id: String
         let icon: String
         let title: String
-        /// nil when the tool works today; otherwise the feature name for the "later build" toast.
-        let soon: String?
+        let action: Action
     }
 
     private let tools: [Tool] = [
-        Tool(id: "captions", icon: "captions.bubble", title: "Auto captions", soon: "Auto captions"),
-        Tool(id: "cutout", icon: "person.crop.rectangle", title: "Remove background", soon: "Background removal"),
-        Tool(id: "autocut", icon: "wand.and.stars", title: "AutoCut", soon: "AutoCut"),
-        Tool(id: "enhance", icon: "sparkles", title: "Auto enhance", soon: "Auto enhance"),
-        Tool(id: "voice", icon: "mic", title: "Voice-over", soon: "Voice-over"),
-        Tool(id: "speed", icon: "speedometer", title: "Speed", soon: "Speed controls"),
-        Tool(id: "cover", icon: "photo.on.rectangle.angled", title: "Cover maker", soon: "Cover maker"),
-        Tool(id: "collage", icon: "square.grid.2x2", title: "Collage", soon: "Collage"),
-        Tool(id: "templates", icon: "rectangle.stack", title: "Templates", soon: nil),
+        Tool(id: "captions", icon: "captions.bubble", title: "Auto captions", action: .editorTool("Captions")),
+        Tool(id: "cutout", icon: "person.crop.rectangle", title: "Remove background", action: .photo(3)),
+        Tool(id: "autocut", icon: "wand.and.stars", title: "AutoCut", action: .editorTool("AutoCut")),
+        Tool(id: "enhance", icon: "sparkles", title: "Auto enhance", action: .photo(1)),
+        Tool(id: "voice", icon: "mic", title: "Voice-over", action: .editorTool("Audio")),
+        Tool(id: "speed", icon: "speedometer", title: "Speed", action: .editorTool("Speed")),
+        Tool(id: "cover", icon: "photo.on.rectangle.angled", title: "Cover maker", action: .editorTool("Cover")),
+        Tool(id: "collage", icon: "square.grid.2x2", title: "Collage", action: .collage),
+        Tool(id: "templates", icon: "rectangle.stack", title: "Templates", action: .templates),
     ]
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
@@ -120,8 +126,8 @@ struct EditHomeView: View {
                         Haptics.medium()
                         app.showNewProject = true
                     }
-                    BigActionCard(icon: "photo", title: "Edit photo", badge: "Soon", wide: false) {
-                        app.comingSoon("The photo editor")
+                    BigActionCard(icon: "photo", title: "Edit photo", badge: nil, wide: false) {
+                        app.openPhotoEditor()
                     }
                 }
             }
@@ -132,25 +138,24 @@ struct EditHomeView: View {
 
     private func toolTile(_ tool: Tool) -> some View {
         Button {
-            if let soon = tool.soon {
-                app.comingSoon(soon)
-            } else if tool.id == "templates" {
+            switch tool.action {
+            case let .editorTool(name): app.openEditorTool(name)
+            case let .photo(tab): app.openPhotoEditor(tab: tab)
+            case .collage:
+                Haptics.light()
+                app.showCollage = true
+            case .templates:
                 Haptics.selection()
                 app.tab = .templates
             }
         } label: {
             VStack(spacing: 10) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: tool.icon)
-                        .font(.system(size: 22, weight: .regular))
-                        .foregroundColor(SX.C.ink)
-                        .frame(width: 58, height: 58)
-                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(SX.C.glass))
-                        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(SX.C.line2, lineWidth: 1))
-                    if tool.soon != nil {
-                        SoonBadge().offset(x: 12, y: -6)
-                    }
-                }
+                Image(systemName: tool.icon)
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundColor(SX.C.ink)
+                    .frame(width: 58, height: 58)
+                    .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(SX.C.glass))
+                    .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(SX.C.line2, lineWidth: 1))
                 Text(tool.title)
                     .font(.ui(13, .medium, fixed: true))
                     .foregroundColor(SX.C.body)
@@ -161,7 +166,7 @@ struct EditHomeView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(PressableStyle())
-        .accessibilityLabel(tool.soon == nil ? tool.title : "\(tool.title), coming soon")
+        .accessibilityLabel(tool.title)
     }
 }
 

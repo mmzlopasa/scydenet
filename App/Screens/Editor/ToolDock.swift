@@ -1,51 +1,90 @@
 import PhotosUI
 import SwiftUI
 
-/// Bottom tool row. Only tools that work are shown; new ones appear as phases land.
+/// Bottom tool row. Root tools when nothing is selected, clip tools when a clip is.
 struct ToolDock: View {
     @ObservedObject var model: EditorViewModel
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 4) {
-                PhotosPicker(
-                    selection: $model.pickerItems,
-                    maxSelectionCount: 20,
-                    matching: .any(of: [.videos, .images])
-                ) {
-                    ToolItem(icon: "plus", title: "Import", enabled: true, prominent: true)
-                }
-                .buttonStyle(PressableStyle())
-                .accessibilityLabel("Import media")
-
-                divider
-
-                ToolButton(icon: "scissors", title: "Split", enabled: model.canSplit) {
-                    model.split()
-                }
-                ToolButton(icon: "plus.square.on.square", title: "Duplicate", enabled: model.selection != nil) {
-                    model.duplicateSelected()
-                }
-                ToolButton(
-                    icon: model.selectedIsMuted ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                    title: model.selectedIsMuted ? "Unmute" : "Mute",
-                    enabled: model.canMute
-                ) {
-                    model.toggleMute()
-                }
-                ToolButton(icon: "trash", title: "Delete", enabled: model.selection != nil, destructive: true) {
-                    model.deleteSelected()
+                if model.selection == nil {
+                    rootTools
+                } else {
+                    clipTools
                 }
             }
             .padding(.horizontal, 12)
             .padding(.top, 10)
             .padding(.bottom, 6)
+            .animation(SX.spring, value: model.selection)
         }
         .background(
             SX.C.surface
                 .overlay(Rectangle().fill(SX.C.line).frame(height: 1), alignment: .top)
                 .ignoresSafeArea(edges: .bottom)
         )
+    }
+
+    @ViewBuilder
+    private var rootTools: some View {
+        PhotosPicker(
+            selection: $model.pickerItems,
+            maxSelectionCount: 20,
+            matching: .any(of: [.videos, .images])
+        ) {
+            ToolItem(icon: "plus", title: "Import", enabled: true, prominent: true)
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("Import media")
+
+        divider
+
+        ToolButton(icon: "music.note", title: "Audio", enabled: true) { model.showAudioMenu = true }
+        ToolButton(icon: "textformat", title: "Text", enabled: true) { model.activeSheet = .text }
+        ToolButton(icon: "captions.bubble", title: "Captions", enabled: model.hasPlayableMedia) {
+            Task { await model.generateCaptions() }
+        }
+        ToolButton(icon: "camera.filters", title: "Filters", enabled: model.lookTarget != nil) { model.activeSheet = .look }
+        ToolButton(icon: "wand.and.stars", title: "AutoCut", enabled: model.hasPlayableMedia) {
+            Task { await model.autoCut() }
+        }
+        ToolButton(icon: "scissors", title: "Split", enabled: model.canSplit) { model.split() }
+        ToolButton(icon: "photo.on.rectangle.angled", title: "Cover", enabled: model.hasPlayableMedia) { model.activeSheet = .cover }
+    }
+
+    @ViewBuilder
+    private var clipTools: some View {
+        ToolButton(icon: "chevron.down", title: "Back", enabled: true) { model.clearSelection() }
+        divider
+        ToolButton(icon: "scissors", title: "Split", enabled: model.canSplit) { model.split() }
+        if model.selectedHasSpeed {
+            ToolButton(icon: "speedometer", title: "Speed", enabled: true) { model.activeSheet = .speed }
+        }
+        if model.selectedIsVisual {
+            ToolButton(icon: "camera.filters", title: "Filters", enabled: true) { model.activeSheet = .look }
+            ToolButton(icon: "slider.horizontal.3", title: "Adjust", enabled: true) { model.activeSheet = .look }
+            ToolButton(
+                icon: (model.selectedClip?.removeBackground ?? false) ? "person.crop.rectangle.fill" : "person.crop.rectangle",
+                title: (model.selectedClip?.removeBackground ?? false) ? "Restore BG" : "Remove BG",
+                enabled: true
+            ) { model.toggleCutout() }
+        }
+        if model.selectedIsText {
+            ToolButton(icon: "pencil", title: "Edit text", enabled: true) { model.activeSheet = .text }
+        }
+        if model.selectedIsAudio {
+            ToolButton(icon: "waveform.badge.plus", title: "Voice FX", enabled: true) { model.activeSheet = .voiceFX }
+        }
+        if model.canMute {
+            ToolButton(
+                icon: model.selectedIsMuted ? "speaker.wave.2.fill" : "speaker.slash.fill",
+                title: model.selectedIsMuted ? "Unmute" : "Mute",
+                enabled: true
+            ) { model.toggleMute() }
+        }
+        ToolButton(icon: "plus.square.on.square", title: "Duplicate", enabled: true) { model.duplicateSelected() }
+        ToolButton(icon: "trash", title: "Delete", enabled: true, destructive: true) { model.deleteSelected() }
     }
 
     private var divider: some View {

@@ -9,14 +9,15 @@ struct AILabView: View {
         let icon: String
         let title: String
         let detail: String
+        let open: @MainActor (AppModel) -> Void
     }
 
     private let features: [Feature] = [
-        Feature(id: "captions", icon: "captions.bubble", title: "Auto captions", detail: "Speech to text, offline"),
-        Feature(id: "cutout", icon: "person.crop.rectangle", title: "Remove background", detail: "Person cut-out with Vision"),
-        Feature(id: "autocut", icon: "wand.and.stars", title: "AutoCut", detail: "Drop silences and dead air"),
-        Feature(id: "enhance", icon: "sparkles", title: "Auto enhance", detail: "Exposure and colour in one tap"),
-        Feature(id: "voice", icon: "waveform", title: "Voice effects", detail: "Pitch, echo, radio"),
+        Feature(id: "captions", icon: "captions.bubble", title: "Auto captions", detail: "Speech to text, offline") { $0.openEditorTool("Captions") },
+        Feature(id: "cutout", icon: "person.crop.rectangle", title: "Remove background", detail: "Person cut-out with Vision") { $0.openPhotoEditor(tab: 3) },
+        Feature(id: "autocut", icon: "wand.and.stars", title: "AutoCut", detail: "Drop silences and dead air") { $0.openEditorTool("AutoCut") },
+        Feature(id: "enhance", icon: "sparkles", title: "Auto enhance", detail: "Exposure and colour in one tap") { $0.openPhotoEditor(tab: 1) },
+        Feature(id: "voice", icon: "waveform", title: "Voice effects", detail: "Pitch, echo, radio") { $0.openEditorTool("Voice FX") },
     ]
 
     var body: some View {
@@ -33,7 +34,7 @@ struct AILabView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(features) { feature in
                         Button {
-                            app.comingSoon(feature.title)
+                            feature.open(app)
                         } label: {
                             HStack(spacing: 14) {
                                 Image(systemName: feature.icon)
@@ -49,7 +50,9 @@ struct AILabView: View {
                                         .foregroundColor(SX.C.muted)
                                 }
                                 Spacer(minLength: 8)
-                                SoonBadge()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(SX.C.muted)
                             }
                             .padding(.horizontal, 18)
                             .padding(.vertical, 14)
@@ -57,7 +60,7 @@ struct AILabView: View {
                             .overlay(Capsule().strokeBorder(SX.C.line2, lineWidth: 1))
                         }
                         .buttonStyle(PressableStyle(scale: 0.97))
-                        .accessibilityLabel("\(feature.title), coming soon")
+                        .accessibilityLabel(feature.title)
                     }
                 }
             }

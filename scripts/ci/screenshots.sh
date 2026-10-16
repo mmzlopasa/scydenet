@@ -53,6 +53,12 @@ SLEEP=9 shot media-photo     -scydeSampleMedia YES -scydeTheme dark -scydePlayhe
 SLEEP=9 shot media-landscape -scydeSampleMedia YES -scydeTheme light -scydePlayhead 6.5 -scydeSelect 2
 SLEEP=8 shot media-playing   -scydeSampleMedia YES -scydeTheme dark -scydeAutoplay YES
 SLEEP=25 shot media-export  -scydeSampleMedia YES -scydeTheme dark -scydeScreen export -scydeAutoExport YES
+SLEEP=10 shot sheet-look    -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSheet look
+SLEEP=14 shot sheet-cover   -scydeSampleMedia YES -scydeTheme dark -scydePlayhead 1.5 -scydeSheet cover
+shot sheet-speed   -scydeDemo YES -scydeTheme dark -scydeScreen editor -scydeSelect 1 -scydeSheet speed
+shot sheet-text    -scydeDemo YES -scydeTheme light -scydeScreen editor -scydeSheet text
+shot photo-empty   -scydeTheme dark -scydeScreen photo
+shot collage-empty -scydeTheme light -scydeScreen collage
 
 xcrun simctl terminate "$UDID" "$BUNDLE" >/dev/null 2>&1 || true
 # Keep the repo small: downscale to 900px wide.

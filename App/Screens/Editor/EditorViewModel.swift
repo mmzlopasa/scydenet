@@ -8,7 +8,7 @@ import SCYDECore
 
 @MainActor
 final class EditorViewModel: ObservableObject {
-    @Published private(set) var history: History<Project>
+    @Published var history: History<Project>
     @Published var playhead: Double = 0 {
         didSet { if playhead != oldValue { playheadChanged() } }
     }
@@ -19,6 +19,10 @@ final class EditorViewModel: ObservableObject {
     @Published private(set) var previewImage: UIImage?
     @Published private(set) var importing = false
     @Published private(set) var toast: String?
+    @Published var activeSheet: EditorSheet?
+    @Published var showAudioMenu = false
+    @Published var showMusicImporter = false
+    @Published var busyMessage: String?
     @Published var pickerItems: [PhotosPickerItem] = [] {
         didSet {
             guard !pickerItems.isEmpty else { return }
@@ -38,7 +42,7 @@ final class EditorViewModel: ObservableObject {
     // Playback
     let player = AVPlayer()
     @Published private(set) var hasPlayer = false
-    private let builder = CompositionBuilder()
+    let builder = CompositionBuilder()
     private var rebuildTask: Task<Void, Never>?
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
@@ -76,6 +80,12 @@ final class EditorViewModel: ObservableObject {
             if hasPlayer { togglePlay() } else { autoplayPending = true }
         }
         if Launch.isAutomation { startDiagnostics() }
+        if let name = Launch.sheet, let sheet = EditorSheet(rawValue: name) {
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 900_000_000)
+                self?.activeSheet = sheet
+            }
+        }
         if Launch.screen == "export" {
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 900_000_000)
@@ -118,11 +128,11 @@ final class EditorViewModel: ObservableObject {
 
     // MARK: Editing
 
-    private func perform(_ name: String, _ change: (inout Project) -> Bool) {
+    func perform(_ name: String, _ change: (inout Project) -> Bool) {
         if history.perform(name, change) { didEdit() }
     }
 
-    private func didEdit() {
+    func didEdit() {
         if let s = selection, project.clip(s) == nil { selection = nil }
         if playhead > duration { playhead = duration }
         dirty = true
@@ -405,7 +415,7 @@ final class EditorViewModel: ObservableObject {
         }
     }
 
-    private func scheduleRebuild(immediately: Bool = false) {
+    func scheduleRebuild(immediately: Bool = false) {
         rebuildTask?.cancel()
         rebuildTask = Task { [weak self] in
             if !immediately {

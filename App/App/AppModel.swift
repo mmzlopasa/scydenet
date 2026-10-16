@@ -45,6 +45,8 @@ final class AppModel: ObservableObject {
     @Published var openProject: Project?
     @Published var tab: AppTab = .edit
     @Published var showNewProject = false
+    @Published var photoEditor: PhotoEditorEntry?
+    @Published var showCollage = false
     @Published private(set) var toast: String?
     @Published var defaultAspect: CanvasAspect {
         didSet { UserDefaults.standard.set(defaultAspect.rawValue, forKey: "defaultAspect") }
@@ -69,6 +71,8 @@ final class AppModel: ObservableObject {
         hapticsEnabled = (UserDefaults.standard.object(forKey: "haptics") as? Bool) ?? true
         if let t = Launch.tab, let parsed = AppTab(rawValue: t) { tab = parsed }
         if Launch.screen == "settings" { tab = .me }
+        if Launch.screen == "photo" { photoEditor = PhotoEditorEntry(tab: 0) }
+        if Launch.screen == "collage" { showCollage = true }
         reload()
         if Launch.sampleMedia {
             Task { [weak self] in
@@ -120,6 +124,23 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Opens the editor where a timeline tool lives (most recent project, or a new one).
+    func openEditorTool(_ name: String) {
+        Haptics.light()
+        if let recent = projects.first {
+            open(recent)
+            showToast("\(name) is in the editor toolbar")
+        } else {
+            showNewProject = true
+            showToast("Create a project, then use \(name)")
+        }
+    }
+
+    func openPhotoEditor(tab: Int = 0) {
+        Haptics.light()
+        photoEditor = PhotoEditorEntry(tab: tab)
+    }
+
     func comingSoon(_ feature: String) {
         Haptics.light()
         showToast("\(feature) arrives in a later build")
@@ -165,4 +186,9 @@ final class AppModel: ObservableObject {
         try? store.delete(id: project.id)
         reload()
     }
+}
+
+struct PhotoEditorEntry: Identifiable {
+    let id = UUID()
+    let tab: Int
 }

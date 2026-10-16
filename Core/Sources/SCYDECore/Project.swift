@@ -21,6 +21,28 @@ public enum CanvasAspect: String, Codable, CaseIterable, Sendable {
     public var label: String { rawValue }
 }
 
+/// Basic colour adjustments. Neutral values leave the image unchanged.
+public struct Adjustments: Codable, Equatable, Sendable {
+    /// EV stops, -2...2.
+    public var exposure: Double
+    /// 0.5...1.5, 1 = unchanged.
+    public var contrast: Double
+    /// 0...2, 1 = unchanged.
+    public var saturation: Double
+    /// -1 (cool) ... 1 (warm).
+    public var warmth: Double
+
+    public init(exposure: Double = 0, contrast: Double = 1, saturation: Double = 1, warmth: Double = 0) {
+        self.exposure = exposure
+        self.contrast = contrast
+        self.saturation = saturation
+        self.warmth = warmth
+    }
+
+    public static let neutral = Adjustments()
+    public var isNeutral: Bool { self == .neutral }
+}
+
 /// One piece of media (or text) placed on a track.
 ///
 /// Times are seconds. `start` is the position on the timeline, `sourceIn` the
@@ -42,6 +64,13 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
     public var duration: Double
     public var speed: Double
     public var volume: Double
+    /// Caption or title text for `.text` clips.
+    public var text: String?
+    /// Look preset identifier (see the app's look library). nil = original.
+    public var filter: String?
+    public var adjust: Adjustments?
+    /// Cut the person out of the frame (Vision person segmentation).
+    public var removeBackground: Bool?
 
     public var end: Double { start + duration }
 
@@ -55,7 +84,8 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
         sourceIn: Double = 0,
         duration: Double,
         speed: Double = 1,
-        volume: Double = 1
+        volume: Double = 1,
+        text: String? = nil
     ) {
         self.id = id
         self.kind = kind
@@ -67,6 +97,7 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
         self.duration = duration
         self.speed = speed
         self.volume = volume
+        self.text = text
     }
 }
 

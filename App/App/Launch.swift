@@ -29,6 +29,12 @@ enum Launch {
     /// Start an export as soon as the export sheet opens. CI only.
     static var autoExport: Bool { defaults.bool(forKey: "scydeAutoExport") }
 
+    /// Open the look sheet on the Adjust tab. CI only.
+    static var autoEnhance: Bool { defaults.bool(forKey: "scydeAutoEnhance") }
+
+    /// Open a tool sheet in the editor: speed, text, look, voiceFX, cover. CI only.
+    static var sheet: String? { defaults.string(forKey: "scydeSheet") }
+
     /// True when any automation flag is present (disables decorative animation for stable screenshots).
     static var isAutomation: Bool { screen != nil || tab != nil || demo || sampleMedia }
 }
