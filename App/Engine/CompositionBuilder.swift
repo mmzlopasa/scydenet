@@ -37,12 +37,15 @@ final class CompositionBuilder {
     static let musicAudioID: CMPersistentTrackID = 13
 
     private var sources: [String: Source] = [:]
+    /// Step-by-step notes from the last build (shown in the CI diagnostics overlay).
+    private(set) var notes: [String] = []
 
     static func ct(_ seconds: Double) -> CMTime {
         CMTime(seconds: max(0, seconds), preferredTimescale: 600)
     }
 
     func build(_ project: Project, renderSize: CGSize, fps: Int? = nil) async -> Output? {
+        notes = []
         let composition = AVMutableComposition()
         guard
             let mainV = composition.addMutableTrack(withMediaType: .video, preferredTrackID: Self.mainVideoID),
@@ -50,7 +53,10 @@ final class CompositionBuilder {
             let mainA = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: Self.mainAudioID),
             let overA = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: Self.overlayAudioID),
             let musicA = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: Self.musicAudioID)
-        else { return nil }
+        else {
+            notes.append("addMutableTrack failed")
+            return nil
+        }
 
         var placed: [PlacedLayer] = []
         let mainParams = AVMutableAudioMixInputParameters(track: mainA)
@@ -75,12 +81,23 @@ final class CompositionBuilder {
                     continue
                 }
 
-                guard let src = await source(assetID), let video = src.video else { continue }
+                guard let src = await source(assetID) else {
+                    notes.append("\(clip.name): source failed")
+                    continue
+                }
+                guard let video = src.video else {
+                    notes.append("\(clip.name): no video track")
+                    continue
+                }
+                notes.append("\(clip.name): src \(String(format: "%.2f", src.duration.seconds))s")
                 Self.pad(vTrack, to: at)
                 let inserted = Self.insert(
                     from: video, sourceDuration: src.duration, clip: clip, into: vTrack, at: at, length: length
                 )
-                guard inserted else { continue }
+                guard inserted else {
+                    notes.append("\(clip.name): insert failed \(Self.lastInsertError)")
+                    continue
+                }
                 placed.append(PlacedLayer(
                     range: range,
                     layer: SXLayer(source: .video(trackID: vTrack.trackID, orientation: src.orientation), isMain: role == .main)
@@ -114,6 +131,7 @@ final class CompositionBuilder {
         }
 
         let duration = composition.duration
+        notes.append("dur \(String(format: "%.2f", duration.seconds)) placed \(placed.count) mainV segs \(mainV.segments.count)")
         guard duration > .zero, !placed.isEmpty else { return nil }
 
         let videoComposition = AVMutableVideoComposition()
@@ -135,6 +153,8 @@ final class CompositionBuilder {
     // MARK: Helpers
 
     /// Inserts the clip's source range (scaled for speed) at `at`. Returns false if nothing was inserted.
+    private static var lastInsertError = ""
+
     private static func insert(
         from sourceTrack: AVAssetTrack,
         sourceDuration: CMTime,
@@ -151,6 +171,7 @@ final class CompositionBuilder {
         do {
             try track.insertTimeRange(CMTimeRange(start: sourceStart, duration: sourceLength), of: sourceTrack, at: at)
         } catch {
+            lastInsertError = (error as NSError).localizedDescription + " \((error as NSError).code)"
             return false
         }
         if abs(clip.speed - 1) > 0.001 {
@@ -161,7 +182,8 @@ final class CompositionBuilder {
 
     /// Extends a track with an empty range so the next insert lands at `time`.
     private static func pad(_ track: AVMutableCompositionTrack, to time: CMTime) {
-        let end = track.timeRange.end
+        let range = track.timeRange
+        let end = range.isValid ? range.end : .zero
         if time > end {
             track.insertEmptyTimeRange(CMTimeRange(start: end, end: time))
         }
@@ -211,6 +233,7 @@ final class CompositionBuilder {
             sources[assetID] = s
             return s
         } catch {
+            notes.append("load error: \(error.localizedDescription)")
             return nil
         }
     }

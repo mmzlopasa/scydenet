@@ -425,7 +425,7 @@ final class EditorViewModel: ObservableObject {
             stopPlayback()
             player.replaceCurrentItem(with: nil)
             hasPlayer = false
-            buildInfo = "build: nil (media clips \(project.clipCount))"
+            buildInfo = "build: nil (clips \(project.clipCount))\n" + builder.notes.joined(separator: "\n")
             return
         }
         buildInfo = "build: \(String(format: "%.2f", built.duration))s · instr \(built.videoComposition.instructions.count) · tracks \(built.composition.tracks.count)"
