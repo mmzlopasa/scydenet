@@ -74,6 +74,9 @@ struct ToolDock: View {
             Task { await model.freezeAtPlayhead() }
         }
         ToolButton(icon: "photo.on.rectangle.angled", title: "Cover", enabled: model.hasPlayableMedia) { model.activeSheet = .cover }
+        ToolButton(icon: "camera.viewfinder", title: "Snapshot", enabled: model.hasPlayableMedia) {
+            Task { await model.saveSnapshot() }
+        }
     }
 
     @ViewBuilder

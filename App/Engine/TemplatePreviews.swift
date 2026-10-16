@@ -110,6 +110,53 @@ actor TemplatePreviews {
         }
     }
 
+    // MARK: Real-footage poster
+
+    static func posterURL(for t: ProjectTemplate) -> URL {
+        directory.appendingPathComponent("\(t.id)-poster-v1.jpg")
+    }
+
+    static func diskPoster(_ t: ProjectTemplate) -> UIImage? {
+        guard let data = try? Data(contentsOf: posterURL(for: t)) else { return nil }
+        return UIImage(data: data)
+    }
+
+    /// The first frame of the template as it would look with SCYDE's sample footage:
+    /// the category clip, filled to the template's shape, with its look and title. Cached on disk.
+    @MainActor
+    static func realPoster(_ t: ProjectTemplate) async -> UIImage? {
+        if let cached = diskPoster(t) { return cached }
+        let library = MediaLibrary.shared
+        await library.load()
+        let videos = library.videos(for: t.category.rawValue)
+        guard !videos.isEmpty else { return nil }
+        let v = videos[(t.id.unicodeScalars.reduce(0) { $0 + Int($1.value) } % 3) % videos.count]
+        guard let still = await library.posterImage(for: v), let cg = still.cgImage else { return nil }
+        let filter = t.filter
+        let title = t.title
+        let ratio = t.aspect.ratio
+        let out = posterURL(for: t)
+        return await Task.detached(priority: .utility) { () -> UIImage? in
+            let size = CGSize(width: 420, height: (420 / ratio).rounded())
+            let canvas = CGRect(origin: .zero, size: size)
+            let src = CIImage(cgImage: cg)
+            let e = src.extent
+            let scale = max(size.width / e.width, size.height / e.height) * 1.04
+            var img = src.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+            let se = img.extent
+            img = img.transformed(by: CGAffineTransform(translationX: (size.width - se.width) / 2 - se.minX, y: (size.height - se.height) / 2 - se.minY))
+            img = Looks.apply(img, filter: filter, adjust: nil)
+            if let title = title, let titleImage = TemplatePreviews.titleImage(title, width: size.width) {
+                let te = titleImage.extent
+                img = titleImage.transformed(by: CGAffineTransform(translationX: (size.width - te.width) / 2, y: size.height * 0.16)).composited(over: img)
+            }
+            guard let rendered = CIContext().createCGImage(img.cropped(to: canvas), from: canvas) else { return nil }
+            let image = UIImage(cgImage: rendered)
+            if let data = image.jpegData(compressionQuality: 0.82) { try? data.write(to: out, options: .atomic) }
+            return image
+        }.value
+    }
+
     // MARK: Artwork
 
     static func size(for aspect: CanvasAspect) -> CGSize {
@@ -354,6 +401,8 @@ final class LoopingVideoView: UIView {
 /// Poster that turns into a looping video once the preview is rendered.
 struct TemplatePreviewView: View {
     let template: ProjectTemplate
+    /// Off for small showcase cards: they show the real-footage still only.
+    var playsVideo: Bool = true
     @State private var url: URL?
     @State private var poster: UIImage?
 
@@ -371,8 +420,17 @@ struct TemplatePreviewView: View {
             }
         }
         .clipped()
-        .task(id: template.id) {
-            if poster == nil && !TemplatePreviews.hasReal(template) { poster = TemplatePreviews.poster(template) }
+        .task(id: "\(template.id)-\(playsVideo)") {
+            if poster == nil {
+                if let cached = TemplatePreviews.diskPoster(template) {
+                    poster = cached
+                } else if let real = await TemplatePreviews.realPoster(template) {
+                    withAnimation(.easeOut(duration: 0.2)) { poster = real }
+                } else if !TemplatePreviews.hasReal(template) {
+                    poster = TemplatePreviews.poster(template)
+                }
+            }
+            guard playsVideo else { return }
             let rendered = await TemplatePreviews.shared.video(for: template)
             withAnimation(.easeOut(duration: 0.25)) { url = rendered }
         }

@@ -387,6 +387,18 @@ struct TextPreset: Identifiable {
         TextPreset(id: "news", name: "Lower third", style: TextStyle(font: "condensed", size: 1.1, color: 0xFFFFFF, background: .box, backgroundColor: 0xC42A46, backgroundOpacity: 1, align: .left, uppercase: true, anchorY: 0.3, animIn: .slideRight, animOut: .slideLeft)),
         TextPreset(id: "minimal", name: "Minimal", style: TextStyle(font: "geist", size: 0.8, background: .none, tracking: 0.3, anchorY: 0.42)),
         TextPreset(id: "party", name: "Party", style: TextStyle(font: "party", size: 1.7, color: 0xFFE7A0, background: .none, glow: true, anchorY: 0, loop: .wiggle)),
+        TextPreset(id: "glitch", name: "Glitch", style: TextStyle(font: "heavy", size: 1.4, color: 0xFFFFFF, background: .none, stroke: 0.06, strokeColor: 0xFF3D7F, uppercase: true, animIn: .glitch, loop: .shake)),
+        TextPreset(id: "sticker-pill", name: "Sticker", style: TextStyle(font: "rounded", size: 1.1, color: 0x1B1530, background: .pill, backgroundColor: 0x8EF0C8, backgroundOpacity: 1, animIn: .pop, loop: .jelly)),
+        TextPreset(id: "rise", name: "Rise", style: TextStyle(font: "sora-bold", size: 1.5, background: .none, shadow: true, animIn: .rise, animOut: .fade, animDuration: 0.7)),
+        TextPreset(id: "flip", name: "Flip card", style: TextStyle(font: "condensed", size: 1.3, color: 0x12141A, background: .rounded, backgroundColor: 0xFFE7A0, backgroundOpacity: 1, uppercase: true, animIn: .flip, animOut: .shrink)),
+        TextPreset(id: "stretch", name: "Stretch", style: TextStyle(font: "heavy", size: 1.6, color: 0xFF9AA8, background: .none, stroke: 0.1, strokeColor: 0x1B1530, uppercase: true, animIn: .stretch)),
+        TextPreset(id: "swing", name: "Swing", style: TextStyle(font: "marker", size: 1.4, color: 0xFFFFFF, background: .none, shadow: true, animIn: .swing, loop: .sway)),
+        TextPreset(id: "love", name: "Love", style: TextStyle(font: "script", size: 1.7, color: 0xFFB8E1, background: .none, glow: true, animIn: .fade, loop: .heartbeat)),
+        TextPreset(id: "drop", name: "Drop", style: TextStyle(font: "futura", size: 1.4, color: 0x9ED8FF, background: .none, stroke: 0.08, strokeColor: 0x0D0F14, uppercase: true, animIn: .drop, loop: .float)),
+        TextPreset(id: "subscribe", name: "Call to action", style: TextStyle(font: "sora-bold", size: 1.0, color: 0xFFFFFF, background: .pill, backgroundColor: 0xC42A46, backgroundOpacity: 1, anchorY: 0.75, animIn: .bounce, loop: .pulse)),
+        TextPreset(id: "quote", name: "Quote", style: TextStyle(font: "didot", size: 1.2, color: 0xF5F2FF, background: .box, backgroundColor: 0x0D0F14, backgroundOpacity: 0.6, tracking: 0.05, animIn: .blur, animOut: .blur, animDuration: 1.1)),
+        TextPreset(id: "spin-badge", name: "Spin", style: TextStyle(font: "heavy", size: 1.2, color: 0x1B1530, background: .rounded, backgroundColor: 0xFFD76A, backgroundOpacity: 1, uppercase: true, animIn: .spin, loop: .spin)),
+        TextPreset(id: "chapter", name: "Chapter", style: TextStyle(font: "mono", size: 0.9, color: 0xFFD76A, background: .none, uppercase: true, tracking: 0.35, anchorY: 0.12, animIn: .slideUp, animOut: .slideDown)),
     ]
 }
 

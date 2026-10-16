@@ -181,6 +181,43 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Opens a tool straight away: in the latest project when it has media, otherwise in a new
+    /// 9:16 project (tools that need footage ask for it first).
+    func launchTool(_ action: EditorLaunchAction, needsMedia: Bool = false) {
+        Haptics.light()
+        let recent = projects.first(where: { p in p.tracks.contains { $0.role == .main && !$0.clips.isEmpty } })
+        if needsMedia {
+            guard let recent = recent else {
+                showNewProject = true
+                showToast("Pick a video first, then the tool opens")
+                return
+            }
+            EditorLaunch.pending = action
+            open(recent)
+            return
+        }
+        EditorLaunch.pending = action
+        if let recent = recent {
+            open(recent)
+        } else {
+            createProject(aspect: .portrait9x16)
+        }
+    }
+
+    /// New 9:16 project that starts with a library clip.
+    func createWithPackVideo(_ video: MediaPack.Video) async {
+        Haptics.medium()
+        guard let clip = await MediaLibrary.shared.clip(for: video, duration: video.duration, aspect: .portrait9x16) else {
+            showToast("Could not download the clip")
+            return
+        }
+        var project = Project(name: "Project %d".locf(projects.count + 1), aspect: .portrait9x16)
+        project.addClip(clip, role: .main)
+        save(project)
+        reload()
+        openProject = project
+    }
+
     func openPhotoEditor(tab: Int = 0) {
         Haptics.light()
         photoEditor = PhotoEditorEntry(tab: tab)

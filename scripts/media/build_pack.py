@@ -460,13 +460,18 @@ def main():
                 if d < 2 or w == 0:
                     os.remove(path)
                     continue
+                poster = name[:-4] + ".jpg"
+                has_poster = run(["ffmpeg", "-y", "-loglevel", "error", "-ss", "0.8", "-i", path,
+                                  "-frames:v", "1", "-vf", "scale=w='if(gt(iw,ih),-2,360)':h='if(gt(iw,ih),360,-2)'",
+                                  "-q:v", "5", os.path.join(out, poster)])
                 manifest["videos"].append({
                     "id": name[:-4], "category": cat, "file": name, "width": w, "height": h,
                     "duration": round(d, 2), "title": c["title"], "author": c["author"],
                     "license": c["license"], "source": c["page"],
+                    **({"poster": poster} if has_poster else {}),
                 })
                 n += 1
-            print(f"[{cat}] {n} curated clips", flush=True)
+            print(f"[{cat}] {n} clips", flush=True)
             continue
         # Footage is only published after a person has reviewed the candidate sheets.
         continue

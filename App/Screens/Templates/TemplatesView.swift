@@ -21,6 +21,30 @@ struct TemplatesView: View {
         }
     }
 
+    /// One template per category for the featured carousel.
+    private var featured: [ProjectTemplate] {
+        var seen = Set<TemplateCategory>()
+        var out: [ProjectTemplate] = []
+        for t in ProjectTemplate.all.reversed() where !seen.contains(t.category) && t.title != nil {
+            seen.insert(t.category)
+            out.append(t)
+        }
+        return Array(out.prefix(6))
+    }
+
+    /// Results split into two columns, balancing their heights.
+    private func column(_ index: Int) -> [ProjectTemplate] {
+        var heights: [CGFloat] = [0, 0]
+        var cols: [[ProjectTemplate]] = [[], []]
+        for t in results {
+            let h = TemplateCard.previewHeight(t) + 56
+            let c = heights[0] <= heights[1] ? 0 : 1
+            cols[c].append(t)
+            heights[c] += h
+        }
+        return cols[index]
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 14) {
@@ -78,11 +102,23 @@ struct TemplatesView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.top, 40)
                 } else {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(results) { template in
-                            TemplateCard(template: template) {
-                                Haptics.light()
-                                chosen = template
+                    if category == nil && query.isEmpty {
+                        FeaturedTemplates(templates: featured) { t in
+                            Haptics.light()
+                            chosen = t
+                        }
+                        .padding(.top, 2)
+                    }
+                    // Masonry: each column stacks cards at their own aspect, like a feed.
+                    HStack(alignment: .top, spacing: 12) {
+                        ForEach(0..<2, id: \.self) { col in
+                            LazyVStack(spacing: 16) {
+                                ForEach(column(col)) { template in
+                                    TemplateCard(template: template) {
+                                        Haptics.light()
+                                        chosen = template
+                                    }
+                                }
                             }
                         }
                     }
@@ -113,11 +149,17 @@ private struct TemplateCard: View {
     let template: ProjectTemplate
     let action: () -> Void
 
+    /// Card preview height from the template's shape (taller for 9:16, shorter for 16:9).
+    static func previewHeight(_ t: ProjectTemplate) -> CGFloat {
+        let width = (UIScreen.main.bounds.width - 44) / 2
+        return min(300, max(120, width / CGFloat(t.aspect.ratio)))
+    }
+
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 7) {
                 TemplatePreviewView(template: template)
-                    .frame(height: 252)
+                    .frame(height: Self.previewHeight(template))
                     .clipShape(RoundedRectangle(cornerRadius: SX.R.l, style: .continuous))
                     .overlay(alignment: .topLeading) {
                         HStack(spacing: 4) {
@@ -159,7 +201,7 @@ private struct TemplateCard: View {
     }
 }
 
-private struct TemplateSheet: View {
+struct TemplateSheet: View {
     let template: ProjectTemplate
     @EnvironmentObject private var app: AppModel
     @Environment(\.dismiss) private var dismiss
@@ -303,5 +345,78 @@ private struct TemplateSheet: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .sxCard(radius: SX.R.m)
+    }
+}
+
+/// Paged hero carousel of large, playing template previews.
+private struct FeaturedTemplates: View {
+    let templates: [ProjectTemplate]
+    let onPick: (ProjectTemplate) -> Void
+    @State private var page = 0
+
+    var body: some View {
+        VStack(spacing: 10) {
+            TabView(selection: $page) {
+                ForEach(templates.indices, id: \.self) { i in
+                    let t = templates[i]
+                    Button { onPick(t) } label: {
+                        ZStack(alignment: .bottomLeading) {
+                            TemplatePreviewView(template: t, playsVideo: i == page)
+                            LinearGradient(colors: [.clear, Color.black.opacity(0.75)], startPoint: .center, endPoint: .bottom)
+                            HStack(alignment: .bottom) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("\(t.category.emoji) \(t.category.title.loc.uppercased())")
+                                        .font(.mono(10, medium: true))
+                                        .tracking(1.1)
+                                        .foregroundColor(SX.C.gold)
+                                    Text(t.name.loc)
+                                        .font(.display(24, bold: true))
+                                        .foregroundColor(.white)
+                                    Text(t.summary.loc)
+                                        .font(.ui(12.5))
+                                        .foregroundColor(Color.white.opacity(0.8))
+                                        .lineLimit(2)
+                                }
+                                Spacer(minLength: 8)
+                                Text("Use")
+                                    .font(.ui(14, .semibold, fixed: true))
+                                    .foregroundColor(Color(UIColor(hex: 0x1B1530)))
+                                    .padding(.horizontal, 18)
+                                    .frame(height: 38)
+                                    .background(Capsule().fill(SX.C.gold))
+                            }
+                            .padding(16)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: SX.R.xl, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: SX.R.xl, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.14), lineWidth: 1)
+                        )
+                        .padding(.horizontal, 16)
+                    }
+                    .buttonStyle(PressableStyle(scale: 0.98))
+                    .tag(i)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 330)
+            HStack(spacing: 6) {
+                ForEach(templates.indices, id: \.self) { i in
+                    Capsule()
+                        .fill(i == page ? SX.C.accent : SX.C.line2)
+                        .frame(width: i == page ? 18 : 6, height: 6)
+                        .animation(SX.spring, value: page)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .task {
+            guard templates.count > 1 else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 6_000_000_000)
+                if Task.isCancelled { break }
+                withAnimation(SX.ease) { page = (page + 1) % templates.count }
+            }
+        }
     }
 }

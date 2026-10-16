@@ -110,6 +110,7 @@ struct RootView: View {
 
 private struct TabBar: View {
     @Binding var selection: AppTab
+    @Namespace private var pill
 
     var body: some View {
         HStack(spacing: 0) {
@@ -118,27 +119,28 @@ private struct TabBar: View {
                 Button {
                     guard !selected else { return }
                     Haptics.selection()
-                    selection = tab
+                    withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) { selection = tab }
                 } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: selected ? tab.selectedIcon : tab.icon)
-                            .font(.system(size: 20, weight: selected ? .semibold : .regular))
-                            .frame(height: 26)
-                        Text(tab.title.loc)
-                            .font(.ui(10.5, .medium, fixed: true))
-                    }
-                    .foregroundColor(selected ? SX.C.ink : SX.C.muted)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 10)
-                    .padding(.bottom, 4)
-                    .overlay(alignment: .top) {
-                        if selected {
-                            Capsule()
-                                .fill(SX.C.accent)
-                                .frame(width: 18, height: 3)
-                                .shadow(color: SX.C.accent.opacity(0.6), radius: 4)
+                    VStack(spacing: 3) {
+                        ZStack {
+                            if selected {
+                                Capsule()
+                                    .fill(SX.accentGradient)
+                                    .frame(width: 50, height: 30)
+                                    .shadow(color: SX.C.accent.opacity(0.45), radius: 8, y: 3)
+                                    .matchedGeometryEffect(id: "pill", in: pill)
+                            }
+                            Image(systemName: selected ? tab.selectedIcon : tab.icon)
+                                .font(.system(size: 17, weight: selected ? .bold : .medium))
+                                .foregroundColor(selected ? SX.C.onAccent : SX.C.muted)
                         }
+                        .frame(height: 30)
+                        Text(tab.title.loc)
+                            .font(.ui(10.5, selected ? .semibold : .medium, fixed: true))
+                            .foregroundColor(selected ? SX.C.ink : SX.C.muted)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 7)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(PressableStyle(scale: 0.92))
@@ -148,11 +150,17 @@ private struct TabBar: View {
         }
         .padding(.horizontal, 6)
         .background(
-            SX.C.surface.opacity(0.94)
-                .background(.ultraThinMaterial)
-                .overlay(Rectangle().fill(SX.C.line).frame(height: 1), alignment: .top)
-                .ignoresSafeArea(edges: .bottom)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(SX.C.surface.opacity(0.72)))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        .strokeBorder(LinearGradient(colors: [SX.C.edge, SX.C.line], startPoint: .top, endPoint: .bottom), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.35), radius: 22, x: 0, y: 10)
         )
+        .padding(.horizontal, 12)
+        .padding(.bottom, 2)
     }
 }
 

@@ -1,5 +1,6 @@
 import AVFoundation
 import SwiftUI
+import UIKit
 import SCYDECore
 
 /// Music from SCYDE's library plus synthesised sound effects.
@@ -244,13 +245,20 @@ struct LibraryBrowser: View {
 struct PackVideoTile: View {
     let video: MediaPack.Video
     @State private var url: URL?
+    @State private var poster: UIImage?
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             SX.C.surface3
+            if let poster = poster {
+                Image(uiImage: poster)
+                    .resizable()
+                    .scaledToFill()
+            }
             if let url = url {
                 LoopingVideo(url: url)
-            } else {
+                    .transition(.opacity)
+            } else if poster == nil {
                 ProgressView().tint(SX.C.accent).frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             LinearGradient(colors: [.clear, Color.black.opacity(0.65)], startPoint: .center, endPoint: .bottom)
@@ -266,8 +274,11 @@ struct PackVideoTile: View {
             .foregroundColor(.white)
             .padding(8)
         }
+        .clipped()
         .task(id: video.id) {
-            url = await MediaLibrary.shared.file(video.file)
+            poster = await MediaLibrary.shared.posterImage(for: video)
+            let file = await MediaLibrary.shared.file(video.file)
+            withAnimation(.easeOut(duration: 0.25)) { url = file }
         }
     }
 }

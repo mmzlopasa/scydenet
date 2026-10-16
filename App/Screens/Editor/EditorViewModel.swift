@@ -112,6 +112,24 @@ final class EditorViewModel: ObservableObject {
                 self?.activeSheet = sheet
             }
         }
+        if let action = EditorLaunch.take() {
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 550_000_000)
+                guard let self = self else { return }
+                switch action {
+                case let .sheet(sheet): self.activeSheet = sheet
+                case .audioMenu: self.showAudioMenu = true
+                case .captions: await self.generateCaptions()
+                case .autoCut: await self.autoCut()
+                case .textSheet:
+                    self.clearSelection()
+                    self.activeSheet = .text
+                case .stickers:
+                    self.clearSelection()
+                    self.activeSheet = .sticker
+                }
+            }
+        }
         if Launch.screen == "export" {
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 900_000_000)

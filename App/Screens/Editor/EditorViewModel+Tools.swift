@@ -9,6 +9,26 @@ enum EditorSheet: String, Identifiable {
     var id: String { rawValue }
 }
 
+/// A tool picked outside the editor (Home), opened once the editor appears.
+enum EditorLaunchAction: Equatable {
+    case sheet(EditorSheet)
+    case audioMenu
+    case captions
+    case autoCut
+    case textSheet
+    case stickers
+}
+
+@MainActor
+enum EditorLaunch {
+    static var pending: EditorLaunchAction?
+
+    static func take() -> EditorLaunchAction? {
+        defer { pending = nil }
+        return pending
+    }
+}
+
 /// Editing tools: speed, text, looks, cut-out, captions, AutoCut, audio and covers.
 extension EditorViewModel {
 

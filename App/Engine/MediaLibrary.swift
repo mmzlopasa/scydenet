@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import SCYDECore
+import UIKit
 
 /// SCYDE's footage and music pack: freely licensed Wikimedia Commons media, prepared by CI
 /// and published on GitHub as the `template-media` release. Downloaded on demand and cached.
@@ -16,6 +17,8 @@ struct MediaPack: Codable, Equatable {
         let author: String
         let license: String
         let source: String
+        /// Small JPEG still published next to the clip (newer packs).
+        var poster: String? = nil
     }
 
     struct Track: Codable, Identifiable, Hashable {
@@ -136,6 +139,48 @@ final class MediaLibrary: ObservableObject {
         let result = await task.value
         downloads[name] = nil
         return result
+    }
+
+    private let posterCache = NSCache<NSString, UIImage>()
+
+    /// A still for a pack video: the published poster, or a frame of the downloaded clip.
+    func posterImage(for video: MediaPack.Video) async -> UIImage? {
+        if let hit = posterCache.object(forKey: video.id as NSString) { return hit }
+        var image: UIImage?
+        if let name = video.poster, let url = await file(name), let data = try? Data(contentsOf: url) {
+            image = UIImage(data: data)
+        }
+        if image == nil, let url = await file(video.file) {
+            image = await Task.detached(priority: .utility) { () -> UIImage? in
+                let gen = AVAssetImageGenerator(asset: AVURLAsset(url: url))
+                gen.appliesPreferredTrackTransform = true
+                gen.maximumSize = CGSize(width: 480, height: 480)
+                guard let cg = try? gen.copyCGImage(at: CMTime(seconds: 0.8, preferredTimescale: 600), actualTime: nil) else { return nil }
+                return UIImage(cgImage: cg)
+            }.value
+        }
+        if let image = image { posterCache.setObject(image, forKey: video.id as NSString) }
+        return image
+    }
+
+    /// A few clips across categories, for showcases (stable order).
+    func showcase(_ count: Int) -> [MediaPack.Video] {
+        guard let videos = pack?.videos, !videos.isEmpty else { return [] }
+        var byCategory: [String: [MediaPack.Video]] = [:]
+        var order: [String] = []
+        for v in videos {
+            if byCategory[v.category] == nil { order.append(v.category) }
+            byCategory[v.category, default: []].append(v)
+        }
+        var out: [MediaPack.Video] = []
+        var round = 0
+        while out.count < count && round < 4 {
+            for c in order where out.count < count {
+                if let list = byCategory[c], round < list.count { out.append(list[round]) }
+            }
+            round += 1
+        }
+        return out
     }
 
     /// Copies a pack file into the project media folder (stable name, copied once) and returns its asset ID.
