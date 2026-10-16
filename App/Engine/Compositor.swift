@@ -232,9 +232,10 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
                     }
                 } else if layer.isMain {
                     let fill = Self.backdrop(source, canvas: canvas, background: layer.background)
-                    var fit = Self.apply(transform, to: Self.place(source, in: canvas, fill: false), canvas: canvas)
-                    if let m = mask { fit = Masks.apply(fit, m, canvas: canvas, offset: transform) }
+                    let fit = Self.apply(transform, to: Self.place(source, in: canvas, fill: false), canvas: canvas)
                     piece = fit.composited(over: fill)
+                    // A masked main clip reveals the black canvas, not its own blurred fill.
+                    if let m = mask { piece = Masks.apply(piece.cropped(to: canvas), m, canvas: canvas, offset: transform) }
                 } else {
                     // Picture in picture: centred at 55% width, then the clip's transform.
                     let w = canvas.width * 0.55

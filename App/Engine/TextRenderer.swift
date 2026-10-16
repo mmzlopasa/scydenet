@@ -265,10 +265,16 @@ final class TextRenderer: @unchecked Sendable {
                 cg.setShadow(offset: CGSize(width: 0, height: base * 0.07), blur: base * 0.2, color: UIColor(white: 0, alpha: 0.65).cgColor)
             }
             if strokeW > 0.5 {
+                // Round outline: the text drawn in the outline colour around a circle, then the fill on top.
                 var strokeAttrs = attrs
-                strokeAttrs[.strokeColor] = UIColor(hex: style.strokeColor)
-                strokeAttrs[.strokeWidth] = (strokeW * 2 / max(font.pointSize, 1)) * 100
-                attributed(strokeAttrs, hide: [.foregroundColor, .strokeColor]).draw(with: textRect, options: options, context: nil)
+                strokeAttrs[.foregroundColor] = UIColor(hex: style.strokeColor)
+                let outline = attributed(strokeAttrs, hide: [.foregroundColor])
+                let steps = 16
+                for i in 0..<steps {
+                    let a = CGFloat(i) / CGFloat(steps) * 2 * .pi
+                    let r = textRect.offsetBy(dx: cos(a) * strokeW, dy: sin(a) * strokeW)
+                    outline.draw(with: r, options: options, context: nil)
+                }
                 cg.setShadow(offset: .zero, blur: 0, color: nil)
             }
             attributed(attrs, hide: [.foregroundColor]).draw(with: textRect, options: options, context: nil)
