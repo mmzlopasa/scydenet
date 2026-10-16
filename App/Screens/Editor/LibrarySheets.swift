@@ -226,7 +226,7 @@ struct LibraryBrowser: View {
                             .buttonStyle(PressableStyle())
                         }
                     }
-                    Text("Clips from Wikimedia Commons (public domain, CC0 or CC BY). The clip name keeps the author.")
+                    Text("Clips from Pixabay, Pexels and Wikimedia Commons, free to use in your videos. The clip name keeps the author.")
                         .font(.ui(11.5))
                         .foregroundColor(SX.C.muted)
                         .padding(.vertical, 10)

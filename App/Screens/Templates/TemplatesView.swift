@@ -249,7 +249,7 @@ private struct TemplateSheet: View {
                                     .foregroundColor(SX.C.muted)
                                     .lineLimit(1)
                             }
-                            Text("Wikimedia Commons")
+                            Text(MediaLibrary.sources(credits))
                                 .font(.ui(11))
                                 .foregroundColor(SX.C.muted)
                         }

@@ -43,11 +43,11 @@ VIDEO_QUERIES = {
     "birthday": ["fireworks", "candles cake", "balloons", "confetti"],
     "fitness": ["running athlete", "gym workout", "yoga", "cycling road"],
     "food": ["cooking pan", "coffee pour", "pizza", "fruit"],
-    "fashion": ["fabric texture", "shoes", "sunglasses", "jewelry"],
-    "product": ["watch close up", "smartphone", "camera lens", "headphones"],
+    "fashion": ["fashion model walking", "woman street style", "sunglasses fashion", "clothing store"],
+    "product": ["watch close up", "smartphone hand", "perfume bottle", "headphones"],
     "realEstate": ["house aerial", "interior living room", "apartment building", "swimming pool"],
     "sports": ["surfing", "skiing", "football stadium", "basketball"],
-    "wedding": ["wedding", "rings", "roses", "church bells"],
+    "wedding": ["wedding couple", "wedding rings", "bride bouquet", "wedding dance"],
     "pets": ["dog running", "cat", "puppy", "kitten"],
     "nature": ["waterfall", "forest", "lake", "birds flying"],
     "night": ["city night traffic", "night sky stars", "night city aerial", "street lights night"],
@@ -387,6 +387,47 @@ def pexels_pool(cat, queries, key, used):
     return out[:VIDEOS_PER_CATEGORY]
 
 
+def pixabay_pool(cat, queries, key, used):
+    """Stock clips from the Pixabay API (needs the repository secret PIXABAY_API_KEY)."""
+    out = []
+    for q in queries:
+        url = "https://pixabay.com/api/videos/?" + urllib.parse.urlencode(
+            {"key": key, "q": q[:100], "per_page": 20, "safesearch": "true", "video_type": "film",
+             "order": "popular"})
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                data = json.load(r)
+        except Exception as e:  # noqa: BLE001
+            print("pixabay error", q, e, flush=True)
+            continue
+        for v in data.get("hits") or []:
+            page = v.get("pageURL") or ""
+            if page in used or not (4 <= (v.get("duration") or 0) <= 60):
+                continue
+            tags = v.get("tags") or ""
+            if BLOCK.search(tags):
+                continue
+            files = v.get("videos") or {}
+            f = files.get("medium") or {}
+            if not f.get("url"):
+                f = files.get("small") or {}
+            if not f.get("url"):
+                continue
+            title = (tags.split(",")[0].strip() or q).capitalize()
+            used.add(page)
+            out.append({
+                "title": title, "page": page, "author": v.get("user") or "Pixabay",
+                "license": "Pixabay Content License", "url": f["url"],
+                "width": f.get("width") or 0, "height": f.get("height") or 0,
+                "duration": float(v.get("duration") or 0), "size": f.get("size") or 0,
+                "derivatives": [], "rank": 0,
+            })
+            break  # one per query keeps the set varied
+        time.sleep(0.7)
+    return out[:VIDEOS_PER_CATEGORY]
+
+
 def main():
     if sys.argv[1] == "candidates":
         candidates(sys.argv[2])
@@ -399,9 +440,13 @@ def main():
     used = set()
 
     pexels_key = os.environ.get("PEXELS_API_KEY", "").strip()
+    pixabay_key = os.environ.get("PIXABAY_API_KEY", "").strip()
+    print("stock sources:", "pexels" if pexels_key else "-", "pixabay" if pixabay_key else "-", flush=True)
     for cat, queries in VIDEO_QUERIES.items():
         picked = pexels_pool(cat, queries, pexels_key, used) if pexels_key else []
-        if not picked and cat in curated:
+        if len(picked) < 3 and pixabay_key:
+            picked = (picked + pixabay_pool(cat, queries, pixabay_key, used))[:VIDEOS_PER_CATEGORY]
+        if len(picked) < 3 and cat in curated:
             picked = curated_pool(cat, curated[cat])
         if picked:
             n = 0

@@ -177,6 +177,24 @@ final class MediaLibrary: ObservableObject {
 
     /// Credit line shown wherever pack media is used.
     nonisolated static func credit(title: String, author: String, license: String) -> String {
-        "\(title) · \(author) · \(license) · Wikimedia Commons"
+        "\(title) · \(author) · \(license) · \(sourceName(license: license))"
+    }
+
+    /// Where a pack item comes from, read from its licence name.
+    nonisolated static func sourceName(license: String) -> String {
+        let l = license.lowercased()
+        if l.contains("pixabay") { return "Pixabay" }
+        if l.contains("pexels") { return "Pexels" }
+        return "Wikimedia Commons"
+    }
+
+    /// Distinct sources of a set of pack videos, for credit lines.
+    nonisolated static func sources(_ videos: [MediaPack.Video]) -> String {
+        var seen: [String] = []
+        for v in videos {
+            let s = sourceName(license: v.license)
+            if !seen.contains(s) { seen.append(s) }
+        }
+        return seen.joined(separator: " · ")
     }
 }
