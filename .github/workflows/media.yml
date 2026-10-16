@@ -1,0 +1,53 @@
+name: Media pack
+
+# Builds the CC0 / CC BY footage and music pack from Wikimedia Commons and publishes it
+# as the `template-media` release that the app downloads from.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/media/**'
+      - '.github/workflows/media.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: media-pack
+  cancel-in-progress: true
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Build pack
+        run: python3 scripts/media/build_pack.py pack 2>&1 | tee pack.log
+      - name: Contact sheet
+        run: scripts/media/contact_sheet.sh pack review
+      - name: Publish release
+        run: |
+          ls -la pack | tail -n +1
+          gh release delete template-media --cleanup-tag --yes || true
+          gh release create template-media pack/* --prerelease --target "${GITHUB_SHA}" \
+            --title "SCYDE template media" \
+            --notes "Footage and music for templates and libraries. Wikimedia Commons, CC0 / public domain / CC BY. Credits in manifest.json."
+      - name: Publish review branch
+        if: always()
+        run: |
+          mkdir -p out
+          cp pack.log out/ 2>/dev/null || true
+          cp pack/manifest.json out/ 2>/dev/null || true
+          cp review/sheet.jpg review/order.txt out/ 2>/dev/null || true
+          cd out
+          git init -q
+          git checkout -q -b media-results
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "Media pack for ${GITHUB_SHA}" || true
+          git push -f -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" media-results
