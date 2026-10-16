@@ -61,6 +61,7 @@ struct ArtIcon: View {
         let bottom = Color(UIColor(hex: palette.bottom))
         let shape = RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
         ZStack {
+            ZStack {
             shape.fill(LinearGradient(colors: [top, bottom], startPoint: .topLeading, endPoint: .bottomTrailing))
             // Soft light blob from the top left.
             Circle()
@@ -70,6 +71,8 @@ struct ArtIcon: View {
                 .blendMode(.screen)
             // Darker floor for depth.
             shape.fill(LinearGradient(colors: [Color.clear, Color.black.opacity(0.18)], startPoint: .center, endPoint: .bottom))
+            }
+            .clipShape(shape)
             // Glyph: a shadow copy below, then the duotone glyph.
             Image(systemName: symbol)
                 .font(.system(size: size * 0.42, weight: .bold))

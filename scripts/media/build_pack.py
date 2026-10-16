@@ -203,6 +203,37 @@ def run(cmd, timeout=240):
 TMP = "/tmp/scyde-src"
 
 
+def frame_stats(path, t):
+    """Mean and spread of a tiny greyscale frame at time t (rejects black or flat frames)."""
+    try:
+        r = subprocess.run(["ffmpeg", "-loglevel", "error", "-ss", f"{t:.2f}", "-i", path, "-frames:v", "1",
+                            "-vf", "scale=32:18,format=gray", "-f", "rawvideo", "-"], capture_output=True, timeout=60)
+        px = r.stdout
+        if len(px) < 100:
+            return 0, 0
+        mean = sum(px) / len(px)
+        spread = (sum((v - mean) ** 2 for v in px) / len(px)) ** 0.5
+        return mean, spread
+    except Exception:  # noqa: BLE001
+        return 0, 0
+
+
+def bright_start(path, dur):
+    """First of several start points whose frame is neither dark nor flat."""
+    if dur <= 7:
+        return 0
+    best, best_score = 0.0, -1
+    for f in (0.25, 0.45, 0.65, 0.1, 0.8):
+        t = max(0.0, min(dur * f, dur - 6))
+        mean, spread = frame_stats(path, t + 1.5)
+        score = min(mean, 140) + spread
+        if mean > 45 and spread > 18:
+            return t
+        if score > best_score:
+            best, best_score = t, score
+    return best
+
+
 def make_clip(c, out_path):
     src = best_video_source(c)
     if c["size"] and c["size"] > 400_000_000 and src == c["url"]:
@@ -210,7 +241,7 @@ def make_clip(c, out_path):
     if not fetch(src, TMP):
         return False
     dur = c["duration"] or 12
-    start = max(0.0, min(dur * 0.25, dur - 6)) if dur > 7 else 0
+    start = bright_start(TMP, dur)
     vf = ("scale=w='if(gt(iw,ih),960,-2)':h='if(gt(iw,ih),-2,960)',"
           "fps=30,format=yuv420p")
     return run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{start:.2f}", "-i", TMP,
