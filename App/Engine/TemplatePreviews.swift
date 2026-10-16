@@ -410,9 +410,8 @@ struct TemplatePreviewView: View {
         ZStack {
             Color(UIColor(hex: template.colors[0]))
             if let poster = poster {
-                Image(uiImage: poster)
-                    .resizable()
-                    .scaledToFill()
+                Color.clear
+                    .overlay(Image(uiImage: poster).resizable().scaledToFill())
             }
             if let url = url {
                 LoopingVideo(url: url)

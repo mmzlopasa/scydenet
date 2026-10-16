@@ -362,6 +362,7 @@ private struct FeaturedTemplates: View {
                     Button { onPick(t) } label: {
                         ZStack(alignment: .bottomLeading) {
                             TemplatePreviewView(template: t, playsVideo: i == page)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
                             LinearGradient(colors: [.clear, Color.black.opacity(0.75)], startPoint: .center, endPoint: .bottom)
                             HStack(alignment: .bottom) {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -387,6 +388,8 @@ private struct FeaturedTemplates: View {
                             }
                             .padding(16)
                         }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 318)
                         .clipShape(RoundedRectangle(cornerRadius: SX.R.xl, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: SX.R.xl, style: .continuous)

@@ -349,18 +349,18 @@ struct EditHomeView: View {
 
     private func featureCard(_ f: Feature) -> some View {
         Button { run(f.action) } label: {
-            HStack(spacing: 11) {
-                ArtIcon(symbol: f.icon, palette: ArtPalette.forTool(f.id), size: 44)
+            HStack(spacing: 10) {
+                ArtIcon(symbol: f.icon, palette: ArtPalette.forTool(f.id), size: 40)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(f.title.loc)
                         .font(.ui(14, .semibold, fixed: true))
                         .foregroundColor(SX.C.ink)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(f.subtitle.loc)
                         .font(.ui(11.5, fixed: true))
                         .foregroundColor(SX.C.muted)
-                        .lineLimit(2)
+                        .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
