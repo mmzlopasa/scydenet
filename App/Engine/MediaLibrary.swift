@@ -23,7 +23,17 @@ struct MediaPack: Codable, Equatable {
         let genre: String
         let file: String
         let duration: Double
-        let title: String
+        let rawTitle: String
+        /// Title without catalogue codes such as "(ISRC USUAN1100233)".
+        var title: String {
+            rawTitle.replacingOccurrences(of: #"\s*\(ISRC [^)]*\)"#, with: "", options: .regularExpression)
+                .replacingOccurrences(of: #"\s+by Kevin MacLeod$"#, with: "", options: .regularExpression)
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case id, genre, file, duration, rawTitle = "title", author, license, source
+        }
+
         let author: String
         let license: String
         let source: String
@@ -69,7 +79,8 @@ final class MediaLibrary: ObservableObject {
             guard let self = self else { return }
             let attrs = try? FileManager.default.attributesOfItem(atPath: Self.manifestURL.path)
             let age = (attrs?[.modificationDate] as? Date).map { Date().timeIntervalSince($0) } ?? .infinity
-            if self.pack != nil && age < 12 * 3600 { return }
+            // Refresh hourly, and always when the cached pack has no footage yet.
+            if let p = self.pack, !p.videos.isEmpty, age < 3600 { return }
             do {
                 var request = URLRequest(url: Self.base.appendingPathComponent("manifest.json"))
                 request.timeoutInterval = 20

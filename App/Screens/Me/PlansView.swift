@@ -173,8 +173,8 @@ struct PlansView: View {
                                 .font(.mono(10, medium: true))
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Capsule().fill(SX.C.ok.opacity(0.2)))
-                                .foregroundColor(SX.C.ok)
+                                .background(Capsule().fill(yearly == y ? Color.black.opacity(0.18) : SX.C.ok.opacity(0.2)))
+                                .foregroundColor(yearly == y ? SX.C.onAccent : SX.C.ok)
                         }
                     }
                     .foregroundColor(yearly == y ? SX.C.onAccent : SX.C.ink)
