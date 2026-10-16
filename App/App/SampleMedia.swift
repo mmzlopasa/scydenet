@@ -25,10 +25,10 @@ enum SampleMedia {
             project.setKeyframe(first.id, at: 3, transform: ClipTransform(y: -0.05, scale: 1.25, rotation: 4))
         }
         if mains.count > 1 {
-            project.updateClip(mains[1].id) { $0.transitionIn = Transition(kind: .zoom, duration: 0.8) }
+            project.updateClip(mains[1].id) { $0.transitionIn = ClipTransition(kind: .zoom, duration: 0.8) }
         }
         if mains.count > 2 {
-            project.updateClip(mains[2].id) { $0.transitionIn = Transition(kind: .slide, duration: 0.8) }
+            project.updateClip(mains[2].id) { $0.transitionIn = ClipTransition(kind: .slide, duration: 0.8) }
         }
         project.addClip(Clip(kind: .text, name: "Caption", duration: 2.4, text: "Made with SCYDE"), role: .text, at: 0.4)
         return project

@@ -201,7 +201,7 @@ final class CompositionBuilder {
     }
 
     private static func layer(_ source: SXLayer.Source, clip: Clip, isMain: Bool, next: Clip? = nil) -> SXLayer {
-        var out: Transition?
+        var out: ClipTransition?
         if isMain, let n = next, abs(n.start - clip.end) < 0.05 {
             out = n.transitionIn
         }

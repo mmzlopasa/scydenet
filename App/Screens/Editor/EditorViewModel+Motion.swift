@@ -77,13 +77,13 @@ extension EditorViewModel {
 
     // MARK: Transitions
 
-    func setTransition(_ id: UUID, _ transition: Transition?) {
+    func setTransition(_ id: UUID, _ transition: ClipTransition?) {
         perform(transition == nil ? "Remove transition" : "Transition") { p in
             p.updateClip(id) { $0.transitionIn = transition }
         }
     }
 
-    func applyTransitionToAll(_ transition: Transition?) {
+    func applyTransitionToAll(_ transition: ClipTransition?) {
         guard let main = project.tracks.first(where: { $0.role == .main }) else { return }
         let ids = main.clips.dropFirst().map { $0.id }
         perform("Transitions") { p in

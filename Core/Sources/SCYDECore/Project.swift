@@ -102,7 +102,7 @@ public enum TransitionKind: String, Codable, CaseIterable, Sendable {
     }
 }
 
-public struct Transition: Codable, Equatable, Sendable {
+public struct ClipTransition: Codable, Equatable, Sendable {
     public var kind: TransitionKind
     /// Total length, split evenly across the cut.
     public var duration: Double
@@ -157,7 +157,7 @@ public struct Clip: Codable, Equatable, Identifiable, Sendable {
     public var transform: ClipTransform?
     public var keyframes: [Keyframe]?
     /// Transition into this clip from the previous one on the main track.
-    public var transitionIn: Transition?
+    public var transitionIn: ClipTransition?
     /// Audio fades in seconds.
     public var fadeIn: Double?
     public var fadeOut: Double?

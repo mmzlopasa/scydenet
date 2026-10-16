@@ -34,7 +34,7 @@ struct SXLayer: Sendable {
     /// The clip this layer comes from (transform, keyframes, transitions, chroma key).
     var clip: Clip? = nil
     /// Transition into the next clip on the main track, played at the end of this one.
-    var outTransition: Transition? = nil
+    var outTransition: ClipTransition? = nil
 }
 
 /// Transforms being dragged on the preview, read by the compositor every frame so
@@ -379,7 +379,7 @@ final class SXCompositor: NSObject, AVVideoCompositing, @unchecked Sendable {
         ])
     }
 
-    static func transition(_ image: CIImage, clip: Clip, out: Transition?, now: Double, canvas: CGRect) -> CIImage {
+    static func transition(_ image: CIImage, clip: Clip, out: ClipTransition?, now: Double, canvas: CGRect) -> CIImage {
         var amount = 0.0
         var kind: TransitionKind?
         var entering = true

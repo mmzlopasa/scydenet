@@ -144,7 +144,7 @@ struct TransitionSheet: View {
                         }
                     }
                     Button {
-                        model.applyTransitionToAll(kind.map { Transition(kind: $0, duration: duration) })
+                        model.applyTransitionToAll(kind.map { ClipTransition(kind: $0, duration: duration) })
                     } label: {
                         Text("Apply to every cut")
                     }
@@ -172,7 +172,7 @@ struct TransitionSheet: View {
 
     private func apply() {
         guard let id = model.selection else { return }
-        model.setTransition(id, kind.map { Transition(kind: $0, duration: duration) })
+        model.setTransition(id, kind.map { ClipTransition(kind: $0, duration: duration) })
     }
 
     private func option(_ k: TransitionKind?, icon: String, title: String) -> some View {
